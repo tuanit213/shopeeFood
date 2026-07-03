@@ -7,7 +7,6 @@ import '../main_page/main_page.dart';
 import '../profile/profile_page.dart';
 import '../register/register_page.dart';
 import '../splash/splash_page.dart';
-import 'app_colors.dart';
 import 'app_routes.dart';
 
 class ShopeeFoodApp extends StatelessWidget {
@@ -18,11 +17,7 @@ class ShopeeFoodApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ShopeeFood',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        scaffoldBackgroundColor: AppColors.background,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(useMaterial3: true),
       initialRoute: AppRoutes.splash,
       routes: {
         AppRoutes.splash: (_) => const SplashPage(),
