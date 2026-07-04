@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'otp_page.dart';
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -15,6 +15,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       // TODO: Logic gửi OTP
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mã xác nhận đã được gửi!')),
+      );
+
+      // Thêm lệnh chuyển sang trang OTP ngay sau khi hiện thông báo
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const OtpPage()),
       );
     }
   }

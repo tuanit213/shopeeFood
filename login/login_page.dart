@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../register/register_page.dart'; // Đã thêm import trang đăng ký
+import '../register/register_page.dart';
+import '../forgot_pass/forgot_password_page.dart'; // Chuyển hướng sang trang Quên mật khẩu
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,6 +10,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscureText = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,6 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   Expanded(
                     child: TextField(
+                      controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
@@ -85,18 +91,52 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // Nhãn Mã OTP
-            const Text('Mã OTP', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+            // Nhãn Mật khẩu
+            const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
             const SizedBox(height: 8),
             
-            // 6 Ô nhập mã OTP
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(6, (index) => _buildOtpBox()),
+            // Ô nhập Mật khẩu
+            TextField(
+              controller: _passwordController,
+              obscureText: _obscureText,
+              decoration: InputDecoration(
+                hintText: 'Nhập mật khẩu',
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                  onPressed: () => setState(() => _obscureText = !_obscureText),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.deepOrange, width: 1.5),
+                ),
+              ),
             ),
-            const SizedBox(height: 32),
+
+            // Nút Quên mật khẩu
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  // Chuyển hướng sang trang Quên mật khẩu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                  );
+                },
+                child: const Text(
+                  'Quên mật khẩu?',
+                  style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Nút Đăng nhập
             ElevatedButton(
@@ -143,8 +183,8 @@ class _LoginPageState extends State<LoginPage> {
                       fontSize: 13,
                       color: Colors.deepOrange,
                       fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline, // Gạch chân
-                      decorationColor: Colors.deepOrange, // Màu viền gạch chân
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.deepOrange,
                     ),
                   ),
                 ),
@@ -178,32 +218,6 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(width: 24),
           Text(text, style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w500)),
         ],
-      ),
-    );
-  }
-
-  // Hàm tạo giao diện cho từng ô vuông OTP
-  Widget _buildOtpBox() {
-    return SizedBox(
-      width: 45,
-      height: 50,
-      child: TextField(
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        maxLength: 1, // Mỗi ô chỉ cho nhập 1 số
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        decoration: InputDecoration(
-          counterText: '', // Ẩn cái số đếm ký tự đi
-          contentPadding: EdgeInsets.zero,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.deepOrange, width: 2),
-          ),
-        ),
       ),
     );
   }
