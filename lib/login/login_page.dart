@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/app_routes.dart';
 import '../forgot_pass/forgot_password_page.dart';
 import '../register/register_page.dart';
 
@@ -161,7 +162,9 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.main);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepOrange,
                 padding: const EdgeInsets.symmetric(vertical: 16),
