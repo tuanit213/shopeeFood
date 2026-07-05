@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/app_colors.dart';
 import '../app/app_routes.dart';
-import '../forgot_pass/forgot_password_page.dart';
-import '../register/register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,14 +29,13 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-          },
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -49,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepOrange,
+                color: AppColors.primary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -76,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.deepOrange, width: 1.5),
+                border: Border.all(color: AppColors.primary, width: 1.5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -134,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(
-                    color: Colors.deepOrange,
+                    color: AppColors.primary,
                     width: 1.5,
                   ),
                 ),
@@ -144,17 +142,12 @@ class _LoginPageState extends State<LoginPage> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ForgotPasswordPage(),
-                    ),
-                  );
+                  Navigator.pushNamed(context, AppRoutes.forgotPassword);
                 },
                 child: const Text(
                   'Quên mật khẩu?',
                   style: TextStyle(
-                    color: Colors.deepOrange,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -166,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                 Navigator.pushReplacementNamed(context, AppRoutes.main);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -198,21 +191,16 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ),
-                    );
+                    Navigator.pushNamed(context, AppRoutes.register);
                   },
                   child: const Text(
                     'đăng kí',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.deepOrange,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       decoration: TextDecoration.underline,
-                      decorationColor: Colors.deepOrange,
+                      decorationColor: AppColors.primary,
                     ),
                   ),
                 ),

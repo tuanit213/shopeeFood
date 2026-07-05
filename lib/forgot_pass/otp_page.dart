@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../login/login_page.dart';
+import '../app/app_colors.dart';
+import '../app/app_routes.dart';
 
 class OtpPage extends StatefulWidget {
   const OtpPage({super.key});
@@ -18,13 +19,13 @@ class _OtpPageState extends State<OtpPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.deepOrange),
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Xác nhận OTP',
           style: TextStyle(
-            color: Colors.deepOrange,
+            color: AppColors.primary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -48,14 +49,22 @@ class _OtpPageState extends State<OtpPage> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushAndRemoveUntil(
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Xác nhận thành công! Vui lòng đăng nhập lại.',
+                    ),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+                Navigator.pushNamedAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  AppRoutes.login,
                   (route) => false,
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -95,7 +104,7 @@ class _OtpPageState extends State<OtpPage> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.deepOrange, width: 2),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
       ),

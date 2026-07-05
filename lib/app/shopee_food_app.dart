@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../change_pass/change_password_page.dart';
 import '../forgot_pass/forgot_password_page.dart';
+import '../forgot_pass/otp_page.dart';
 import '../login/login_page.dart';
 import '../main_page/main_page.dart';
 import '../profile/profile_page.dart';
@@ -20,7 +21,6 @@ class ShopeeFoodApp extends StatelessWidget {
       title: 'ShopeeFood',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        fontFamily: 'Inter',
         scaffoldBackgroundColor: AppColors.gray50,
         useMaterial3: true,
       ),
@@ -30,6 +30,7 @@ class ShopeeFoodApp extends StatelessWidget {
         AppRoutes.login: (_) => const LoginPage(),
         AppRoutes.register: (_) => const RegisterPage(),
         AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
+        AppRoutes.otp: (_) => const OtpPage(),
         AppRoutes.changePassword: (_) => const ChangePasswordPage(),
         AppRoutes.profile: (_) => const ProfilePage(),
         AppRoutes.main: (_) => const MainPage(),

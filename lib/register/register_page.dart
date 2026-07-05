@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/app_colors.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -14,7 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
-  final bool _obscureText = true;
+  bool _obscureText = true;
 
   @override
   void dispose() {
@@ -42,11 +44,11 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         title: const Text(
           'Đăng ký',
-          style: TextStyle(color: Colors.deepOrange),
+          style: TextStyle(color: AppColors.primary),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.deepOrange),
+        iconTheme: const IconThemeData(color: AppColors.primary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -95,7 +97,18 @@ class _RegisterPageState extends State<RegisterPage> {
               TextFormField(
                 controller: _passController,
                 obscureText: _obscureText,
-                decoration: _buildInputDeco('Mật khẩu', Icons.lock),
+                decoration: _buildInputDeco(
+                  'Mật khẩu',
+                  Icons.lock,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: AppColors.gray500,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureText = !_obscureText),
+                  ),
+                ),
                 validator: (value) =>
                     value!.length < 6 ? 'Mật khẩu phải từ 6 ký tự' : null,
               ),
@@ -119,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ElevatedButton(
                 onPressed: _handleRegister,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -137,13 +150,18 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  InputDecoration _buildInputDeco(String label, IconData icon) {
+  InputDecoration _buildInputDeco(
+    String label,
+    IconData icon, {
+    Widget? suffixIcon,
+  }) {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
+      suffixIcon: suffixIcon,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.deepOrange, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
     );

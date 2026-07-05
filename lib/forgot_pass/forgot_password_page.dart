@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'otp_page.dart';
+import '../app/app_colors.dart';
+import '../app/app_routes.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -24,10 +25,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Mã xác nhận đã được gửi!')));
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const OtpPage()),
-      );
+      Navigator.pushNamed(context, AppRoutes.otp);
     }
   }
 
@@ -38,11 +36,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       appBar: AppBar(
         title: const Text(
           'Quên mật khẩu',
-          style: TextStyle(color: Colors.deepOrange),
+          style: TextStyle(color: AppColors.primary),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.deepOrange),
+        iconTheme: const IconThemeData(color: AppColors.primary),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -64,7 +62,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderSide: const BorderSide(
-                    color: Colors.deepOrange,
+                    color: AppColors.primary,
                     width: 2,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -75,7 +73,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             ElevatedButton(
               onPressed: _handleSendOtp,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepOrange,
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

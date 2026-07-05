@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../app/app_colors.dart';
-import '../change_pass/change_password_page.dart';
+import '../app/app_routes.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -148,12 +148,7 @@ class ProfilePage extends StatelessWidget {
                   icon: Icons.lock_outline,
                   label: 'Đổi mật khẩu',
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ChangePasswordPage(),
-                      ),
-                    );
+                    Navigator.pushNamed(context, AppRoutes.changePassword);
                   },
                 ),
                 const _MenuItem(
@@ -193,7 +188,13 @@ class ProfilePage extends StatelessWidget {
               color: Colors.white,
               width: double.infinity,
               child: TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                    (route) => false,
+                  );
+                },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
