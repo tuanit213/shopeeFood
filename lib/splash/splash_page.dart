@@ -13,9 +13,9 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage>
-    with SingleTickerProviderStateMixin {
+class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late final AnimationController _controller;
+  late final AnimationController _dotController;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
   Timer? _navigationTimer;
@@ -28,6 +28,11 @@ class _SplashPageState extends State<SplashPage>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
+
+    _dotController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
 
     _scaleAnimation = Tween<double>(
       begin: 0.94,
@@ -48,6 +53,7 @@ class _SplashPageState extends State<SplashPage>
   @override
   void dispose() {
     _navigationTimer?.cancel();
+    _dotController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -63,7 +69,7 @@ class _SplashPageState extends State<SplashPage>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.primaryLight,
+                Color(0xFFF05A3A),
                 AppColors.primary,
                 AppColors.primaryDark,
               ],
@@ -74,17 +80,6 @@ class _SplashPageState extends State<SplashPage>
               padding: const EdgeInsets.fromLTRB(24, 22, 24, 32),
               child: Column(
                 children: [
-                  const Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'ShopeeFood',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
                   const Spacer(),
                   FadeTransition(
                     opacity: _fadeAnimation,
@@ -115,14 +110,7 @@ class _SplashPageState extends State<SplashPage>
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const SizedBox(
-                    width: 34,
-                    height: 34,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
+                  _LoadingDots(controller: _dotController),
                   const Spacer(),
                   const Text(
                     'ShopeeFood',
@@ -138,6 +126,53 @@ class _SplashPageState extends State<SplashPage>
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LoadingDots extends StatelessWidget {
+  final AnimationController controller;
+
+  const _LoadingDots({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(3, (index) {
+            final phase = (controller.value + (index * 0.22)) % 1;
+            final scale = phase < 0.5
+                ? 1 + (phase * 0.55)
+                : 1.55 - ((phase - 0.5) * 0.55);
+            final opacity = phase < 0.5
+                ? 0.55 + phase
+                : 1.05 - ((phase - 0.5) * 0.8);
+
+            return Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              child: Transform.scale(
+                scale: scale,
+                child: Opacity(
+                  opacity: opacity.clamp(0.55, 1.0),
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

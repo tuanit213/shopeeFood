@@ -189,11 +189,7 @@ class ProfilePage extends StatelessWidget {
               width: double.infinity,
               child: TextButton.icon(
                 onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AppRoutes.login,
-                    (route) => false,
-                  );
+                  _confirmLogout(context);
                 },
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -213,6 +209,51 @@ class ProfilePage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Đăng xuất?',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          content: const Text(
+            'Bạn sẽ cần đăng nhập lại để tiếp tục đặt món.',
+            style: TextStyle(color: AppColors.gray500),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Đăng xuất'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true || !context.mounted) {
+      return;
+    }
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.login,
+      (route) => false,
     );
   }
 
@@ -291,18 +332,21 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.gray700, size: 22),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 14, color: AppColors.gray700),
+    return Material(
+      color: Colors.white,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.gray700, size: 22),
+        title: Text(
+          label,
+          style: const TextStyle(fontSize: 14, color: AppColors.gray700),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right,
+          color: AppColors.gray500,
+          size: 20,
+        ),
+        onTap: onTap ?? () {},
       ),
-      trailing: const Icon(
-        Icons.chevron_right,
-        color: AppColors.gray500,
-        size: 20,
-      ),
-      onTap: onTap ?? () {},
     );
   }
 }
