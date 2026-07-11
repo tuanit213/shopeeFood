@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -188,10 +191,14 @@ class _LoginPageState extends State<LoginPage> {
 
       final userDoc = users.docs.first;
       final userData = userDoc.data();
-      final storedPassword = (userData['password'] as String?)?.trim();
-      if (storedPassword != null &&
-          storedPassword.isNotEmpty &&
-          storedPassword != _passwordController.text) {
+      final password = _passwordController.text;
+      final storedPasswordHash = (userData['passwordHash'] as String?)?.trim();
+      final legacyPassword = (userData['password'] as String?)?.trim();
+      final passwordMatches =
+          storedPasswordHash == null && legacyPassword == null ||
+          storedPasswordHash == _hashPassword(password) ||
+          legacyPassword == password;
+      if (!passwordMatches) {
         setState(() {
           _showApiError = true;
           _isLoading = false;
@@ -232,6 +239,10 @@ class _LoginPageState extends State<LoginPage> {
       });
       _showErrorSnackBar('Đã có lỗi xảy ra: $error');
     }
+  }
+
+  String _hashPassword(String password) {
+    return sha256.convert(utf8.encode(password)).toString();
   }
 
   @override

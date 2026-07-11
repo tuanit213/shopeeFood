@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -119,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'fullName': _nameController.text.trim(),
         'phone': phone,
         'email': _emailController.text.trim(),
-        'password': _passwordController.text,
+        'passwordHash': _hashPassword(_passwordController.text),
         'acceptedTerms': _acceptedTerms,
         'provider': 'email_password_form',
         'orderCount': 0,
@@ -160,6 +163,10 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  String _hashPassword(String password) {
+    return sha256.convert(utf8.encode(password)).toString();
   }
 
   @override
