@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_session.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -44,10 +45,15 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    _navigationTimer = Timer(const Duration(milliseconds: 2200), () {
+    _navigationTimer = Timer(const Duration(milliseconds: 2200), () async {
       if (!mounted) return;
       if (ModalRoute.of(context)?.isCurrent != true) return;
-      Navigator.pushReplacementNamed(context, AppRoutes.login);
+      final userId = await UserSession.getUserId();
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        userId == null ? AppRoutes.login : AppRoutes.main,
+      );
     });
   }
 

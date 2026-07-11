@@ -66,6 +66,7 @@ class _LoginPageState extends State<LoginPage> {
         setState(() => _showApiError = false);
       }
     });
+    _loadSavedLoginPhone();
   }
 
   @override
@@ -86,6 +87,23 @@ class _LoginPageState extends State<LoginPage> {
       if (_passwordTouched) {
         _passwordError = null;
       }
+    });
+  }
+
+  Future<void> _loadSavedLoginPhone() async {
+    final savedPhone = await UserSession.getSavedPhone();
+    if (!mounted || savedPhone == null) {
+      return;
+    }
+
+    _phoneController.text = savedPhone;
+    _passwordController.clear();
+    setState(() {
+      _phoneTouched = false;
+      _passwordTouched = false;
+      _phoneError = null;
+      _passwordError = null;
+      _showApiError = false;
     });
   }
 
@@ -144,7 +162,11 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      await UserSession.saveUserId(users.docs.first.id);
+      await UserSession.saveLogin(
+        userId: users.docs.first.id,
+        phone: phone,
+        remember: _rememberLogin,
+      );
 
       if (!mounted) {
         return;

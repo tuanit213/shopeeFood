@@ -16,10 +16,12 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
+  final Set<int> _loadedTabs = {0};
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _loadedTabs.add(index);
     });
   }
 
@@ -35,9 +37,15 @@ class _MainPageState extends State<MainPage> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(onProfileTap: () => _onItemTapped(2)),
-          OrdersPage(onBack: () => _onItemTapped(0)),
-          const ProfilePage(),
+          _LazyTab(
+            loaded: _loadedTabs.contains(0),
+            child: HomePage(onProfileTap: () => _onItemTapped(2)),
+          ),
+          _LazyTab(
+            loaded: _loadedTabs.contains(1),
+            child: OrdersPage(onBack: () => _onItemTapped(0)),
+          ),
+          _LazyTab(loaded: _loadedTabs.contains(2), child: const ProfilePage()),
         ],
       ),
       bottomNavigationBar: Container(
@@ -88,6 +96,22 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
     );
+  }
+}
+
+class _LazyTab extends StatelessWidget {
+  final bool loaded;
+  final Widget child;
+
+  const _LazyTab({required this.loaded, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loaded) {
+      return const SizedBox.shrink();
+    }
+
+    return child;
   }
 }
 

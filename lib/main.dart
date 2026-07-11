@@ -6,6 +6,9 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final imageCache = PaintingBinding.instance.imageCache;
+  imageCache.maximumSize = 80;
+  imageCache.maximumSizeBytes = 50 << 20;
 
   // Không để Firebase init fail (network, config sai, chặn cookie...)
   // làm app trắng xóa trên web. Log lỗi và vẫn chạy app.

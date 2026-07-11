@@ -294,7 +294,7 @@ class _ProfileContent extends StatelessWidget {
       return;
     }
 
-    await UserSession.clear();
+    await UserSession.clear(rememberPhone: profile.phone);
     if (!context.mounted) {
       return;
     }
