@@ -16,13 +16,50 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  final Set<int> _loadedTabs = {0};
+  late final List<Widget? Function()> _pageBuilders;
+  late final List<Widget?> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageBuilders = [
+      () => HomePage(onProfileTap: () => _onItemTapped(2)),
+      () => OrdersPage(onBack: () => _onItemTapped(0)),
+      () => const ProfilePage(),
+    ];
+    _pages = List<Widget?>.filled(_pageBuilders.length, null);
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _loadedTabs.add(index);
     });
+  }
+
+  Widget _buildPage(int index) {
+    if (_pages[index] == null) {
+      debugPrint('[MainPage] build tab $index');
+      _pages[index] = _pageBuilders[index]();
+    }
+    return _pages[index]!;
+  }
+
+  Widget _buildLoadedPages() {
+    _buildPage(_selectedIndex);
+
+    return Stack(
+      children: [
+        for (var index = 0; index < _pages.length; index++)
+          if (_pages[index] != null)
+            Offstage(
+              offstage: index != _selectedIndex,
+              child: TickerMode(
+                enabled: index == _selectedIndex,
+                child: _pages[index]!,
+              ),
+            ),
+      ],
+    );
   }
 
   @override
@@ -34,20 +71,7 @@ class _MainPageState extends State<MainPage> {
         : math.min(screenWidth, 390.0);
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          _LazyTab(
-            loaded: _loadedTabs.contains(0),
-            child: HomePage(onProfileTap: () => _onItemTapped(2)),
-          ),
-          _LazyTab(
-            loaded: _loadedTabs.contains(1),
-            child: OrdersPage(onBack: () => _onItemTapped(0)),
-          ),
-          _LazyTab(loaded: _loadedTabs.contains(2), child: const ProfilePage()),
-        ],
-      ),
+      body: _buildLoadedPages(),
       bottomNavigationBar: Container(
         height: 58 + bottomInset,
         padding: EdgeInsets.only(bottom: bottomInset),
@@ -96,22 +120,6 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
     );
-  }
-}
-
-class _LazyTab extends StatelessWidget {
-  final bool loaded;
-  final Widget child;
-
-  const _LazyTab({required this.loaded, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    if (!loaded) {
-      return const SizedBox.shrink();
-    }
-
-    return child;
   }
 }
 

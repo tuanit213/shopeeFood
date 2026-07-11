@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -5,51 +7,198 @@ import '../app/app_colors.dart';
 import '../app/app_routes.dart';
 import '../app/user_session.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
+  _UserProfile? _profile;
+  String? _errorMessage;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _userSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    await _userSub?.cancel();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final userId = await UserSession.getUserId();
+    if (!mounted) {
+      return;
+    }
+
+    if (userId == null || userId.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _profile = null;
+      });
+      return;
+    }
+
+    _userSub = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            if (!mounted) {
+              return;
+            }
+
+            final data = snapshot.data();
+            setState(() {
+              _profile = data == null ? null : _UserProfile.fromMap(data);
+              _isLoading = false;
+              _errorMessage = null;
+            });
+          },
+          onError: (Object error) {
+            if (!mounted) {
+              return;
+            }
+
+            setState(() {
+              _isLoading = false;
+              _errorMessage = 'Không thể tải thông tin. Thử lại';
+            });
+          },
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.gray50,
+        body: _ProfileSkeleton(),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: AppColors.gray50,
+        body: _ProfileErrorState(
+          message: _errorMessage!,
+          onRetry: _loadProfile,
+        ),
+      );
+    }
+
+    final profile = _profile;
+    if (profile == null) {
+      return Scaffold(
+        backgroundColor: AppColors.gray50,
+        body: _ProfileEmptyState(onLogin: () => _goToLogin(context)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.gray50,
-      body: FutureBuilder<String?>(
-        future: UserSession.getUserId(),
-        builder: (context, sessionSnapshot) {
-          if (sessionSnapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: _ProfileContent(profile: profile),
+    );
+  }
 
-          final userId = sessionSnapshot.data;
-          if (userId == null || userId.isEmpty) {
-            return _ProfileEmptyState(onLogin: () => _goToLogin(context));
-          }
+  void _goToLogin(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  }
+}
 
-          return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-            stream: FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .snapshots(),
-            builder: (context, userSnapshot) {
-              if (userSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+class _ProfileSkeleton extends StatelessWidget {
+  const _ProfileSkeleton();
 
-              final data = userSnapshot.data?.data();
-              if (data == null) {
-                return _ProfileEmptyState(onLogin: () => _goToLogin(context));
-              }
-
-              final profile = _UserProfile.fromMap(data);
-              return _ProfileContent(profile: profile);
-            },
-          );
-        },
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _skeletonBox(height: 132),
+            const SizedBox(height: 16),
+            _skeletonBox(height: 68),
+            const SizedBox(height: 16),
+            _skeletonBox(height: 220),
+          ],
+        ),
       ),
     );
   }
 
-  static void _goToLogin(BuildContext context) {
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  Widget _skeletonBox({required double height}) {
+    return Container(
+      width: double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0E0E0),
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+}
+
+class _ProfileErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ProfileErrorState({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              size: 48,
+              color: AppColors.gray500,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gray700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

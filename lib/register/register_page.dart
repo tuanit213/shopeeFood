@@ -119,6 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'fullName': _nameController.text.trim(),
         'phone': phone,
         'email': _emailController.text.trim(),
+        'password': _passwordController.text,
         'acceptedTerms': _acceptedTerms,
         'provider': 'email_password_form',
         'orderCount': 0,

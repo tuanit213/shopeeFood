@@ -107,6 +107,29 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  String _messageForFirebaseError(FirebaseException error) {
+    return switch (error.code) {
+      'wrong-password' || 'invalid-credential' => 'Sai mật khẩu',
+      'user-not-found' => 'Tài khoản không tồn tại',
+      'too-many-requests' => 'Quá nhiều lần thử. Vui lòng đợi.',
+      'network-request-failed' || 'unavailable' => 'Không có kết nối mạng',
+      _ => 'Đã có lỗi xảy ra: ${error.code}',
+    };
+  }
+
   bool _validatePhone() {
     final phone = _phoneController.text.trim();
     final hasError = !RegExp(r'^\d{9,10}$').hasMatch(phone);
@@ -159,13 +182,28 @@ class _LoginPageState extends State<LoginPage> {
           _showApiError = true;
           _isLoading = false;
         });
+        _showErrorSnackBar('Tài khoản không tồn tại');
         return;
       }
 
-      await UserSession.saveLogin(
-        userId: users.docs.first.id,
+      final userDoc = users.docs.first;
+      final userData = userDoc.data();
+      final storedPassword = (userData['password'] as String?)?.trim();
+      if (storedPassword != null &&
+          storedPassword.isNotEmpty &&
+          storedPassword != _passwordController.text) {
+        setState(() {
+          _showApiError = true;
+          _isLoading = false;
+        });
+        _showErrorSnackBar('Sai mật khẩu');
+        return;
+      }
+
+      await UserSession.saveSession(
+        userId: userDoc.id,
         phone: phone,
-        remember: _rememberLogin,
+        rememberMe: _rememberLogin,
       );
 
       if (!mounted) {
@@ -173,7 +211,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       Navigator.pushReplacementNamed(context, AppRoutes.main);
-    } on FirebaseException {
+    } on FirebaseException catch (error) {
       if (!mounted) {
         return;
       }
@@ -182,6 +220,17 @@ class _LoginPageState extends State<LoginPage> {
         _showApiError = true;
         _isLoading = false;
       });
+      _showErrorSnackBar(_messageForFirebaseError(error));
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _showApiError = true;
+        _isLoading = false;
+      });
+      _showErrorSnackBar('Đã có lỗi xảy ra: $error');
     }
   }
 

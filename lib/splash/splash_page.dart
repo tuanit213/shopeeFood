@@ -45,16 +45,34 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    _navigationTimer = Timer(const Duration(milliseconds: 2200), () async {
-      if (!mounted) return;
-      if (ModalRoute.of(context)?.isCurrent != true) return;
-      final userId = await UserSession.getUserId();
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(
-        context,
-        userId == null ? AppRoutes.login : AppRoutes.main,
+    _navigationTimer = Timer(
+      const Duration(milliseconds: 2200),
+      _navigateAfterSessionCheck,
+    );
+  }
+
+  Future<void> _navigateAfterSessionCheck() async {
+    if (!mounted) return;
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+
+    try {
+      final userId = await UserSession.getUserId().timeout(
+        const Duration(seconds: 3),
       );
-    });
+      if (!mounted) return;
+
+      final route = userId == null ? AppRoutes.login : AppRoutes.main;
+      debugPrint(
+        userId == null
+            ? '[Splash] no session → login'
+            : '[Splash] session valid → main',
+      );
+      Navigator.pushReplacementNamed(context, route);
+    } catch (error) {
+      debugPrint('[Splash] session check failed: $error');
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    }
   }
 
   @override
