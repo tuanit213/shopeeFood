@@ -7,8 +7,12 @@ environment:
   sdk: ^3.12.0
 
 dependencies:
+  cloud_firestore: ^6.6.0
+  firebase_core: ^4.11.0
   flutter:
     sdk: flutter
+  google_fonts: ^6.2.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -19,3 +23,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/icons/categories/
+    - assets/images/banners/

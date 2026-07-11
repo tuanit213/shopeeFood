@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_session.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -111,18 +113,52 @@ class _RegisterPageState extends State<RegisterPage> {
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
-    await Future<void>.delayed(const Duration(milliseconds: 850));
-    if (!mounted) {
-      return;
-    }
+    try {
+      final phone = _phoneController.text.replaceAll(RegExp(r'\s+'), '');
+      final userRef = await FirebaseFirestore.instance.collection('users').add({
+        'fullName': _nameController.text.trim(),
+        'phone': phone,
+        'email': _emailController.text.trim(),
+        'acceptedTerms': _acceptedTerms,
+        'provider': 'email_password_form',
+        'orderCount': 0,
+        'shopeeXu': 0,
+        'ratingCount': 0,
+        'ratingAverage': null,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      await UserSession.saveUserId(userRef.id);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+    } on FirebaseException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Không thể lưu tài khoản: ${error.message ?? error.code}',
+          ),
+          backgroundColor: _errorColor,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override

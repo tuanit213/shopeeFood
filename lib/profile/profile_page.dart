@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_session.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -9,205 +12,246 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.gray50,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              color: AppColors.primary,
-              padding: const EdgeInsets.only(
-                top: 60,
-                left: 20,
-                right: 20,
-                bottom: 25,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryLight,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 45,
-                          color: Colors.white,
-                        ),
+      body: FutureBuilder<String?>(
+        future: UserSession.getUserId(),
+        builder: (context, sessionSnapshot) {
+          if (sessionSnapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final userId = sessionSnapshot.data;
+          if (userId == null || userId.isEmpty) {
+            return _ProfileEmptyState(onLogin: () => _goToLogin(context));
+          }
+
+          return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(userId)
+                .snapshots(),
+            builder: (context, userSnapshot) {
+              if (userSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final data = userSnapshot.data?.data();
+              if (data == null) {
+                return _ProfileEmptyState(onLogin: () => _goToLogin(context));
+              }
+
+              final profile = _UserProfile.fromMap(data);
+              return _ProfileContent(profile: profile);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  static void _goToLogin(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  }
+}
+
+class _ProfileContent extends StatelessWidget {
+  final _UserProfile profile;
+
+  const _ProfileContent({required this.profile});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Container(
+            color: AppColors.primary,
+            padding: const EdgeInsets.only(
+              top: 60,
+              left: 20,
+              right: 20,
+              bottom: 25,
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Nguyễn Văn Tuấn',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      child: const Icon(
+                        Icons.person,
+                        size: 45,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profile.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              '090*****67',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            profile.phone,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
                             ),
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFF59D),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.stars,
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF59D),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.stars,
+                                  color: Colors.orange,
+                                  size: 14,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Thành viên mới',
+                                  style: TextStyle(
                                     color: Colors.orange,
-                                    size: 14,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Thành viên Vàng',
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _HeaderStatItem(title: '12 Đơn đã đặt'),
-                      Text('|', style: TextStyle(color: Colors.white30)),
-                      _HeaderStatItem(title: '2.450 ShopeeXu'),
-                      Text('|', style: TextStyle(color: Colors.white30)),
-                      _HeaderStatItem(title: '4.8 ★'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _QuickActionItem(
-                    icon: Icons.confirmation_number_outlined,
-                    label: 'Voucher',
-                    color: Colors.orange,
-                  ),
-                  _QuickActionItem(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'ShopeePay',
-                    color: Colors.red,
-                  ),
-                  _QuickActionItem(
-                    icon: Icons.card_giftcard,
-                    label: 'Điểm thưởng',
-                    color: Colors.amber,
-                  ),
-                  _QuickActionItem(
-                    icon: Icons.favorite_border,
-                    label: 'Yêu thích',
-                    color: Colors.pink,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildMenuSection(
-              title: 'Tài khoản',
-              items: [
-                const _MenuItem(
-                  icon: Icons.person_outline,
-                  label: 'Thông tin cá nhân',
+                    ),
+                  ],
                 ),
-                _MenuItem(
-                  icon: Icons.lock_outline,
-                  label: 'Đổi mật khẩu',
-                  onTap: () {
-                    Navigator.pushNamed(context, AppRoutes.changePassword);
-                  },
-                ),
-                const _MenuItem(
-                  icon: Icons.location_on_outlined,
-                  label: 'Địa chỉ giao hàng',
-                ),
-                const _MenuItem(
-                  icon: Icons.payment_outlined,
-                  label: 'Phương thức thanh toán',
-                ),
-                const _MenuItem(
-                  icon: Icons.notifications_none,
-                  label: 'Thông báo',
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _HeaderStatItem(title: '${profile.orderCount} Đơn đã đặt'),
+                    const Text('|', style: TextStyle(color: Colors.white30)),
+                    _HeaderStatItem(title: '${profile.shopeeXu} ShopeeXu'),
+                    const Text('|', style: TextStyle(color: Colors.white30)),
+                    _HeaderStatItem(title: profile.ratingLabel),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _buildMenuSection(
-              title: 'Hỗ trợ',
-              items: [
-                const _MenuItem(
-                  icon: Icons.help_outline,
-                  label: 'Trung tâm hỗ trợ',
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _QuickActionItem(
+                  icon: Icons.confirmation_number_outlined,
+                  label: 'Voucher',
+                  color: Colors.orange,
                 ),
-                const _MenuItem(
-                  icon: Icons.phone_in_talk_outlined,
-                  label: 'Liên hệ chúng tôi',
+                _QuickActionItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'ShopeePay',
+                  color: Colors.red,
                 ),
-                const _MenuItem(
-                  icon: Icons.star_border,
-                  label: 'Đánh giá ứng dụng',
+                _QuickActionItem(
+                  icon: Icons.card_giftcard,
+                  label: 'Điểm thưởng',
+                  color: Colors.amber,
+                ),
+                _QuickActionItem(
+                  icon: Icons.favorite_border,
+                  label: 'Yêu thích',
+                  color: Colors.pink,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Container(
-              color: Colors.white,
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {
-                  _confirmLogout(context);
+          ),
+          const SizedBox(height: 12),
+          _buildMenuSection(
+            title: 'Tài khoản',
+            items: [
+              const _MenuItem(
+                icon: Icons.person_outline,
+                label: 'Thông tin cá nhân',
+              ),
+              _MenuItem(
+                icon: Icons.lock_outline,
+                label: 'Đổi mật khẩu',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.changePassword);
                 },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                icon: const Icon(Icons.logout, color: AppColors.primary),
-                label: const Text(
-                  'Đăng xuất',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+              ),
+              const _MenuItem(
+                icon: Icons.location_on_outlined,
+                label: 'Địa chỉ giao hàng',
+              ),
+              const _MenuItem(
+                icon: Icons.payment_outlined,
+                label: 'Phương thức thanh toán',
+              ),
+              const _MenuItem(
+                icon: Icons.notifications_none,
+                label: 'Thông báo',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildMenuSection(
+            title: 'Hỗ trợ',
+            items: const [
+              _MenuItem(icon: Icons.help_outline, label: 'Trung tâm hỗ trợ'),
+              _MenuItem(
+                icon: Icons.phone_in_talk_outlined,
+                label: 'Liên hệ chúng tôi',
+              ),
+              _MenuItem(icon: Icons.star_border, label: 'Đánh giá ứng dụng'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            color: Colors.white,
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () => _confirmLogout(context),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+              icon: const Icon(Icons.logout, color: AppColors.primary),
+              label: const Text(
+                'Đăng xuất',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
@@ -250,6 +294,11 @@ class ProfilePage extends StatelessWidget {
       return;
     }
 
+    await UserSession.clear();
+    if (!context.mounted) {
+      return;
+    }
+
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.login,
@@ -284,17 +333,107 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-class _HeaderStatItem extends StatelessWidget {
-  final String title;
-  const _HeaderStatItem({required this.title});
+class _ProfileEmptyState extends StatelessWidget {
+  final VoidCallback onLogin;
+
+  const _ProfileEmptyState({required this.onLogin});
+
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.person_off_outlined,
+              size: 48,
+              color: AppColors.gray500,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Chưa có dữ liệu tài khoản',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gray700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: onLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Đăng nhập'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserProfile {
+  final String fullName;
+  final String phone;
+  final int orderCount;
+  final int shopeeXu;
+  final int ratingCount;
+  final double? ratingAverage;
+
+  const _UserProfile({
+    required this.fullName,
+    required this.phone,
+    required this.orderCount,
+    required this.shopeeXu,
+    required this.ratingCount,
+    required this.ratingAverage,
+  });
+
+  factory _UserProfile.fromMap(Map<String, dynamic> data) {
+    final rating = data['ratingAverage'];
+    return _UserProfile(
+      fullName: (data['fullName'] as String?)?.trim().isNotEmpty == true
+          ? (data['fullName'] as String).trim()
+          : 'Người dùng',
+      phone: (data['phone'] as String?)?.trim() ?? '',
+      orderCount: (data['orderCount'] as num?)?.toInt() ?? 0,
+      shopeeXu: (data['shopeeXu'] as num?)?.toInt() ?? 0,
+      ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
+      ratingAverage: rating is num ? rating.toDouble() : null,
+    );
+  }
+
+  String get ratingLabel {
+    if (ratingCount <= 0 || ratingAverage == null) {
+      return 'Chưa đánh giá';
+    }
+
+    return '${ratingAverage!.toStringAsFixed(1)} ★';
+  }
+}
+
+class _HeaderStatItem extends StatelessWidget {
+  final String title;
+
+  const _HeaderStatItem({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Text(
+        title,
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -304,11 +443,13 @@ class _QuickActionItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+
   const _QuickActionItem({
     required this.icon,
     required this.label,
     required this.color,
   });
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -328,6 +469,7 @@ class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+
   const _MenuItem({required this.icon, required this.label, this.onTap});
 
   @override

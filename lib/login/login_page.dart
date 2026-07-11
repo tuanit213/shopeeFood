@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_session.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -122,12 +124,43 @@ class _LoginPageState extends State<LoginPage> {
       _showApiError = false;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    if (!mounted) {
-      return;
-    }
+    try {
+      final phone = _phoneController.text.trim();
+      final users = await FirebaseFirestore.instance
+          .collection('users')
+          .where('phone', isEqualTo: phone)
+          .limit(1)
+          .get();
 
-    Navigator.pushReplacementNamed(context, AppRoutes.main);
+      if (!mounted) {
+        return;
+      }
+
+      if (users.docs.isEmpty) {
+        setState(() {
+          _showApiError = true;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      await UserSession.saveUserId(users.docs.first.id);
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pushReplacementNamed(context, AppRoutes.main);
+    } on FirebaseException {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _showApiError = true;
+        _isLoading = false;
+      });
+    }
   }
 
   @override

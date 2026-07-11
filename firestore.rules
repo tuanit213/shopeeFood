@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'fullName',
+          'phone',
+          'email',
+          'acceptedTerms',
+          'provider',
+          'orderCount',
+          'shopeeXu',
+          'ratingCount',
+          'ratingAverage',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.fullName is string
+        && request.resource.data.phone is string
+        && request.resource.data.email is string
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.provider == 'email_password_form'
+        && request.resource.data.orderCount == 0
+        && request.resource.data.shopeeXu == 0
+        && request.resource.data.ratingCount == 0
+        && request.resource.data.ratingAverage == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow read: if true;
+      allow update, delete: if false;
+    }
+  }
+}

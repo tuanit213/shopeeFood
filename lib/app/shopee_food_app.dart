@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../change_pass/change_password_page.dart';
 import '../forgot_pass/forgot_password_page.dart';
@@ -14,6 +15,26 @@ import 'app_routes.dart';
 class ShopeeFoodApp extends StatelessWidget {
   const ShopeeFoodApp({super.key});
 
+  static const _knownRoutes = {
+    AppRoutes.splash,
+    AppRoutes.login,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+    AppRoutes.otp,
+    AppRoutes.changePassword,
+    AppRoutes.profile,
+    AppRoutes.main,
+  };
+
+  String get _initialRoute {
+    final uri = Uri.base;
+    final hashRoute = uri.fragment.startsWith('/') ? uri.fragment : null;
+    final pathRoute = uri.path == '/' ? null : uri.path;
+    final route = hashRoute ?? pathRoute ?? AppRoutes.splash;
+
+    return _knownRoutes.contains(route) ? route : AppRoutes.splash;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,8 +44,12 @@ class ShopeeFoodApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         scaffoldBackgroundColor: AppColors.gray50,
         useMaterial3: true,
+        // ShopeeFood trên Android dùng cảm giác system sans gọn, chắc.
+        // Roboto giữ toàn app đồng bộ và gần app gốc hơn Nunito Sans.
+        textTheme: GoogleFonts.robotoTextTheme(),
+        primaryTextTheme: GoogleFonts.robotoTextTheme(),
       ),
-      initialRoute: AppRoutes.splash,
+      initialRoute: _initialRoute,
       routes: {
         AppRoutes.splash: (_) => const SplashPage(),
         AppRoutes.login: (_) => const LoginPage(),

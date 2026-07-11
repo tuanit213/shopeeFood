@@ -1,0 +1,25 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "shopeefood-6a82f",
+          "appId": "1:134436958243:android:45576cd98681b5246e4196",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "shopeefood-6a82f",
+          "configurations": {
+            "android": "1:134436958243:android:45576cd98681b5246e4196",
+            "web": "1:134436958243:web:087b284df3785ed96e4196"
+          }
+        }
+      }
+    }
+  }
+}

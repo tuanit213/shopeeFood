@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Codex/debug preview artifacts
+devtools_options.yaml
+home_*.png
+banner_*_check.png

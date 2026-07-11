@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "134436958243",
+    "project_id": "shopeefood-6a82f",
+    "storage_bucket": "shopeefood-6a82f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:134436958243:android:45576cd98681b5246e4196",
+        "android_client_info": {
+          "package_name": "com.example.shopeefood"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmgF6it19XvirNPm2_qbBJKQclnb943pY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

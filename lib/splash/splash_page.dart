@@ -46,6 +46,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
     _navigationTimer = Timer(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
       Navigator.pushReplacementNamed(context, AppRoutes.login);
     });
   }
