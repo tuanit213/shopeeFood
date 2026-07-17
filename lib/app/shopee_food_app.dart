@@ -37,17 +37,39 @@ class ShopeeFoodApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final robotoFamily = GoogleFonts.roboto().fontFamily;
+    final robotoTextTheme = GoogleFonts.robotoTextTheme();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ShopeeFood',
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: MediaQuery.textScalerOf(
+            context,
+          ).clamp(minScaleFactor: 1.0, maxScaleFactor: 1.08),
+        ),
+        child: child!,
+      ),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         scaffoldBackgroundColor: AppColors.gray50,
         useMaterial3: true,
         // ShopeeFood trên Android dùng cảm giác system sans gọn, chắc.
         // Roboto giữ toàn app đồng bộ và gần app gốc hơn Nunito Sans.
-        textTheme: GoogleFonts.robotoTextTheme(),
-        primaryTextTheme: GoogleFonts.robotoTextTheme(),
+        fontFamily: robotoFamily,
+        textTheme: robotoTextTheme,
+        primaryTextTheme: robotoTextTheme,
+        appBarTheme: AppBarTheme(
+          titleTextStyle: GoogleFonts.roboto(
+            color: const Color(0xFF212121),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          hintStyle: GoogleFonts.roboto(color: const Color(0xFF9E9E9E)),
+        ),
       ),
       initialRoute: _initialRoute,
       routes: {

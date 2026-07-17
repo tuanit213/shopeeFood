@@ -224,19 +224,14 @@ class _LoadingMark extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primaryBg,
-              borderRadius: BorderRadius.circular(24),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              'assets/images/app_logo.png',
+              width: 94,
+              height: 94,
+              fit: BoxFit.contain,
             ),
-          ),
-          const Icon(Icons.delivery_dining, color: AppColors.primary, size: 58),
-          const Positioned(
-            right: 26,
-            top: 28,
-            child: Icon(Icons.restaurant, color: AppColors.success, size: 22),
           ),
         ],
       ),

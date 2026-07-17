@@ -48,3 +48,8 @@ app.*.map.json
 devtools_options.yaml
 home_*.png
 banner_*_check.png
+
+# Local secrets
+.env
+.env.*
+secrets/

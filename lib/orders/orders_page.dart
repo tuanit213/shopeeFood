@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_colors.dart';
+import '../checkout/checkout_models.dart';
+import 'order_state.dart';
+import 'order_tracking_detail_page.dart';
 
 class OrdersPage extends StatefulWidget {
   final VoidCallback? onBack;
@@ -14,13 +17,7 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage> {
   int _activeTab = 0;
 
-  final List<String> _tabs = const [
-    'Đang đến',
-    'Deal đã mua',
-    'Lịch sử',
-    'Đánh giá',
-    'Đơn nháp',
-  ];
+  static const _tabs = ['Đang đến', 'Đơn nháp', 'Lịch sử'];
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +32,24 @@ class _OrdersPageState extends State<OrdersPage> {
               children: [
                 _buildHeader(context),
                 _buildTabs(),
-                Expanded(child: _EmptyOrderState(tabLabel: _tabs[_activeTab])),
+                Expanded(
+                  child: ValueListenableBuilder<List<OrderEntry>>(
+                    valueListenable: OrderState.entries,
+                    builder: (context, entries, _) {
+                      final visible = _entriesForTab(entries);
+                      if (visible.isEmpty) {
+                        return _EmptyOrderState(tabLabel: _tabs[_activeTab]);
+                      }
+                      return ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 88),
+                        itemCount: visible.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) =>
+                            _OrderCard(entry: visible[index]),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -44,18 +58,29 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
+  List<OrderEntry> _entriesForTab(List<OrderEntry> entries) {
+    return switch (_activeTab) {
+      0 =>
+        entries
+            .where((entry) => entry.status == OrderStatus.delivering)
+            .toList(),
+      1 => entries.where((entry) => entry.status == OrderStatus.cart).toList(),
+      _ => const <OrderEntry>[],
+    };
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Container(
-      height: 64,
+      height: 52,
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         children: [
           IconButton(
             onPressed: widget.onBack ?? () => Navigator.maybePop(context),
             icon: const Icon(Icons.arrow_back_rounded),
             color: AppColors.primary,
-            iconSize: 30,
+            iconSize: 22,
             tooltip: 'Quay lại',
           ),
           const Expanded(
@@ -64,7 +89,7 @@ class _OrdersPageState extends State<OrdersPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF212121),
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -73,7 +98,7 @@ class _OrdersPageState extends State<OrdersPage> {
             onPressed: () => _showSearchHint(context),
             icon: const Icon(Icons.search_rounded),
             color: AppColors.primary,
-            iconSize: 30,
+            iconSize: 22,
             tooltip: 'Tìm đơn hàng',
           ),
         ],
@@ -83,43 +108,44 @@ class _OrdersPageState extends State<OrdersPage> {
 
   Widget _buildTabs() {
     return Container(
-      height: 52,
+      height: 44,
       color: Colors.white,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        itemCount: _tabs.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 14),
-        itemBuilder: (context, index) {
-          final active = index == _activeTab;
-
-          return InkWell(
-            onTap: () => setState(() => _activeTab = index),
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 94),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: active ? AppColors.primary : Colors.transparent,
-                    width: 3,
+      child: Row(
+        children: [
+          for (var index = 0; index < _tabs.length; index++)
+            Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _activeTab = index),
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: index == _activeTab
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    _tabs[index],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: index == _activeTab
+                          ? AppColors.primary
+                          : const Color(0xFF212121),
+                      fontSize: 14,
+                      fontWeight: index == _activeTab
+                          ? FontWeight.w800
+                          : FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                _tabs[index],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: active ? AppColors.primary : const Color(0xFF212121),
-                  fontSize: 17,
-                  fontWeight: active ? FontWeight.w800 : FontWeight.w500,
-                ),
-              ),
             ),
-          );
-        },
+        ],
       ),
     );
   }
@@ -129,7 +155,7 @@ class _OrdersPageState extends State<OrdersPage> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: const Text('Chưa có đơn hàng để tìm kiếm'),
+          content: const Text('Chưa có thêm bộ lọc đơn hàng'),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(milliseconds: 1200),
           backgroundColor: AppColors.primary,
@@ -138,6 +164,174 @@ class _OrdersPageState extends State<OrdersPage> {
           ),
         ),
       );
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  final OrderEntry entry;
+
+  const _OrderCard({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final order = entry.order;
+    final firstItem = order.items.isEmpty ? null : order.items.first;
+    final isDelivering = entry.status == OrderStatus.delivering;
+
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrderTrackingDetailPage(entry: entry),
+        ),
+      ),
+      borderRadius: BorderRadius.circular(10),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFEDEDED)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFF0ED),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isDelivering
+                            ? Icons.delivery_dining_rounded
+                            : Icons.shopping_basket_outlined,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isDelivering
+                                ? 'Đang vận chuyển'
+                                : 'Đang có trong giỏ',
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            order.restaurant.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF212121),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      checkoutFormatPrice(order.total),
+                      style: const TextStyle(
+                        color: Color(0xFF212121),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                if (firstItem != null)
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(7),
+                        child: _OrderFoodImage(path: firstItem.imageUrl),
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              firstItem.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF212121),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${order.itemCount} món · ${order.paymentMethod}',
+                              style: const TextStyle(
+                                color: Color(0xFF757575),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              order.address,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF9E9E9E),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderFoodImage extends StatelessWidget {
+  final String path;
+
+  const _OrderFoodImage({required this.path});
+
+  @override
+  Widget build(BuildContext context) {
+    final isAsset = path.startsWith('assets/');
+    if (isAsset) {
+      return Image.asset(path, width: 54, height: 54, fit: BoxFit.cover);
+    }
+    return Image.network(
+      path,
+      width: 54,
+      height: 54,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => Container(
+        width: 54,
+        height: 54,
+        color: const Color(0xFFEDEDED),
+        child: const Icon(Icons.restaurant_rounded, color: Colors.white),
+      ),
+    );
   }
 }
 
@@ -157,34 +351,34 @@ class _EmptyOrderState extends StatelessWidget {
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 86, 24, 32),
+          padding: const EdgeInsets.fromLTRB(24, 74, 24, 32),
           child: Column(
             children: [
               const _LoadingDots(),
-              const SizedBox(height: 100),
+              const SizedBox(height: 82),
               const SizedBox(
-                width: 132,
-                height: 132,
+                width: 116,
+                height: 116,
                 child: CustomPaint(painter: _OrderEmptyPainter()),
               ),
-              const SizedBox(height: 34),
+              const SizedBox(height: 30),
               const Text(
                 'Quên chưa đặt món rồi nè bạn ơi?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFF424242),
-                  fontSize: 24,
+                  fontSize: 20,
                   height: 1.25,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 _messageForTab(tabLabel),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFF6F6F6F),
-                  fontSize: 17,
+                  fontSize: 14,
                   height: 1.35,
                   fontWeight: FontWeight.w400,
                 ),
@@ -198,10 +392,12 @@ class _EmptyOrderState extends StatelessWidget {
 
   String _messageForTab(String tabLabel) {
     if (tabLabel == 'Đang đến') {
-      return 'Bạn sẽ nhìn thấy các món đang được chuẩn bị hoặc giao đi tại đây để kiểm tra đơn hàng nhanh hơn!';
+      return 'Bạn sẽ nhìn thấy món đang chuẩn bị hoặc đang giao tại đây.';
     }
-
-    return 'Khi có dữ liệu ở mục $tabLabel, thông tin đơn hàng sẽ hiển thị tại đây.';
+    if (tabLabel == 'Đơn nháp') {
+      return 'Món vừa thêm vào giỏ sẽ xuất hiện ở đây để bạn quay lại đặt tiếp.';
+    }
+    return 'Lịch sử đơn hàng sẽ hiển thị khi bạn hoàn tất đơn.';
   }
 }
 
@@ -213,11 +409,11 @@ class _LoadingDots extends StatelessWidget {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        _Dot(opacity: 0.92, size: 10),
+        SizedBox(width: 6),
+        _Dot(opacity: 0.78, size: 10),
+        SizedBox(width: 6),
         _Dot(opacity: 0.92, size: 14),
-        SizedBox(width: 7),
-        _Dot(opacity: 0.78, size: 14),
-        SizedBox(width: 7),
-        _Dot(opacity: 0.92, size: 18),
       ],
     );
   }

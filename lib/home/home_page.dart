@@ -4,19 +4,30 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../address/address_pages.dart';
+import '../address/delivery_address.dart';
 import '../app/app_colors.dart';
+import '../checkout/checkout_models.dart';
+import '../location/location_service.dart';
+import '../orders/order_state.dart';
+import '../orders/order_tracking_detail_page.dart';
+import '../restaurant/restaurant_detail_page.dart';
+import 'nearby_restaurant_service.dart';
+import 'promo_results_page.dart';
+import 'restaurant_repository.dart';
 
 class HomePage extends StatefulWidget {
   final VoidCallback? onProfileTap;
+  final ValueChanged<bool>? onLocationGateChanged;
 
-  const HomePage({super.key, this.onProfileTap});
+  const HomePage({super.key, this.onProfileTap, this.onLocationGateChanged});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final PageController _bannerController;
   late final AnimationController _bannerMotionController;
   late final DateTime _flashEndsAt;
@@ -26,10 +37,17 @@ class _HomePageState extends State<HomePage>
   int _activeBanner = 0;
   int _activeSort = 0;
   Duration _flashRemaining = const Duration(hours: 1);
+  AppLocation _location = AppLocation.fallback;
+  DeliveryAddress? _selectedDeliveryAddress;
+  List<_RestaurantData> _visibleRestaurants = _restaurants;
+  bool _isLocating = true;
+  bool _showLocationGate = true;
+  String? _locationGateAddress;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _bannerController = PageController();
     _bannerMotionController = AnimationController(
       vsync: this,
@@ -38,15 +56,24 @@ class _HomePageState extends State<HomePage>
     _flashEndsAt = DateTime.now().add(const Duration(hours: 1));
     _startBannerTimer();
     _startCountdownTimer();
+    _loadNearbyRestaurants();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bannerTimer?.cancel();
     _countdownTimer?.cancel();
     _bannerMotionController.dispose();
     _bannerController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_showLocationGate) {
+      _loadNearbyRestaurants();
+    }
   }
 
   @override
@@ -61,6 +88,16 @@ class _HomePageState extends State<HomePage>
               ? constraints.maxWidth
               : math.min(constraints.maxWidth, 390.0);
 
+          if (_showLocationGate) {
+            return Align(
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: frameWidth,
+                child: _buildLocationLoadingPage(topPadding),
+              ),
+            );
+          }
+
           return Align(
             alignment: Alignment.topCenter,
             child: SizedBox(
@@ -71,11 +108,16 @@ class _HomePageState extends State<HomePage>
                     pinned: true,
                     delegate: _HeaderDelegate(
                       topPadding: topPadding,
+                      address:
+                          _selectedDeliveryAddress?.displayAddress ??
+                          _location.address,
                       onBack: () => Navigator.maybePop(context),
+                      onAddressTap: _openAddressBook,
                     ),
                   ),
                   SliverToBoxAdapter(child: _buildHeroCarousel()),
                   SliverToBoxAdapter(child: _buildCategories()),
+                  SliverToBoxAdapter(child: _buildActiveOrdersNotice()),
                   SliverToBoxAdapter(child: _buildDealSection()),
                   SliverToBoxAdapter(child: _buildCollectionSection()),
                   SliverToBoxAdapter(child: _buildFlashSaleSection()),
@@ -91,7 +133,7 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                   ),
-                  for (final section in _restaurantSections)
+                  for (final section in _restaurantSectionsForVisibleItems)
                     SliverToBoxAdapter(child: _buildRestaurantShelf(section)),
                   SliverPersistentHeader(
                     pinned: true,
@@ -135,6 +177,186 @@ class _HomePageState extends State<HomePage>
 
     tick();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) => tick());
+  }
+
+  Future<void> _loadNearbyRestaurants() async {
+    setState(() {
+      _isLocating = true;
+      _showLocationGate = true;
+      _locationGateAddress = null;
+    });
+    widget.onLocationGateChanged?.call(true);
+
+    final location = await LocationService.getCurrentLocation();
+    if (mounted) {
+      setState(() {
+        _location = location;
+        _selectedDeliveryAddress = null;
+        _locationGateAddress = location.address;
+      });
+    }
+
+    final activeLocation = location;
+
+    final restaurantResult = await RestaurantRepository.loadNearby(
+      activeLocation,
+    );
+
+    if (!mounted) return;
+
+    final restaurants = restaurantResult.restaurants.isNotEmpty
+        ? _restaurantsFromListings(restaurantResult.restaurants, activeLocation)
+        : _localRestaurantsForLocation(activeLocation);
+
+    setState(() {
+      _location = activeLocation;
+      _visibleRestaurants = restaurants;
+      _isLocating = false;
+    });
+
+    await Future<void>.delayed(const Duration(milliseconds: 1600));
+    if (!mounted) return;
+    setState(() {
+      _showLocationGate = false;
+    });
+    widget.onLocationGateChanged?.call(false);
+  }
+
+  Future<void> _openAddressBook() async {
+    final result = await Navigator.push<DeliveryAddress>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddressBookPage(
+          currentLocation: _location,
+          selectedAddress: _selectedDeliveryAddress,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+
+    setState(() {
+      _selectedDeliveryAddress = result;
+      _location = AppLocation(
+        latitude: result.latitude,
+        longitude: result.longitude,
+        address: result.displayAddress,
+        isFallback: false,
+      );
+      _isLocating = true;
+    });
+
+    final location = _location;
+    final restaurantResult = await RestaurantRepository.loadNearby(location);
+    if (!mounted) return;
+
+    setState(() {
+      _visibleRestaurants = restaurantResult.restaurants.isNotEmpty
+          ? _restaurantsFromListings(restaurantResult.restaurants, location)
+          : _localRestaurantsForLocation(location);
+      _isLocating = false;
+    });
+  }
+
+  Widget _buildLocationLoadingPage(double topPadding) {
+    final address = _locationGateAddress;
+
+    return Material(
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, topPadding + 18, 24, 28),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: InkWell(
+                  onTap: () => Navigator.maybePop(context),
+                  customBorder: const CircleBorder(),
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.primary,
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ),
+              const Spacer(flex: 3),
+              const Text(
+                'Đang tìm vị trí...',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF757575),
+                  fontSize: 20,
+                  height: 1.2,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 64),
+              AnimatedBuilder(
+                animation: _bannerMotionController,
+                builder: (context, _) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 156,
+                        height: 156,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF1ED),
+                          borderRadius: BorderRadius.circular(78),
+                        ),
+                        child: CustomPaint(painter: _MapGridPainter()),
+                      ),
+                      SizedBox(
+                        width: 128,
+                        height: 128,
+                        child: CustomPaint(
+                          painter: _RadarSweepPainter(
+                            progress: _bannerMotionController.value,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.primary,
+                        size: 72,
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 28),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: Text(
+                  address ?? 'Đang xác định địa chỉ của bạn',
+                  key: ValueKey(address ?? 'loading-address'),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: address == null
+                        ? const Color(0xFF9E9E9E)
+                        : const Color(0xFF212121),
+                    fontSize: address == null ? 16 : 24,
+                    height: 1.22,
+                    fontWeight: address == null
+                        ? FontWeight.w500
+                        : FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (_isLocating) const SizedBox(height: 50),
+              const Spacer(flex: 5),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildHeroCarousel() {
@@ -193,6 +415,67 @@ class _HomePageState extends State<HomePage>
           const _SmallOrangeDots(),
         ],
       ),
+    );
+  }
+
+  Widget _buildActiveOrdersNotice() {
+    return ValueListenableBuilder<List<OrderEntry>>(
+      valueListenable: OrderState.entries,
+      builder: (context, entries, _) {
+        final activeEntries =
+            entries
+                .where((entry) => entry.status == OrderStatus.delivering)
+                .toList()
+              ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+        if (activeEntries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.receipt_long_rounded,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${activeEntries.length} đơn đang hoạt động',
+                      style: const TextStyle(
+                        color: Color(0xFF212121),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 9),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    for (var i = 0; i < activeEntries.length; i++) ...[
+                      _ActiveOrderHomeCard(entry: activeEntries[i]),
+                      if (i != activeEntries.length - 1)
+                        const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -319,18 +602,24 @@ class _HomePageState extends State<HomePage>
       child: _HorizontalRow(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          for (final item in section.items) _ShelfRestaurantCard(item: item),
+          for (final item in section.items)
+            _ShelfRestaurantCard(item: item, currentLocation: _location),
         ],
       ),
     );
   }
 
   Widget _buildTopPhotoGrid() {
+    final items = _sortedRestaurants.take(6).toList();
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
       child: GridView.builder(
-        itemCount: 6,
+        itemCount: items.length,
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         physics: const NeverScrollableScrollPhysics(),
@@ -341,7 +630,7 @@ class _HomePageState extends State<HomePage>
           childAspectRatio: 0.78,
         ),
         itemBuilder: (context, index) {
-          return _TopPhotoCard(item: _sortedRestaurants[index]);
+          return _TopPhotoCard(item: items[index], currentLocation: _location);
         },
       ),
     );
@@ -353,7 +642,10 @@ class _HomePageState extends State<HomePage>
       child: Column(
         children: [
           for (var i = 0; i < _sortedRestaurants.length; i++) ...[
-            _RestaurantRow(item: _sortedRestaurants[i]),
+            _RestaurantRow(
+              item: _sortedRestaurants[i],
+              currentLocation: _location,
+            ),
             if ((i + 1) % 5 == 0)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -371,7 +663,7 @@ class _HomePageState extends State<HomePage>
   }
 
   List<_RestaurantData> get _sortedRestaurants {
-    final items = List<_RestaurantData>.of(_restaurants);
+    final items = List<_RestaurantData>.of(_visibleRestaurants);
     switch (_activeSort) {
       case 1:
         items.sort((a, b) => b.sold.compareTo(a.sold));
@@ -382,13 +674,308 @@ class _HomePageState extends State<HomePage>
     }
     return items;
   }
+
+  List<_RestaurantSectionData> get _restaurantSectionsForVisibleItems {
+    final sorted = _sortedRestaurants;
+    return [
+      _RestaurantSectionData(
+        title: 'Quán gần bạn',
+        subtitle: 'Sắp xếp theo vị trí hiện tại',
+        items: sorted.take(5).toList(),
+      ),
+      _RestaurantSectionData(
+        title: 'Được đánh giá tốt',
+        subtitle: 'Ưu tiên rating cao quanh khu vực',
+        items: sorted.where((item) => item.rating != null).take(5).toList(),
+      ),
+    ];
+  }
+
+  List<_RestaurantData> _localRestaurantsForLocation(AppLocation location) {
+    return _restaurants.map((item) {
+      final distance = NearbyRestaurantService.distanceInKm(
+        fromLat: location.latitude,
+        fromLng: location.longitude,
+        toLat: item.latitude,
+        toLng: item.longitude,
+      );
+      return item.withDistance(distance);
+    }).toList();
+  }
+
+  List<_RestaurantData> _restaurantsFromListings(
+    List<RestaurantListing> restaurants,
+    AppLocation location,
+  ) {
+    return [
+      for (var index = 0; index < restaurants.length; index++)
+        _RestaurantData(
+          name: restaurants[index].name,
+          seed: '${restaurants[index].category}-${restaurants[index].id}',
+          rating:
+              restaurants[index].rating ??
+              _ratingForSeed(restaurants[index].id),
+          distance: restaurants[index].distanceFrom(location),
+          time: math.max(
+            12,
+            (restaurants[index].distanceFrom(location) * 7).round() + 8,
+          ),
+          sold:
+              restaurants[index].userRatingCount ??
+              _soldCountForSeed(restaurants[index].id),
+          badges: [
+            if (restaurants[index].openNow) 'Đang mở cửa',
+            if ((restaurants[index].rating ?? 4.4) >= 4.3) 'Đánh giá tốt',
+            _categoryBadge(restaurants[index].category),
+            'Gần bạn',
+          ],
+          address: restaurants[index].address,
+          latitude: restaurants[index].latitude,
+          longitude: restaurants[index].longitude,
+          imageUrl:
+              restaurants[index].photoUrl ??
+              _imageUrlForCategory(
+                restaurants[index].category,
+                restaurants[index].id,
+              ),
+          category: restaurants[index].category,
+          verified: true,
+          isFavorite: index < 2,
+          freeshipXtra: index.isEven,
+        ),
+    ];
+  }
+
+  double _ratingForSeed(String seed) {
+    final value = seed.codeUnits.fold<int>(0, (sum, code) => sum + code);
+    return 4.2 + (value % 8) / 10;
+  }
+
+  int _soldCountForSeed(String seed) {
+    final value = seed.codeUnits.fold<int>(0, (sum, code) => sum + code);
+    return 180 + (value % 1400);
+  }
+
+  String _categoryBadge(String category) {
+    return switch (category) {
+      'cafe' => 'Cafe',
+      'fast_food' => 'Ăn nhanh',
+      'food_court' => 'Food court',
+      'bakery' => 'Bánh ngọt',
+      _ => 'Quán ăn',
+    };
+  }
+}
+
+class _ActiveOrderHomeCard extends StatelessWidget {
+  final OrderEntry entry;
+
+  const _ActiveOrderHomeCard({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    final order = entry.order;
+    final firstItem = order.items.isEmpty ? null : order.items.first;
+    final isDelivering = entry.status == OrderStatus.delivering;
+
+    return InkWell(
+      onTap: isDelivering
+          ? () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OrderTrackingDetailPage(entry: entry),
+              ),
+            )
+          : null,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 248,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF7F4),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFFFD7CC)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isDelivering
+                    ? Icons.delivery_dining_rounded
+                    : Icons.shopping_basket_outlined,
+                color: Colors.white,
+                size: 21,
+              ),
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isDelivering ? 'Đang giao' : 'Đơn trong giỏ',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    order.restaurant.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF212121),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    [
+                      if (firstItem != null) firstItem.name,
+                      '${order.itemCount} món',
+                      checkoutFormatPrice(order.total),
+                    ].join(' | '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF757575),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isDelivering) ...[
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.72)
+      ..strokeWidth = 5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final pathOne = Path()
+      ..moveTo(size.width * 0.12, size.height * 0.30)
+      ..lineTo(size.width * 0.40, size.height * 0.18)
+      ..lineTo(size.width * 0.58, size.height * 0.42)
+      ..lineTo(size.width * 0.86, size.height * 0.34);
+    canvas.drawPath(pathOne, paint);
+
+    final pathTwo = Path()
+      ..moveTo(size.width * 0.22, size.height * 0.78)
+      ..lineTo(size.width * 0.42, size.height * 0.54)
+      ..lineTo(size.width * 0.66, size.height * 0.68)
+      ..lineTo(size.width * 0.78, size.height * 0.48);
+    canvas.drawPath(pathTwo, paint);
+
+    canvas.drawLine(
+      Offset(size.width * 0.28, size.height * 0.12),
+      Offset(size.width * 0.28, size.height * 0.86),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.72, size.height * 0.12),
+      Offset(size.width * 0.72, size.height * 0.86),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _RadarSweepPainter extends CustomPainter {
+  final double progress;
+
+  const _RadarSweepPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide / 2;
+    final ringPaint = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.16)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    final sweepPaint = Paint()
+      ..shader = SweepGradient(
+        startAngle: 0,
+        endAngle: math.pi * 2,
+        colors: [
+          AppColors.primary.withValues(alpha: 0),
+          AppColors.primary.withValues(alpha: 0.10),
+          AppColors.primary.withValues(alpha: 0.34),
+          AppColors.primary.withValues(alpha: 0),
+        ],
+        stops: const [0.0, 0.55, 0.82, 1.0],
+        transform: GradientRotation(progress * math.pi * 2),
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    canvas.drawCircle(center, radius * 0.58, ringPaint);
+    canvas.drawCircle(center, radius * 0.80, ringPaint);
+    canvas.drawCircle(center, radius * 0.96, ringPaint);
+    canvas.drawCircle(center, radius * 0.96, sweepPaint);
+
+    final angle = progress * math.pi * 2 - math.pi / 2;
+    final tip = Offset(
+      center.dx + math.cos(angle) * radius * 0.96,
+      center.dy + math.sin(angle) * radius * 0.96,
+    );
+    canvas.drawLine(
+      center,
+      tip,
+      Paint()
+        ..color = AppColors.primary.withValues(alpha: 0.34)
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RadarSweepPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }
 
 class _HeaderDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
+  final String address;
   final VoidCallback onBack;
+  final VoidCallback onAddressTap;
 
-  const _HeaderDelegate({required this.topPadding, required this.onBack});
+  const _HeaderDelegate({
+    required this.topPadding,
+    required this.address,
+    required this.onBack,
+    required this.onAddressTap,
+  });
 
   // Header vertical budget:
   //   topPadding (SafeArea)
@@ -441,53 +1028,63 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Giao đến:',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Color(0xD9FFFFFF),
-                            fontSize: 12,
-                            height: 1.1,
-                            fontWeight: FontWeight.w400,
-                          ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: onAddressTap,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
                         ),
-                        SizedBox(height: 2),
-                        Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.location_on_rounded,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                'Vĩnh Lộc A, Bình Chánh',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  height: 1.1,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            Text(
+                              'Giao đến:',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xD9FFFFFF),
+                                fontSize: 12,
+                                height: 1.1,
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
-                            SizedBox(width: 2),
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: Colors.white,
-                              size: 18,
+                            SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                                SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    address,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      height: 1.1,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 2),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -532,7 +1129,9 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _HeaderDelegate oldDelegate) {
-    return oldDelegate.topPadding != topPadding;
+    return oldDelegate.topPadding != topPadding ||
+        oldDelegate.address != address ||
+        oldDelegate.onAddressTap != onAddressTap;
   }
 }
 
@@ -631,7 +1230,12 @@ class _HeroBanner extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () => _showHomeAction(context, data.title),
+        onTap: () => _openPromoResults(
+          context,
+          title: data.title,
+          subtitle: '${data.kicker} · ${data.badge}',
+          seed: data.seed,
+        ),
         child: child,
       ),
     );
@@ -1721,7 +2325,12 @@ class _CategoryItemState extends State<_CategoryItem>
           onTapDown: (_) => _pressIn(),
           onTapUp: (_) => _handleTapEnd(),
           onTapCancel: _handleTapEnd,
-          onTap: () => _showHomeAction(context, widget.item.label),
+          onTap: () => _openPromoResults(
+            context,
+            title: widget.item.label,
+            subtitle: widget.item.sub,
+            seed: widget.item.assetPath,
+          ),
           child: Column(
             children: [
               AnimatedBuilder(
@@ -1798,35 +2407,44 @@ class _DealLargeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 280,
-      decoration: _cardDecoration(12),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _ImageTile(
-                seed: data.seed,
-                width: double.infinity,
-                height: 174,
-                radius: 0,
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: _DiscountPill(discount: data.discount),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: _DealText(data: data, big: true),
+    return InkWell(
+      onTap: () => _openPromoResults(
+        context,
+        title: data.name,
+        subtitle: '${data.restaurant} · Giảm ${data.discount}%',
+        seed: data.seed,
+      ),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 280,
+        decoration: _cardDecoration(12),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                _ImageTile(
+                  seed: data.seed,
+                  width: double.infinity,
+                  height: 174,
+                  radius: 0,
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: _DiscountPill(discount: data.discount),
+                ),
+              ],
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: _DealText(data: data, big: true),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1839,34 +2457,43 @@ class _DealSmallCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 136,
-      decoration: _cardDecoration(10),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: [
-          Stack(
-            children: [
-              _ImageTile(
-                seed: data.seed,
-                width: 78,
-                height: double.infinity,
-                radius: 0,
-              ),
-              Positioned(
-                top: 6,
-                left: 5,
-                child: _DiscountPill(discount: data.discount),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(7),
-              child: _DealText(data: data, big: false),
+    return InkWell(
+      onTap: () => _openPromoResults(
+        context,
+        title: data.name,
+        subtitle: '${data.restaurant} · Giảm ${data.discount}%',
+        seed: data.seed,
+      ),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: 136,
+        decoration: _cardDecoration(10),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                _ImageTile(
+                  seed: data.seed,
+                  width: 78,
+                  height: double.infinity,
+                  radius: 0,
+                ),
+                Positioned(
+                  top: 6,
+                  left: 5,
+                  child: _DiscountPill(discount: data.discount),
+                ),
+              ],
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(7),
+                child: _DealText(data: data, big: false),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1961,7 +2588,7 @@ class _WhiteSection extends StatelessWidget {
                             style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           if (subtitle != null) ...[
@@ -2002,52 +2629,61 @@ class _CollectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _ImageTile(
-                seed: item.seed,
-                width: width,
-                height: 180,
-                radius: 12,
-              ),
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.32),
-                        Colors.transparent,
-                      ],
+      child: InkWell(
+        onTap: () => _openPromoResults(
+          context,
+          title: item.name,
+          subtitle: 'Bộ sưu tập món giảm đang có',
+          seed: item.seed,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                _ImageTile(
+                  seed: item.seed,
+                  width: width,
+                  height: 180,
+                  radius: 12,
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.32),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const Positioned(
-                left: 8,
-                bottom: 8,
-                child: _MiniBadge(label: 'Hot', dark: true),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            item.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF212121),
-              fontSize: 12,
-              height: 1.18,
-              fontWeight: FontWeight.w700,
+                const Positioned(
+                  left: 8,
+                  bottom: 8,
+                  child: _MiniBadge(label: 'Hot', dark: true),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              item.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF212121),
+                fontSize: 12,
+                height: 1.18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2060,78 +2696,87 @@ class _FlashCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 140,
-      decoration: _cardDecoration(10),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _ImageTile(seed: item.seed, width: 140, height: 130, radius: 0),
-              Positioned(
-                top: 7,
-                left: 7,
-                child: _DiscountPill(discount: item.discount),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () => _openPromoResults(
+        context,
+        title: item.name,
+        subtitle: 'Flash Sale giảm ${item.discount}%',
+        seed: item.seed,
+      ),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 140,
+        decoration: _cardDecoration(10),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF212121),
-                    fontSize: 12,
-                    height: 1.16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  formatPrice(item.price),
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Container(
-                  height: 20,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: item.hot
-                        ? const Color(0xFFFFEBEE)
-                        : const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: item.hot
-                          ? const Color(0xFFEF9A9A)
-                          : const Color(0xFFA5D6A7),
-                    ),
-                  ),
-                  child: Text(
-                    item.hot ? 'ĐANG BÁN CHẠY' : '${item.soldCount} ĐÃ BÁN',
-                    style: TextStyle(
-                      color: item.hot
-                          ? const Color(0xFFC62828)
-                          : const Color(0xFF2E7D32),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                _ImageTile(seed: item.seed, width: 140, height: 130, radius: 0),
+                Positioned(
+                  top: 7,
+                  left: 7,
+                  child: _DiscountPill(discount: item.discount),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF212121),
+                      fontSize: 12,
+                      height: 1.16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    formatPrice(item.price),
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Container(
+                    height: 20,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: item.hot
+                          ? const Color(0xFFFFEBEE)
+                          : const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: item.hot
+                            ? const Color(0xFFEF9A9A)
+                            : const Color(0xFFA5D6A7),
+                      ),
+                    ),
+                    child: Text(
+                      item.hot ? 'ĐANG BÁN CHẠY' : '${item.soldCount} ĐÃ BÁN',
+                      style: TextStyle(
+                        color: item.hot
+                            ? const Color(0xFFC62828)
+                            : const Color(0xFF2E7D32),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2155,7 +2800,7 @@ class _RecentCard extends StatelessWidget {
               _ImageTile(
                 seed: item.seed,
                 width: double.infinity,
-                height: 100,
+                height: 92,
                 radius: 0,
               ),
               Positioned(
@@ -2166,7 +2811,7 @@ class _RecentCard extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(7),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2181,7 +2826,7 @@ class _RecentCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
                 Text(
                   item.viewedAt,
                   maxLines: 1,
@@ -2191,7 +2836,7 @@ class _RecentCard extends StatelessWidget {
                     fontSize: 11,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 const _DiscountBadge(label: 'Mã giảm 22%'),
               ],
             ),
@@ -2204,66 +2849,84 @@ class _RecentCard extends StatelessWidget {
 
 class _ShelfRestaurantCard extends StatelessWidget {
   final _RestaurantData item;
+  final AppLocation currentLocation;
 
-  const _ShelfRestaurantCard({required this.item});
+  const _ShelfRestaurantCard({
+    required this.item,
+    required this.currentLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _ImageTile(seed: item.seed, width: 120, height: 120, radius: 10),
-              if (item.isFavorite)
-                const Positioned(top: 6, left: 6, child: _FavoriteBadge()),
-              const Positioned(
-                left: 6,
-                bottom: 6,
-                child: _MiniBadge(label: 'Siêu tiệc 99K'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (item.verified)
-                const Padding(
-                  padding: EdgeInsets.only(top: 1, right: 3),
-                  child: Icon(
-                    Icons.verified_rounded,
-                    color: Color(0xFFFFB300),
-                    size: 13,
+      width: 112,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _openRestaurantDetail(
+          context,
+          item,
+          currentLocation: currentLocation,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                _ImageTile(
+                  seed: item.seed,
+                  imageUrl: item.imageUrl,
+                  width: 112,
+                  height: 112,
+                  radius: 10,
+                ),
+                if (item.isFavorite)
+                  const Positioned(top: 6, left: 6, child: _FavoriteBadge()),
+                const Positioned(
+                  left: 6,
+                  bottom: 6,
+                  child: _MiniBadge(label: 'Siêu tiệc 99K'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (item.verified)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1, right: 3),
+                    child: Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFFFFB300),
+                      size: 13,
+                    ),
+                  ),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF212121),
+                      fontSize: 11,
+                      height: 1.15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              Expanded(
-                child: Text(
-                  item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF212121),
-                    fontSize: 12,
-                    height: 1.15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              for (final badge in item.badges.take(2))
-                _DiscountBadge(label: badge),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 5),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: [
+                for (final badge in item.badges.take(2))
+                  _DiscountBadge(label: badge),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2271,165 +2934,213 @@ class _ShelfRestaurantCard extends StatelessWidget {
 
 class _TopPhotoCard extends StatelessWidget {
   final _RestaurantData item;
+  final AppLocation currentLocation;
 
-  const _TopPhotoCard({required this.item});
+  const _TopPhotoCard({required this.item, required this.currentLocation});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            AspectRatio(
-              aspectRatio: 1,
-              child: _ImageTile(
-                seed: item.seed,
-                width: double.infinity,
-                height: double.infinity,
-                radius: 8,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openRestaurantDetail(
+        context,
+        item,
+        currentLocation: currentLocation,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: _ImageTile(
+                  seed: item.seed,
+                  imageUrl: item.imageUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  radius: 8,
+                ),
+              ),
+              const Positioned(
+                left: 5,
+                bottom: 5,
+                child: _MiniBadge(label: 'FREESHIP'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text(
+              item.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF212121),
+                fontSize: 10.5,
+                height: 1.12,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const Positioned(
-              left: 5,
-              bottom: 5,
-              child: _MiniBadge(label: 'FREESHIP'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text(
-            item.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF212121),
-              fontSize: 11,
-              height: 1.12,
-              fontWeight: FontWeight.w600,
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class _RestaurantRow extends StatelessWidget {
   final _RestaurantData item;
+  final AppLocation currentLocation;
 
-  const _RestaurantRow({required this.item});
+  const _RestaurantRow({required this.item, required this.currentLocation});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF0F0F0), width: 0.5),
-        ),
+    return InkWell(
+      onTap: () => _openRestaurantDetail(
+        context,
+        item,
+        currentLocation: currentLocation,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              _ImageTile(seed: item.seed, width: 88, height: 88, radius: 10),
-              if (item.isFavorite)
-                const Positioned(top: 5, left: 5, child: _FavoriteBadge()),
-              Positioned(
-                left: 5,
-                bottom: 5,
-                child: _MiniBadge(
-                  label: item.freeshipXtra ? 'X9 FREESHIP' : 'Siêu tiệc',
-                ),
-              ),
-            ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Color(0xFFF0F0F0), width: 0.5),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                if (item.isClosingSoon) ...[
-                  Text(
-                    'Sắp đóng cửa · Đóng cửa lúc ${item.closingAt}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
+                _ImageTile(
+                  seed: item.seed,
+                  imageUrl: item.imageUrl,
+                  width: 88,
+                  height: 88,
+                  radius: 10,
+                ),
+                if (item.isFavorite)
+                  const Positioned(top: 5, left: 5, child: _FavoriteBadge()),
+                Positioned(
+                  left: 5,
+                  bottom: 5,
+                  child: _MiniBadge(
+                    label: item.freeshipXtra ? 'X9 FREESHIP' : 'Siêu tiệc',
                   ),
-                  const SizedBox(height: 2),
-                ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (item.verified)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 2, right: 4),
-                        child: Icon(
-                          Icons.verified_rounded,
-                          color: Color(0xFFFFB300),
-                          size: 13,
-                        ),
-                      ),
-                    Expanded(
-                      child: Text(
-                        item.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF212121),
-                          fontSize: 14,
-                          height: 1.16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 7),
-                Row(
-                  children: [
-                    Icon(
-                      item.rating == null
-                          ? Icons.star_border_rounded
-                          : Icons.star_rounded,
-                      color: const Color(0xFFFFB300),
-                      size: 15,
-                    ),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        '${formatRating(item.rating)} | ${item.distance.toStringAsFixed(1)}km | ${item.time} phút',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF757575),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 5,
-                  runSpacing: 5,
-                  children: [
-                    for (final badge in item.badges)
-                      _DiscountBadge(label: badge),
-                  ],
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (item.isClosingSoon) ...[
+                    Text(
+                      'Sắp đóng cửa · Đóng cửa lúc ${item.closingAt}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                  ],
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (item.verified)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2, right: 4),
+                          child: Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFFFFB300),
+                            size: 13,
+                          ),
+                        ),
+                      Expanded(
+                        child: Text(
+                          item.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF212121),
+                            fontSize: 13,
+                            height: 1.16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 7),
+                  Row(
+                    children: [
+                      Icon(
+                        item.rating == null
+                            ? Icons.star_border_rounded
+                            : Icons.star_rounded,
+                        color: const Color(0xFFFFB300),
+                        size: 15,
+                      ),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          '${formatRating(item.rating)} | ${item.distance.toStringAsFixed(1)}km | ${item.time} phút',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF757575),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (item.address.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.place_outlined,
+                          color: Color(0xFF9E9E9E),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            item.address,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFF9E9E9E),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 5,
+                    runSpacing: 5,
+                    children: [
+                      for (final badge in item.badges)
+                        _DiscountBadge(label: badge),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2453,7 +3164,12 @@ class _WidePromoBanner extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () => _showHomeAction(context, title),
+        onTap: () => _openPromoResults(
+          context,
+          title: title,
+          subtitle: subtitle,
+          seed: seed,
+        ),
         child: Container(
           height: 120,
           decoration: BoxDecoration(
@@ -2539,18 +3255,50 @@ class _WidePromoBanner extends StatelessWidget {
   }
 }
 
-void _showHomeAction(BuildContext context, String title) {
-  ScaffoldMessenger.of(context)
-    ..clearSnackBars()
-    ..showSnackBar(
-      SnackBar(
-        content: Text('Đang mở: $title'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 1100),
-        backgroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+void _openPromoResults(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required String seed,
+}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) =>
+          PromoResultsPage(title: title, subtitle: subtitle, seed: seed),
+    ),
+  );
+}
+
+void _openRestaurantDetail(
+  BuildContext context,
+  _RestaurantData item, {
+  required AppLocation currentLocation,
+}) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => RestaurantDetailPage(
+        restaurant: RestaurantDetailInput(
+          id: item.seed,
+          name: item.name,
+          address: item.address,
+          seed: item.seed,
+          category: item.category,
+          rating: item.rating,
+          distance: item.distance,
+          time: item.time,
+          sold: item.sold,
+          imageUrl: item.imageUrl ?? _imageUrlForSeed(item.seed),
+          openNow: !item.isClosingSoon,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          customerLatitude: currentLocation.latitude,
+          customerLongitude: currentLocation.longitude,
+        ),
       ),
-    );
+    ),
+  );
 }
 
 class _HorizontalRow extends StatelessWidget {
@@ -2585,12 +3333,14 @@ class _HorizontalRow extends StatelessWidget {
 
 class _ImageTile extends StatelessWidget {
   final String seed;
+  final String? imageUrl;
   final double width;
   final double height;
   final double radius;
 
   const _ImageTile({
     required this.seed,
+    this.imageUrl,
     required this.width,
     required this.height,
     required this.radius,
@@ -2598,6 +3348,7 @@ class _ImageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedImage = imageUrl ?? _imageUrlForSeed(seed);
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: Stack(
@@ -2613,18 +3364,26 @@ class _ImageTile extends StatelessWidget {
               size: 34,
             ),
           ),
-          Image.network(
-            _imageUrlForSeed(seed),
-            width: width,
-            height: height,
-            fit: BoxFit.cover,
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded || frame != null) return child;
-              return const SizedBox.shrink();
-            },
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox.shrink(),
-          ),
+          if (resolvedImage.startsWith('assets/'))
+            Image.asset(
+              resolvedImage,
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+            )
+          else
+            Image.network(
+              resolvedImage,
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded || frame != null) return child;
+                return const SizedBox.shrink();
+              },
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            ),
         ],
       ),
     );
@@ -2699,6 +3458,49 @@ String _imageUrlForSeed(String seed) {
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80';
 }
 
+String _imageUrlForCategory(String category, String seed) {
+  const cafeImages = [
+    'assets/images/restaurants/food_05.jpg',
+    'assets/images/restaurants/food_04.jpg',
+    'assets/images/restaurants/food_08.jpg',
+    'assets/images/restaurants/food_12.jpg',
+  ];
+  const fastFoodImages = [
+    'assets/images/restaurants/food_06.jpg',
+    'assets/images/restaurants/food_07.jpg',
+    'assets/images/restaurants/food_01.jpg',
+    'assets/images/restaurants/food_11.jpg',
+  ];
+  const foodCourtImages = [
+    'assets/images/restaurants/food_01.jpg',
+    'assets/images/restaurants/food_02.jpg',
+    'assets/images/restaurants/food_03.jpg',
+    'assets/images/restaurants/food_09.jpg',
+  ];
+  const bakeryImages = [
+    'assets/images/restaurants/food_10.jpg',
+    'assets/images/restaurants/food_12.jpg',
+    'assets/images/restaurants/food_08.jpg',
+    'assets/images/restaurants/food_05.jpg',
+  ];
+  const restaurantImages = [
+    'assets/images/restaurants/food_01.jpg',
+    'assets/images/restaurants/food_02.jpg',
+    'assets/images/restaurants/food_07.jpg',
+    'assets/images/restaurants/food_09.jpg',
+  ];
+
+  final pool = switch (category) {
+    'cafe' => cafeImages,
+    'fast_food' => fastFoodImages,
+    'food_court' => foodCourtImages,
+    'bakery' => bakeryImages,
+    _ => restaurantImages,
+  };
+  final index = seed.codeUnits.fold<int>(0, (sum, code) => sum + code);
+  return pool[index % pool.length];
+}
+
 class _Countdown extends StatelessWidget {
   final Duration value;
 
@@ -2739,7 +3541,7 @@ class _TimeBox extends StatelessWidget {
         value,
         style: const TextStyle(
           color: Colors.white,
-          fontFamily: 'monospace',
+          fontFeatures: [FontFeature.tabularFigures()],
           fontSize: 14,
           fontWeight: FontWeight.w800,
         ),
@@ -2847,7 +3649,7 @@ class _SeeMore extends StatelessWidget {
       'Xem thêm >',
       style: TextStyle(
         color: color.withValues(alpha: 0.86),
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -2934,8 +3736,8 @@ class _MiniBadge extends StatelessWidget {
         label,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
+          fontSize: 9.5,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -2957,8 +3759,8 @@ class _FavoriteBadge extends StatelessWidget {
         'Yêu thích',
         style: TextStyle(
           color: Color(0xFFC62828),
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
+          fontSize: 9.5,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -3101,6 +3903,11 @@ class _RestaurantData {
   final int time;
   final int sold;
   final List<String> badges;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final String? imageUrl;
+  final String category;
   final bool verified;
   final bool isFavorite;
   final bool isClosingSoon;
@@ -3115,12 +3922,39 @@ class _RestaurantData {
     required this.time,
     required this.sold,
     required this.badges,
+    this.address = '',
+    this.latitude = 10.7843,
+    this.longitude = 106.5682,
+    this.imageUrl,
+    this.category = 'restaurant',
     this.verified = true,
     this.isFavorite = false,
     this.isClosingSoon = false,
     this.freeshipXtra = false,
     this.closingAt = '',
   });
+
+  _RestaurantData withDistance(double value) {
+    return _RestaurantData(
+      name: name,
+      seed: seed,
+      rating: rating,
+      distance: value,
+      time: math.max(12, (value * 7).round() + 8),
+      sold: sold,
+      badges: badges,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      imageUrl: imageUrl,
+      category: category,
+      verified: verified,
+      isFavorite: isFavorite,
+      isClosingSoon: isClosingSoon,
+      freeshipXtra: freeshipXtra,
+      closingAt: closingAt,
+    );
+  }
 }
 
 const _banners = [
@@ -3318,62 +4152,89 @@ const _restaurants = [
   _RestaurantData(
     name: 'Bún Đậu Mẹt Ấp 1A',
     seed: 'bun-dau-met-ap-1a',
+    address: 'Ap 1A, Vinh Loc A, Binh Chanh',
+    latitude: 10.7870,
+    longitude: 106.5658,
     rating: 4.7,
     distance: 0.5,
     time: 22,
     sold: 980,
     badges: ['Mã giảm 22%'],
+    imageUrl: 'assets/images/restaurants/food_01.jpg',
   ),
   _RestaurantData(
     name: 'Bún Đậu Mắm Tôm Hà Nội - Vĩnh Lộc A',
     seed: 'bun-dau-vinh-loc-a',
+    address: 'Vinh Loc A, Binh Chanh',
+    latitude: 10.7848,
+    longitude: 106.5701,
     rating: 4.6,
     distance: 0.4,
     time: 22,
     sold: 1120,
     badges: ['Mã giảm 11%'],
+    imageUrl: 'assets/images/restaurants/food_02.jpg',
   ),
   _RestaurantData(
     name: 'MƠ - Matcha Latte, Mì Cay & Mì Trộn',
     seed: 'matcha-latte-mi-cay',
+    address: 'Duong Vinh Loc, Binh Chanh',
+    latitude: 10.7789,
+    longitude: 106.5764,
     rating: 4.9,
     distance: 1.7,
     time: 22,
     sold: 1520,
     badges: ['Giảm món', 'Mã giảm 22%'],
     isFavorite: true,
+    imageUrl: 'assets/images/restaurants/food_03.jpg',
   ),
   _RestaurantData(
     name: 'Bánh Lọc Huế - Kinh Trung Ương',
     seed: 'banh-loc-hue',
+    address: 'Kinh Trung Uong, Vinh Loc A',
+    latitude: 10.7905,
+    longitude: 106.5625,
     rating: null,
     distance: 1.0,
     time: 22,
     sold: 180,
     badges: ['Mã giảm 22%'],
     verified: false,
+    imageUrl: 'assets/images/restaurants/food_04.jpg',
   ),
   _RestaurantData(
     name: 'PMT Beefsteak & Pasta - Ap 3A',
     seed: 'pmt-beefsteak-pasta',
+    address: 'Ap 3A, Vinh Loc B, Binh Chanh',
+    latitude: 10.8021,
+    longitude: 106.5572,
     rating: 4.5,
     distance: 3.0,
     time: 27,
     sold: 730,
     badges: ['Flash Sale', 'Mã giảm 22%'],
+    imageUrl: 'assets/images/restaurants/food_05.jpg',
   ),
   _RestaurantData(
     name: 'Ăn Vặt Hẻm - Sứa Sốt Mắm Nhĩ',
     seed: 'an-vat-hem',
+    address: 'Hem Sua Sot Mam Nhi, Binh Chanh',
+    latitude: 10.7813,
+    longitude: 106.5812,
     rating: 4.8,
     distance: 1.2,
     time: 22,
     sold: 870,
     badges: ['Mã giảm 22%'],
+    imageUrl: 'assets/images/restaurants/food_06.jpg',
   ),
   _RestaurantData(
     name: 'Mai Coffee - Cà Phê - Lê Thị Ngay',
     seed: 'mai-coffee-le-thi-ngay',
+    address: 'Le Thi Ngay, Vinh Loc A',
+    latitude: 10.7754,
+    longitude: 106.5706,
     rating: null,
     distance: 0.7,
     time: 22,
@@ -3381,38 +4242,52 @@ const _restaurants = [
     badges: ['Mã giảm 22%'],
     isClosingSoon: true,
     closingAt: '23:30',
+    imageUrl: 'assets/images/restaurants/food_07.jpg',
   ),
   _RestaurantData(
     name: 'Cơm Tấm Đêm Hoàng Trường',
     seed: 'com-tam-dem-hoang-truong',
+    address: 'Dem Hoang Truong, Binh Chanh',
+    latitude: 10.7696,
+    longitude: 106.5869,
     rating: 4.4,
     distance: 2.7,
     time: 27,
     sold: 640,
     badges: ['Giảm món', 'Mã giảm 22%'],
+    imageUrl: 'assets/images/restaurants/food_08.jpg',
   ),
   _RestaurantData(
     name: 'Chân Gà Chiên - Mr. Kay',
     seed: 'chan-ga-chien-mr-kay',
+    address: 'Mr. Kay, Vinh Loc B',
+    latitude: 10.8072,
+    longitude: 106.5528,
     rating: 4.8,
     distance: 3.6,
     time: 27,
     sold: 905,
     badges: ['Giảm món', 'Mã giảm 22%'],
     isFavorite: true,
+    imageUrl: 'assets/images/restaurants/food_09.jpg',
   ),
   _RestaurantData(
     name: 'Gà Nướng Cơm Lam - Bánh Bao Kim Chi',
     seed: 'ga-nuong-com-lam',
+    address: 'Ga nuong Com Lam, Binh Tan',
+    latitude: 10.8138,
+    longitude: 106.6021,
     rating: 4.5,
     distance: 4.6,
     time: 40,
     sold: 520,
     badges: ['Mã giảm 22%'],
     freeshipXtra: true,
+    imageUrl: 'assets/images/restaurants/food_10.jpg',
   ),
 ];
 
+// ignore: unused_element
 final _restaurantSections = [
   _RestaurantSectionData(
     title: 'Quán Ngon Hội Tụ',
