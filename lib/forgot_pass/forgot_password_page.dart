@@ -68,11 +68,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -92,7 +93,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 18),
       child: Row(
         children: [
           IconButton(
@@ -100,17 +101,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             icon: const Icon(
               Icons.arrow_back_rounded,
               color: AppColors.primary,
-              size: 24,
+              size: 21,
             ),
             tooltip: 'Quay lại',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           const Text(
             'Quên mật khẩu',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
             ),
@@ -126,11 +127,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _LockIllustration(),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         RichText(
           textAlign: TextAlign.center,
           text: const TextSpan(
-            style: TextStyle(fontSize: 14, color: _textSecondary, height: 1.6),
+            style: TextStyle(fontSize: 13, color: _textSecondary, height: 1.5),
             children: [
               TextSpan(
                 text:
@@ -147,7 +148,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             ],
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 22),
         const Text(
           'Số điện thoại hoặc Email',
           style: TextStyle(
@@ -158,7 +159,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         const SizedBox(height: 6),
         SizedBox(
-          height: 52,
+          height: 48,
           child: TextField(
             controller: _contactController,
             focusNode: _contactFocusNode,
@@ -166,9 +167,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _handleSendOtp(),
             decoration: InputDecoration(
+              isDense: true,
               hintText: 'Nhập số điện thoại hoặc email...',
-              hintStyle: const TextStyle(color: _hintColor, fontSize: 15),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              hintStyle: const TextStyle(color: _hintColor, fontSize: 13),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 13,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: _borderColor, width: 1.5),
@@ -181,7 +186,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
             ),
-            style: const TextStyle(fontSize: 15, color: _textPrimary),
+            style: const TextStyle(fontSize: 13, color: _textPrimary),
           ),
         ),
         const SizedBox(height: 8),
@@ -189,7 +194,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           'Ví dụ: 0901 234 567 hoặc email@example.com',
           style: TextStyle(fontSize: 12, color: _hintColor),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 22),
         _buildSendButton(),
       ],
     );
@@ -207,7 +212,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       onEnter: (_) => setState(() => _buttonHovered = true),
       onExit: (_) => setState(() => _buttonHovered = false),
       child: SizedBox(
-        height: 52,
+        height: 48,
         child: ElevatedButton(
           onPressed: _hasContact ? _handleSendOtp : null,
           style: ElevatedButton.styleFrom(
@@ -222,7 +227,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           child: const Text(
             'Gửi mã xác nhận',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
           ),
         ),
       ),
@@ -234,14 +239,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       key: const ValueKey('forgot-success'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
         const Icon(Icons.check_circle_rounded, color: _successColor, size: 48),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         const Text(
           'Đã gửi mã xác nhận!',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: _textPrimary,
           ),
@@ -256,9 +261,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             height: 1.6,
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 22),
         SizedBox(
-          height: 52,
+          height: 48,
           child: ElevatedButton(
             onPressed: () => Navigator.pushNamed(context, AppRoutes.otp),
             style: ElevatedButton.styleFrom(
@@ -274,7 +279,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               children: [
                 Text(
                   'Nhập mã OTP',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
                 SizedBox(width: 8),
                 Icon(Icons.arrow_forward_rounded, size: 18),
@@ -305,15 +310,19 @@ class _LockIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80,
-      height: 80,
+      width: 72,
+      height: 72,
       alignment: Alignment.center,
       margin: const EdgeInsets.only(left: 0, right: 0),
       decoration: const BoxDecoration(
         color: Color(0xFFFFF5F3),
         shape: BoxShape.circle,
       ),
-      child: const Text('🔐', style: TextStyle(fontSize: 36)),
+      child: const Icon(
+        Icons.lock_reset_rounded,
+        color: AppColors.primary,
+        size: 32,
+      ),
     );
   }
 }

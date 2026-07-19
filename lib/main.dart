@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'app/shopee_food_app.dart';
 import 'firebase_options.dart';
+import 'orders/order_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,8 @@ Future<void> main() async {
     debugPrint('Firebase.initializeApp failed: $e');
     debugPrint('$st');
   }
+
+  await OrderState.hydrate();
 
   runApp(const ShopeeFoodApp());
 }

@@ -133,7 +133,7 @@ class _AddressBookPageState extends State<AddressBookPage> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                   child: _SearchField(onTap: _openMapThenAdd),
                 ),
                 Expanded(
@@ -175,24 +175,24 @@ class _AddressBookPageState extends State<AddressBookPage> {
                 SafeArea(
                   top: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                     child: SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: 44,
                       child: ElevatedButton(
                         onPressed: () => _openAdd(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                         ),
                         child: const Text(
                           'Thêm địa chỉ mới',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -335,15 +335,16 @@ class _AddAddressPageState extends State<AddAddressPage> {
                   controller: _gateController,
                   hint: 'Cổng (không bắt buộc)',
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
                       for (final label in ['Nhà', 'Công ty', 'Khác'])
                         Padding(
-                          padding: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
+                            visualDensity: VisualDensity.compact,
                             label: Text(label),
                             selected: _label == label,
                             onSelected: (_) => setState(() => _label = label),
@@ -352,14 +353,15 @@ class _AddAddressPageState extends State<AddAddressPage> {
                               color: _label == label
                                   ? AppColors.primary
                                   : const Color(0xFF212121),
-                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _FormInput(
                   controller: _noteController,
                   hint: 'Ghi chú cho Tài xế (không bắt buộc)',
@@ -371,10 +373,10 @@ class _AddAddressPageState extends State<AddAddressPage> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 44,
                 child: ElevatedButton(
                   onPressed: _canSave ? _save : null,
                   style: ElevatedButton.styleFrom(
@@ -383,12 +385,12 @@ class _AddAddressPageState extends State<AddAddressPage> {
                     foregroundColor: Colors.white,
                     disabledForegroundColor: const Color(0xFF9E9E9E),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                   child: const Text(
                     'Lưu',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -533,7 +535,7 @@ class _AddressMapPickerPageState extends State<AddressMapPickerPage> {
       body: Column(
         children: [
           SizedBox(
-            height: MediaQuery.sizeOf(context).height * 0.46,
+            height: MediaQuery.sizeOf(context).height * 0.44,
             child: Stack(
               children: [
                 FlutterMap(
@@ -596,8 +598,8 @@ class _AddressMapPickerPageState extends State<AddressMapPickerPage> {
                   ),
                 ),
                 Positioned(
-                  right: 18,
-                  bottom: 18,
+                  right: 12,
+                  bottom: 12,
                   child: FloatingActionButton.small(
                     heroTag: 'recenter-map',
                     backgroundColor: Colors.white,
@@ -607,14 +609,14 @@ class _AddressMapPickerPageState extends State<AddressMapPickerPage> {
                     },
                     child: _refreshingCurrentLocation
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
+                            width: 16,
+                            height: 16,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: AppColors.primary,
                             ),
                           )
-                        : const Icon(Icons.my_location_rounded),
+                        : const Icon(Icons.my_location_rounded, size: 20),
                   ),
                 ),
               ],
@@ -651,10 +653,10 @@ class _AddressMapPickerPageState extends State<AddressMapPickerPage> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 44,
                 child: ElevatedButton(
                   onPressed: _selectedAddress == null ? null : _confirm,
                   style: ElevatedButton.styleFrom(
@@ -663,12 +665,12 @@ class _AddressMapPickerPageState extends State<AddressMapPickerPage> {
                     foregroundColor: Colors.white,
                     disabledForegroundColor: const Color(0xFF9E9E9E),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
                   child: const Text(
                     'Xác nhận vị trí',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -687,30 +689,31 @@ class _AddressAppBar extends StatelessWidget implements PreferredSizeWidget {
   const _AddressAppBar({required this.title, this.action});
 
   @override
-  Size get preferredSize => const Size.fromHeight(76);
+  Size get preferredSize => const Size.fromHeight(44);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
+      toolbarHeight: 44,
       elevation: 0.5,
       shadowColor: const Color(0x1A000000),
-      leadingWidth: 72,
+      leadingWidth: 42,
       leading: IconButton(
         onPressed: () => Navigator.maybePop(context),
         icon: const Icon(
-          Icons.arrow_back_rounded,
+          Icons.arrow_back_ios_new_rounded,
           color: AppColors.primary,
-          size: 32,
+          size: 18,
         ),
       ),
       title: Text(
         title,
         style: const TextStyle(
           color: Color(0xFF212121),
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
         ),
       ),
       centerTitle: true,
@@ -728,18 +731,18 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(2),
+      borderRadius: BorderRadius.circular(6),
       child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         color: const Color(0xFFF3F3F3),
         child: const Row(
           children: [
-            Icon(Icons.search_rounded, color: Color(0xFF757575), size: 24),
-            SizedBox(width: 8),
+            Icon(Icons.search_rounded, color: Color(0xFF757575), size: 18),
+            SizedBox(width: 6),
             Text(
               'Tìm vị trí',
-              style: TextStyle(color: Color(0xFFBDBDBD), fontSize: 16),
+              style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
             ),
           ],
         ),
@@ -776,16 +779,16 @@ class _AddressCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 14, 20, 16),
+          padding: const EdgeInsets.fromLTRB(12, 10, 10, 11),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 icon,
                 color: selected ? AppColors.primary : const Color(0xFF212121),
-                size: 24,
+                size: 19,
               ),
-              const SizedBox(width: 18),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,21 +797,21 @@ class _AddressCard extends StatelessWidget {
                       title,
                       style: const TextStyle(
                         color: Color(0xFF212121),
-                        fontSize: 17,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       address,
                       style: const TextStyle(
                         color: Color(0xFF8A8A8A),
-                        fontSize: 14,
-                        height: 1.3,
+                        fontSize: 11,
+                        height: 1.28,
                       ),
                     ),
                     if (receiver.isNotEmpty || phone.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 5),
                       Text(
                         [
                           receiver,
@@ -816,7 +819,7 @@ class _AddressCard extends StatelessWidget {
                         ].where((part) => part.isNotEmpty).join('  '),
                         style: const TextStyle(
                           color: Color(0xFF424242),
-                          fontSize: 13,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -853,22 +856,22 @@ class _ActionRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           child: Row(
             children: [
-              Icon(icon, size: 26, color: const Color(0xFF212121)),
-              const SizedBox(width: 18),
+              Icon(icon, size: 20, color: const Color(0xFF212121)),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
                     color: Color(0xFF212121),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, size: 30),
+              const Icon(Icons.chevron_right_rounded, size: 22),
             ],
           ),
         ),
@@ -887,13 +890,13 @@ class _SectionLabel extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: const Color(0xFFF5F5F5),
-      padding: const EdgeInsets.fromLTRB(24, 14, 24, 10),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 7),
       child: Text(
         text,
         style: const TextStyle(
           color: Color(0xFF757575),
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -931,17 +934,17 @@ class _FormInput extends StatelessWidget {
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 16),
+          hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 13),
           prefixIcon: icon == null
               ? null
-              : Icon(icon, color: AppColors.primary, size: 24),
+              : Icon(icon, color: AppColors.primary, size: 19),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 16,
+            horizontal: 12,
+            vertical: 13,
           ),
         ),
-        style: const TextStyle(color: Color(0xFF212121), fontSize: 16),
+        style: const TextStyle(color: Color(0xFF212121), fontSize: 13),
       ),
     );
   }
@@ -961,7 +964,7 @@ class _AddressChooser extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 16, 18, 16),
+          padding: const EdgeInsets.fromLTRB(12, 13, 10, 13),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: Color(0xFFEDEDED))),
           ),
@@ -976,12 +979,12 @@ class _AddressChooser extends StatelessWidget {
                     color: hasAddress
                         ? const Color(0xFF212121)
                         : const Color(0xFFBDBDBD),
-                    fontSize: 16,
+                    fontSize: 13,
                     height: 1.25,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, size: 30),
+              const Icon(Icons.chevron_right_rounded, size: 22),
             ],
           ),
         ),
@@ -1012,14 +1015,14 @@ class _SuggestionTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 20, 16),
+          padding: const EdgeInsets.fromLTRB(12, 11, 10, 11),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               loading
                   ? const SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: AppColors.primary,
@@ -1030,8 +1033,9 @@ class _SuggestionTile extends StatelessWidget {
                           ? Icons.radio_button_checked
                           : Icons.location_on_outlined,
                       color: selected ? AppColors.primary : Colors.black54,
+                      size: 20,
                     ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,18 +1046,18 @@ class _SuggestionTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFF212121),
-                        fontSize: 16,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       address,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFF8A8A8A),
-                        fontSize: 14,
+                        fontSize: 11,
                         height: 1.25,
                       ),
                     ),
@@ -1075,17 +1079,17 @@ class _CurrentLocationDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 22,
-        height: 22,
+        width: 18,
+        height: 18,
         decoration: BoxDecoration(
           color: const Color(0xFF2196F3),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 4),
+          border: Border.all(color: Colors.white, width: 3),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF2196F3).withValues(alpha: 0.30),
-              blurRadius: 12,
-              spreadRadius: 8,
+              blurRadius: 10,
+              spreadRadius: 6,
             ),
           ],
         ),
@@ -1094,16 +1098,94 @@ class _CurrentLocationDot extends StatelessWidget {
   }
 }
 
-class _SelectedPin extends StatelessWidget {
+class _SelectedPin extends StatefulWidget {
   const _SelectedPin();
 
   @override
+  State<_SelectedPin> createState() => _SelectedPinState();
+}
+
+class _SelectedPinState extends State<_SelectedPin>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _radarController;
+
+  @override
+  void initState() {
+    super.initState();
+    _radarController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _radarController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.location_on_rounded, color: AppColors.primary, size: 48),
-        SizedBox(height: 8),
+        SizedBox(
+          width: 58,
+          height: 58,
+          child: AnimatedBuilder(
+            animation: _radarController,
+            builder: (context, child) {
+              final value = _radarController.value;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  Transform.scale(
+                    scale: 0.74 + value * 0.26,
+                    child: Opacity(
+                      opacity: 0.34 * (1 - value),
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  RotationTransition(
+                    turns: _radarController,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: SweepGradient(
+                          colors: [
+                            AppColors.primary.withValues(alpha: 0),
+                            AppColors.primary.withValues(alpha: 0.20),
+                            AppColors.primary.withValues(alpha: 0),
+                          ],
+                          stops: const [0.0, 0.42, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                  child!,
+                ],
+              );
+            },
+            child: const Icon(
+              Icons.location_on_rounded,
+              color: AppColors.primary,
+              size: 38,
+            ),
+          ),
+        ),
+        const SizedBox(height: 3),
       ],
     );
   }

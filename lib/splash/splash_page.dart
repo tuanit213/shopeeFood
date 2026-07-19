@@ -102,7 +102,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 22, 24, 32),
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
               child: Column(
                 children: [
                   const Spacer(),
@@ -113,28 +113,28 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       child: const _LoadingMark(),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 22),
                   const Text(
                     'Đang chuẩn bị món ngon',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.w800,
                       height: 1.15,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   const Text(
                     'Vui lòng chờ trong giây lát',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFFFFE5DE),
-                      fontSize: 15,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 26),
                   _LoadingDots(controller: _dotController),
                   const Spacer(),
                   const Text(

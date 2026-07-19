@@ -27,7 +27,7 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
     with SingleTickerProviderStateMixin {
   late final LatLng _shopPosition;
   late final LatLng _customerPosition;
-  late final LatLng _startDriverPosition;
+  late LatLng _startDriverPosition;
   late List<LatLng> _driverToShopRoute;
   late List<LatLng> _shopToCustomerRoute;
   late List<LatLng> _activeRoute;
@@ -50,6 +50,7 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
 
   static const _stepDuration = Duration(milliseconds: 3000);
   static const _averageSpeedKmh = 40.0;
+  static const _minimumVisualRouteDuration = Duration(seconds: 80);
 
   @override
   void initState() {
@@ -61,13 +62,22 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
     _shopPosition = points.shop;
     _customerPosition = points.customer;
     _startDriverPosition = points.driver;
-    _driverPosition = _startDriverPosition;
     _driverToShopRoute = _fallbackRoadRoute(
       _startDriverPosition,
       _shopPosition,
     );
+    _driverToShopRoute = _ensureMinimumRouteDistance(
+      _driverToShopRoute,
+      _startDriverPosition,
+      _shopPosition,
+      0.22,
+    );
+    _startDriverPosition = _driverToShopRoute.first;
+    _driverPosition = _startDriverPosition;
     _shopToCustomerRoute = _fallbackRoadRoute(_shopPosition, _customerPosition);
     _activeRoute = _driverToShopRoute;
+    _shopRating = widget.entry.shopRating ?? 0;
+    _driverRating = widget.entry.driverRating ?? 0;
     _loadRoadRoutes();
   }
 
@@ -94,7 +104,12 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
     final nextToShop = toShop?.points ?? _driverToShopRoute;
     final nextToCustomer = toCustomer?.points ?? _shopToCustomerRoute;
     setState(() {
-      _driverToShopRoute = nextToShop;
+      _driverToShopRoute = _ensureMinimumRouteDistance(
+        nextToShop,
+        _startDriverPosition,
+        _shopPosition,
+        0.22,
+      );
       _shopToCustomerRoute = nextToCustomer;
       _usingRoadRoute = toShop != null || toCustomer != null;
       _loadingRoadRoute = false;
@@ -170,6 +185,11 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
     Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
       setState(() => _phase = _DeliveryPhase.delivered);
+      if (widget.entry.id.isNotEmpty) {
+        OrderState.markEntryDelivered(widget.entry.id);
+      } else {
+        OrderState.markDelivered(widget.entry.order);
+      }
       _showStatusPopup('Đơn hàng của bạn đã được giao');
     });
   }
@@ -230,12 +250,23 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
 
   Duration _durationForRoute(List<LatLng> route) {
     final realMs = _routeDistanceKm(route) / _averageSpeedKmh * 3600 * 1000;
-    return Duration(milliseconds: realMs.round().clamp(25000, 180000));
+    return Duration(
+      milliseconds: realMs.round().clamp(
+        _minimumVisualRouteDuration.inMilliseconds,
+        180000,
+      ),
+    );
   }
 
   double get _activeRouteKm => _routeDistanceKm(_activeRoute);
 
   double get _remainingKm {
+    final rawRemaining = _activeRouteKm * (1 - _phaseProgress);
+    if (_phase == _DeliveryPhase.toShop &&
+        rawRemaining <= 0.05 &&
+        _phaseProgress < 0.95) {
+      return 0.22 * (1 - _phaseProgress);
+    }
     if (_phase == _DeliveryPhase.waitingAtShop) {
       return _routeDistanceKm(_shopToCustomerRoute);
     }
@@ -243,7 +274,17 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
         _phase == _DeliveryPhase.delivered) {
       return 0;
     }
-    return _activeRouteKm * (1 - _phaseProgress);
+    return rawRemaining;
+  }
+
+  double get _toShopKmForDisplay {
+    final raw = _routeDistanceKm(_driverToShopRoute);
+    if (raw <= 0.05 &&
+        (_phase == _DeliveryPhase.toShop ||
+            _phase == _DeliveryPhase.waitingAtShop)) {
+      return 0.22;
+    }
+    return raw;
   }
 
   int get _etaMinutes {
@@ -265,11 +306,11 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
   String get _phaseSubtitle {
     return switch (_phase) {
       _DeliveryPhase.toShop =>
-        'Đường theo bản đồ thật tới quán, còn ${_remainingKm.toStringAsFixed(1)}km',
+        'Đường theo bản đồ thật tới quán, còn ${_formatTrackingDistance(_remainingKm)}',
       _DeliveryPhase.waitingAtShop =>
         'Sau khi lấy món, lộ trình sẽ đổi về địa chỉ của bạn',
       _DeliveryPhase.toCustomer =>
-        'Còn ${_remainingKm.toStringAsFixed(1)}km, dự kiến $_etaMinutes phút theo 40km/h',
+        'Còn ${_formatTrackingDistance(_remainingKm)}, dự kiến $_etaMinutes phút theo 40km/h',
       _DeliveryPhase.arrived => 'Tài xế đang bàn giao món cho bạn',
       _DeliveryPhase.delivered =>
         'Bạn có thể đánh giá quán và tài xế ở bên dưới',
@@ -326,7 +367,7 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
             children: [
               _MapCard(
                 activeRoute: _activeRoute,
@@ -339,32 +380,36 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
                 etaMinutes: _etaMinutes,
                 distanceKm: _remainingKm,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               _StatusCard(
                 title: _phaseTitle,
                 subtitle: _phaseSubtitle,
                 etaMinutes: _etaMinutes,
                 distanceKm: _remainingKm,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               _OrderSummaryCard(order: order, firstItem: firstItem),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               _RouteInfoCard(
-                toShopKm: _routeDistanceKm(_driverToShopRoute),
+                toShopKm: _toShopKmForDisplay,
                 toCustomerKm: _routeDistanceKm(_shopToCustomerRoute),
                 activeRoute: _activeRoute,
                 loadingRoadRoute: _loadingRoadRoute,
                 usingRoadRoute: _usingRoadRoute,
               ),
               if (_phase == _DeliveryPhase.delivered) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 _RatingCard(
                   shopRating: _shopRating,
                   driverRating: _driverRating,
-                  onShopRatingChanged: (value) =>
-                      setState(() => _shopRating = value),
-                  onDriverRatingChanged: (value) =>
-                      setState(() => _driverRating = value),
+                  onShopRatingChanged: (value) {
+                    setState(() => _shopRating = value);
+                    _persistRatingIfComplete();
+                  },
+                  onDriverRatingChanged: (value) {
+                    setState(() => _driverRating = value);
+                    _persistRatingIfComplete();
+                  },
                 ),
               ],
             ],
@@ -372,6 +417,23 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
         ),
       ),
     );
+  }
+
+  void _persistRatingIfComplete() {
+    if (_shopRating == 0 || _driverRating == 0) return;
+    if (widget.entry.id.isNotEmpty) {
+      OrderState.rateEntry(
+        entryId: widget.entry.id,
+        shopRating: _shopRating,
+        driverRating: _driverRating,
+      );
+    } else {
+      OrderState.rateOrder(
+        restaurantId: widget.entry.order.restaurant.id,
+        shopRating: _shopRating,
+        driverRating: _driverRating,
+      );
+    }
   }
 }
 
@@ -419,11 +481,11 @@ class _MapCardState extends State<_MapCard> {
     ];
 
     return Container(
-      height: 330,
+      height: 300,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: const Color(0xFFEAF4F7),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Stack(
@@ -433,7 +495,7 @@ class _MapCardState extends State<_MapCard> {
             options: MapOptions(
               initialCameraFit: CameraFit.coordinates(
                 coordinates: points,
-                padding: const EdgeInsets.fromLTRB(38, 58, 38, 62),
+                padding: const EdgeInsets.fromLTRB(28, 48, 28, 54),
               ),
               minZoom: 5,
               maxZoom: 19,
@@ -461,18 +523,18 @@ class _MapCardState extends State<_MapCard> {
                 polylines: [
                   Polyline(
                     points: widget.activeRoute,
-                    strokeWidth: 5,
+                    strokeWidth: 4,
                     color: const Color(0xFF9E9E9E).withValues(alpha: 0.18),
                     borderColor: Colors.white.withValues(alpha: 0.70),
-                    borderStrokeWidth: 2,
+                    borderStrokeWidth: 1.5,
                   ),
                   if (remainingRoute.length > 1)
                     Polyline(
                       points: remainingRoute,
-                      strokeWidth: 6.5,
+                      strokeWidth: 5,
                       color: AppColors.primary,
                       borderColor: Colors.white,
-                      borderStrokeWidth: 2.5,
+                      borderStrokeWidth: 2,
                     ),
                 ],
               ),
@@ -480,14 +542,14 @@ class _MapCardState extends State<_MapCard> {
                 markers: [
                   Marker(
                     point: widget.customer,
-                    width: 42,
-                    height: 42,
+                    width: 36,
+                    height: 36,
                     child: const _CurrentLocationDot(),
                   ),
                   Marker(
                     point: widget.shop,
-                    width: 44,
-                    height: 54,
+                    width: 38,
+                    height: 48,
                     child: const _MapPin(
                       color: AppColors.success,
                       icon: Icons.storefront_rounded,
@@ -496,8 +558,8 @@ class _MapCardState extends State<_MapCard> {
                   ),
                   Marker(
                     point: widget.driver,
-                    width: 54,
-                    height: 54,
+                    width: 44,
+                    height: 44,
                     child: const _DriverMarker(),
                   ),
                 ],
@@ -505,8 +567,8 @@ class _MapCardState extends State<_MapCard> {
             ],
           ),
           Positioned(
-            left: 10,
-            top: 10,
+            left: 8,
+            top: 8,
             child: _MapInfoChip(
               title: widget.loadingRoadRoute
                   ? 'Đang tính đường'
@@ -523,13 +585,13 @@ class _MapCardState extends State<_MapCard> {
             ),
           ),
           Positioned(
-            right: 10,
-            top: 10,
+            right: 8,
+            top: 8,
             child: _DistanceChip(distanceKm: widget.distanceKm),
           ),
           Positioned(
-            right: 14,
-            bottom: 18,
+            right: 10,
+            bottom: 14,
             child: FloatingActionButton.small(
               heroTag: 'tracking-recenter-map',
               backgroundColor: Colors.white,
@@ -537,10 +599,10 @@ class _MapCardState extends State<_MapCard> {
               onPressed: () => _controller.fitCamera(
                 CameraFit.coordinates(
                   coordinates: points,
-                  padding: const EdgeInsets.fromLTRB(38, 58, 38, 62),
+                  padding: const EdgeInsets.fromLTRB(28, 48, 28, 54),
                 ),
               ),
-              child: const Icon(Icons.my_location_rounded, size: 22),
+              child: const Icon(Icons.my_location_rounded, size: 20),
             ),
           ),
           if (widget.loadingRoadRoute)
@@ -553,20 +615,20 @@ class _MapCardState extends State<_MapCard> {
               ),
             ),
           Positioned(
-            left: 10,
-            bottom: 10,
+            left: 8,
+            bottom: 8,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.86),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 child: Text(
                   'OpenStreetMap',
                   style: TextStyle(
                     color: Color(0xFF616161),
-                    fontSize: 9,
+                    fontSize: 8,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -590,26 +652,26 @@ class _MapInfoChip extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.14),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 9,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               Icons.delivery_dining_rounded,
               color: AppColors.primary,
-              size: 18,
+              size: 16,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -617,7 +679,7 @@ class _MapInfoChip extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: Color(0xFF212121),
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -625,7 +687,7 @@ class _MapInfoChip extends StatelessWidget {
                   subtitle,
                   style: const TextStyle(
                     color: AppColors.primary,
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -651,22 +713,22 @@ class _DistanceChip extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.14),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 9,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Text(
           label,
           style: const TextStyle(
             color: Color(0xFF212121),
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -685,37 +747,37 @@ class _DriverMarker extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           const Positioned(
-            left: 13,
-            top: 15,
+            left: 10,
+            top: 12,
             child: Icon(
               Icons.two_wheeler_rounded,
               color: Colors.white,
-              size: 34,
+              size: 28,
             ),
           ),
           Icon(
             Icons.two_wheeler_rounded,
             color: AppColors.primary,
-            size: 36,
+            size: 30,
             shadows: [
               Shadow(
                 color: AppColors.primary.withValues(alpha: 0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 3),
+                blurRadius: 9,
+                offset: const Offset(0, 2),
               ),
               const Shadow(color: Colors.white, blurRadius: 2),
             ],
           ),
           Positioned(
-            right: 7,
-            top: 8,
+            right: 6,
+            top: 7,
             child: Container(
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               decoration: BoxDecoration(
                 color: AppColors.success,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+                border: Border.all(color: Colors.white, width: 1.2),
               ),
             ),
           ),
@@ -733,34 +795,34 @@ class _RouteLoadingBadge extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              width: 16,
-              height: 16,
+              width: 14,
+              height: 14,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: AppColors.primary,
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 7),
             Text(
               'Đang tính đường thật...',
               style: TextStyle(
                 color: Color(0xFF212121),
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -784,21 +846,21 @@ class _MapPin extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 34,
-          height: 34,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 3),
+            border: Border.all(color: Colors.white, width: 2.5),
             boxShadow: [
               BoxShadow(
                 color: color.withValues(alpha: 0.28),
-                blurRadius: 10,
-                spreadRadius: 2,
+                blurRadius: 8,
+                spreadRadius: 1.5,
               ),
             ],
           ),
-          child: Icon(icon, color: Colors.white, size: 18),
+          child: Icon(icon, color: Colors.white, size: 16),
         ),
         Container(
           margin: const EdgeInsets.only(top: 2),
@@ -811,7 +873,7 @@ class _MapPin extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Color(0xFF212121),
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -828,17 +890,17 @@ class _CurrentLocationDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 22,
-        height: 22,
+        width: 18,
+        height: 18,
         decoration: BoxDecoration(
           color: const Color(0xFF2196F3),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 4),
+          border: Border.all(color: Colors.white, width: 3),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF2196F3).withValues(alpha: 0.30),
-              blurRadius: 12,
-              spreadRadius: 8,
+              blurRadius: 10,
+              spreadRadius: 6,
             ),
           ],
         ),
@@ -866,8 +928,8 @@ class _StatusCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 34,
+            height: 34,
             decoration: const BoxDecoration(
               color: Color(0xFFFFF0ED),
               shape: BoxShape.circle,
@@ -875,10 +937,10 @@ class _StatusCard extends StatelessWidget {
             child: const Icon(
               Icons.delivery_dining_rounded,
               color: AppColors.primary,
-              size: 22,
+              size: 19,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -887,38 +949,42 @@ class _StatusCard extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: Color(0xFF212121),
-                    fontSize: 15,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   subtitle,
                   style: const TextStyle(
                     color: Color(0xFF757575),
-                    fontSize: 12,
-                    height: 1.3,
+                    fontSize: 11,
+                    height: 1.25,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${distanceKm.toStringAsFixed(1)}km',
+                _formatTrackingDistance(distanceKm),
                 style: const TextStyle(
                   color: AppColors.primary,
-                  fontSize: 15,
+                  fontSize: 13,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
-                etaMinutes == 0 ? 'đã đến' : '$etaMinutes phút',
-                style: const TextStyle(color: Color(0xFF757575), fontSize: 11),
+                etaMinutes == 0
+                    ? distanceKm <= 0.005
+                          ? 'đã đến'
+                          : 'sắp đến'
+                    : '$etaMinutes phút',
+                style: const TextStyle(color: Color(0xFF757575), fontSize: 10),
               ),
             ],
           ),
@@ -946,16 +1012,16 @@ class _OrderSummaryCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF212121),
-              fontSize: 15,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           if (firstItem != null)
             Row(
               children: [
                 _FoodThumb(path: firstItem!.imageUrl),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,19 +1032,19 @@ class _OrderSummaryCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFF212121),
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         '${order.itemCount} món | ${order.paymentMethod}',
                         style: const TextStyle(
                           color: Color(0xFF757575),
-                          fontSize: 12,
+                          fontSize: 11,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         order.address,
                         maxLines: 1,
@@ -995,7 +1061,7 @@ class _OrderSummaryCard extends StatelessWidget {
                   checkoutFormatPrice(order.total),
                   style: const TextStyle(
                     color: AppColors.primary,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -1038,21 +1104,21 @@ class _RouteInfoCard extends StatelessWidget {
             'Lộ trình giao hàng',
             style: TextStyle(
               color: Color(0xFF212121),
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           _RouteMetric(
             label: 'Tài xế tới quán',
-            value: '${toShopKm.toStringAsFixed(1)}km',
+            value: _formatTrackingDistance(toShopKm),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           _RouteMetric(
             label: 'Quán tới khách',
-            value: '${toCustomerKm.toStringAsFixed(1)}km',
+            value: _formatTrackingDistance(toCustomerKm),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           _RouteMetric(
             label: 'Nguồn tuyến đường',
             value: '$routeSource | ${activeRoute.length} điểm',
@@ -1076,7 +1142,7 @@ class _RouteMetric extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(color: Color(0xFF757575), fontSize: 12),
+            style: const TextStyle(color: Color(0xFF757575), fontSize: 11),
           ),
         ),
         Flexible(
@@ -1086,7 +1152,7 @@ class _RouteMetric extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF212121),
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1119,17 +1185,17 @@ class _RatingCard extends StatelessWidget {
             'Đánh giá đơn hàng',
             style: TextStyle(
               color: Color(0xFF212121),
-              fontSize: 15,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _RatingRow(
             label: 'Đánh giá quán',
             value: shopRating,
             onChanged: onShopRatingChanged,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _RatingRow(
             label: 'Đánh giá tài xế',
             value: driverRating,
@@ -1161,7 +1227,7 @@ class _RatingRow extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Color(0xFF424242),
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1175,7 +1241,7 @@ class _RatingRow extends StatelessWidget {
               child: Icon(
                 i <= value ? Icons.star_rounded : Icons.star_border_rounded,
                 color: const Color(0xFFFFB300),
-                size: 24,
+                size: 21,
               ),
             ),
           ),
@@ -1192,10 +1258,10 @@ class _WhiteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFEDEDED)),
       ),
       child: child,
@@ -1212,9 +1278,9 @@ class _FoodThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAsset = path.startsWith('assets/');
     final image = isAsset
-        ? Image.asset(path, width: 54, height: 54, fit: BoxFit.cover)
-        : Image.network(path, width: 54, height: 54, fit: BoxFit.cover);
-    return ClipRRect(borderRadius: BorderRadius.circular(7), child: image);
+        ? Image.asset(path, width: 48, height: 48, fit: BoxFit.cover)
+        : Image.network(path, width: 48, height: 48, fit: BoxFit.cover);
+    return ClipRRect(borderRadius: BorderRadius.circular(6), child: image);
   }
 }
 
@@ -1373,6 +1439,17 @@ List<LatLng> _densifyRoute(List<LatLng> route, {int minPointCount = 21}) {
   ];
 }
 
+List<LatLng> _ensureMinimumRouteDistance(
+  List<LatLng> route,
+  LatLng start,
+  LatLng end,
+  double minKm,
+) {
+  if (_routeDistanceKm(route) >= minKm) return route;
+  final repairedStart = _offsetPoint(end, minKm, _bearingDegrees(end, start));
+  return _fallbackRoadRoute(repairedStart, end);
+}
+
 List<LatLng> _shortestPath(List<_RouteNode> nodes, int start, int end) {
   final dist = List<double>.filled(nodes.length, double.infinity);
   final previous = List<int?>.filled(nodes.length, null);
@@ -1461,6 +1538,12 @@ double _routeDistanceKm(List<LatLng> route) {
   return distanceKm;
 }
 
+String _formatTrackingDistance(double distanceKm) {
+  if (distanceKm <= 0.005) return '0m';
+  if (distanceKm < 1) return '${math.max(10, (distanceKm * 1000).round())}m';
+  return '${distanceKm.toStringAsFixed(1)}km';
+}
+
 LatLng _lerpLatLng(LatLng a, LatLng b, double t) {
   return LatLng(
     _lerp(a.latitude, b.latitude, t),
@@ -1469,6 +1552,18 @@ LatLng _lerpLatLng(LatLng a, LatLng b, double t) {
 }
 
 double _lerp(double a, double b, double t) => a + (b - a) * t;
+
+int _bearingDegrees(LatLng from, LatLng to) {
+  final lat1 = from.latitude * math.pi / 180;
+  final lat2 = to.latitude * math.pi / 180;
+  final deltaLng = (to.longitude - from.longitude) * math.pi / 180;
+  final y = math.sin(deltaLng) * math.cos(lat2);
+  final x =
+      math.cos(lat1) * math.sin(lat2) -
+      math.sin(lat1) * math.cos(lat2) * math.cos(deltaLng);
+  final bearing = math.atan2(y, x) * 180 / math.pi;
+  return ((bearing + 360) % 360).round();
+}
 
 LatLng _offsetPoint(LatLng origin, double distanceKm, int bearingDegrees) {
   const earthRadiusKm = 6371.0;

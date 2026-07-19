@@ -268,10 +268,10 @@ class _LoginPageState extends State<LoginPage> {
 
             return SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                isMobile ? 16 : 24,
-                isMobile ? 12 : 24,
-                isMobile ? 16 : 24,
-                24,
+                isMobile ? 14 : 22,
+                isMobile ? 10 : 20,
+                isMobile ? 14 : 22,
+                20,
               ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
@@ -283,44 +283,44 @@ class _LoginPageState extends State<LoginPage> {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x14000000),
-                            blurRadius: 24,
-                            offset: Offset(0, 4),
+                            color: Color(0x10000000),
+                            blurRadius: 18,
+                            offset: Offset(0, 3),
                           ),
                         ],
                       ),
                       child: Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 20 : 32,
-                          vertical: isMobile ? 24 : 40,
+                          horizontal: isMobile ? 18 : 28,
+                          vertical: isMobile ? 20 : 34,
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _buildHeader(),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 22),
                             if (_showApiError) ...[
                               _buildApiError(),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                             ],
                             _buildPhoneField(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             _buildPasswordField(),
                             const SizedBox(height: 12),
                             _buildRememberRow(),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 18),
                             _buildLoginButton(),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 18),
                             _buildDivider(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             _buildSocialRow(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             _buildLegalText(),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             _buildRegisterRow(),
                           ],
                         ),
@@ -340,32 +340,32 @@ class _LoginPageState extends State<LoginPage> {
     return Column(
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: AppColors.primary,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
             Icons.restaurant_rounded,
             color: Colors.white,
-            size: 26,
+            size: 23,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 7),
         const Text(
           'Đăng nhập',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
             color: _textPrimary,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         const Text(
           'Chào mừng bạn quay lại',
-          style: TextStyle(fontSize: 14, color: _textSecondary),
+          style: TextStyle(fontSize: 13, color: _textSecondary),
           textAlign: TextAlign.center,
         ),
       ],
@@ -425,7 +425,7 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 6),
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          height: 52,
+          height: 48,
           decoration: BoxDecoration(
             border: Border.all(color: borderColor, width: borderWidth),
             borderRadius: BorderRadius.circular(8),
@@ -434,9 +434,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Row(
             children: [
               Container(
-                width: 88,
+                width: 82,
                 height: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: const BoxDecoration(
                   color: _inputFill,
                   borderRadius: BorderRadius.horizontal(
@@ -447,16 +447,16 @@ class _LoginPageState extends State<LoginPage> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('🇻🇳', style: TextStyle(fontSize: 15)),
+                    Text('🇻🇳', style: TextStyle(fontSize: 13)),
                     Text(
                       '+84',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: _textPrimary,
                       ),
                     ),
-                    Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                    Icon(Icons.keyboard_arrow_down_rounded, size: 16),
                   ],
                 ),
               ),
@@ -475,12 +475,18 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   decoration: const InputDecoration(
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    isDense: true,
                     hintText: 'Số điện thoại',
-                    hintStyle: TextStyle(color: _hint, fontSize: 15),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                    hintStyle: TextStyle(color: _hint, fontSize: 13),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
                   ),
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 13,
                     color: hasError ? _error : _textPrimary,
                   ),
                 ),
@@ -533,7 +539,7 @@ class _LoginPageState extends State<LoginPage> {
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
             hintText: 'Nhập mật khẩu',
-            hintStyle: const TextStyle(color: _hint, fontSize: 15),
+            hintStyle: const TextStyle(color: _hint, fontSize: 13),
             suffixIcon: IconButton(
               tooltip: _obscureText ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
               icon: Icon(
@@ -545,7 +551,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               onPressed: () => setState(() => _obscureText = !_obscureText),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
@@ -570,7 +576,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 13,
             color: hasError ? _error : _textPrimary,
           ),
         ),
@@ -669,7 +675,7 @@ class _LoginPageState extends State<LoginPage> {
           scale: scale,
           duration: const Duration(milliseconds: 100),
           child: SizedBox(
-            height: 52,
+            height: 48,
             child: ElevatedButton(
               onPressed: _canSubmit ? _submit : null,
               style: ElevatedButton.styleFrom(
@@ -700,9 +706,9 @@ class _LoginPageState extends State<LoginPage> {
                         'Đăng nhập',
                         key: ValueKey('label'),
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0,
                         ),
                       ),
               ),
@@ -751,7 +757,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildSocialButton({required String iconPath, required String text}) {
     return SizedBox(
-      height: 48,
+      height: 44,
       child: OutlinedButton(
         onPressed: () {},
         style: OutlinedButton.styleFrom(

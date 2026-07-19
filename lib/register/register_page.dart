@@ -174,16 +174,17 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   _FloatingTextField(
                     controller: _nameController,
                     focusNode: _nameFocus,
@@ -192,7 +193,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) => _phoneFocus.requestFocus(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _FloatingTextField(
                     controller: _phoneController,
                     focusNode: _phoneFocus,
@@ -205,7 +206,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     onSubmitted: (_) => _emailFocus.requestFocus(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _FloatingTextField(
                     controller: _emailController,
                     focusNode: _emailFocus,
@@ -215,32 +216,24 @@ class _RegisterPageState extends State<RegisterPage> {
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) => _passwordFocus.requestFocus(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _FloatingTextField(
                     controller: _passwordController,
                     focusNode: _passwordFocus,
                     label: 'Mật khẩu',
                     icon: Icons.lock_outline_rounded,
                     obscureText: _obscurePassword,
-                    suffixIcon: IconButton(
-                      tooltip: _obscurePassword
-                          ? 'Hiện mật khẩu'
-                          : 'Ẩn mật khẩu',
+                    suffixIcon: _PasswordEyeButton(
+                      obscure: _obscurePassword,
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
                       },
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: _labelColor,
-                      ),
                     ),
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) => _confirmPasswordFocus.requestFocus(),
                   ),
                   _PasswordStrengthMeter(password: _passwordController.text),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _FloatingTextField(
                     controller: _confirmPasswordController,
                     focusNode: _confirmPasswordFocus,
@@ -257,22 +250,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             Icons.check_circle_rounded,
                             color: _successColor,
                           )
-                        : IconButton(
-                            tooltip: _obscureConfirmPassword
-                                ? 'Hiện mật khẩu'
-                                : 'Ẩn mật khẩu',
+                        : _PasswordEyeButton(
+                            obscure: _obscureConfirmPassword,
                             onPressed: () {
                               setState(() {
                                 _obscureConfirmPassword =
                                     !_obscureConfirmPassword;
                               });
                             },
-                            icon: Icon(
-                              _obscureConfirmPassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              color: _labelColor,
-                            ),
                           ),
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _handleRegister(),
@@ -284,11 +269,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: TextStyle(fontSize: 12, color: _errorColor),
                     ),
                   ],
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 16),
                   _buildTermsCheckbox(),
-                  const SizedBox(height: 24),
-                  _buildRegisterButton(),
                   const SizedBox(height: 18),
+                  _buildRegisterButton(),
+                  const SizedBox(height: 14),
                   _buildLoginLink(),
                 ],
               ),
@@ -307,18 +292,18 @@ class _RegisterPageState extends State<RegisterPage> {
           icon: const Icon(
             Icons.arrow_back_rounded,
             color: AppColors.primary,
-            size: 24,
+            size: 21,
           ),
           tooltip: 'Quay lại',
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 36, height: 36),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         const Text(
           'Đăng ký',
           style: TextStyle(
             color: AppColors.primary,
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -393,7 +378,7 @@ class _RegisterPageState extends State<RegisterPage> {
       onEnter: (_) => setState(() => _buttonHovered = true),
       onExit: (_) => setState(() => _buttonHovered = false),
       child: SizedBox(
-        height: 52,
+        height: 48,
         child: ElevatedButton(
           onPressed: _canSubmit ? _handleRegister : null,
           style: ElevatedButton.styleFrom(
@@ -427,8 +412,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         'Đang tạo tài khoản...',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -436,7 +421,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 : const Text(
                     'Đăng ký tài khoản',
                     key: ValueKey('label'),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
           ),
         ),
@@ -511,7 +496,7 @@ class _FloatingTextField extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      height: 56,
+      height: 48,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: effectiveBorder, width: borderWidth),
@@ -522,19 +507,48 @@ class _FloatingTextField extends StatelessWidget {
             left: 12,
             top: 0,
             bottom: 0,
-            child: Icon(icon, color: _RegisterPageState._labelColor, size: 22),
+            child: Icon(icon, color: _RegisterPageState._labelColor, size: 19),
+          ),
+          Positioned.fill(
+            left: 40,
+            right: suffixIcon == null ? 8 : 38,
+            top: _isFloating ? 10 : 0,
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              keyboardType: keyboardType,
+              textInputAction: textInputAction,
+              obscureText: obscureText,
+              onSubmitted: onSubmitted,
+              inputFormatters: inputFormatters,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.only(top: 14, left: 4, right: 4),
+              ),
+              style: const TextStyle(
+                fontSize: 13,
+                color: _RegisterPageState._textPrimary,
+              ),
+            ),
           ),
           Positioned(
-            left: 48,
-            right: suffixIcon == null ? 16 : 50,
-            top: _isFloating ? 6 : 0,
+            left: 44,
+            right: suffixIcon == null ? 14 : 46,
+            top: _isFloating ? 5 : 0,
             bottom: _isFloating ? null : 0,
             child: IgnorePointer(
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 150),
                 style: TextStyle(
                   color: labelColor,
-                  fontSize: _isFloating ? 11 : 15,
+                  fontSize: _isFloating ? 10 : 13,
+                  height: 1.2,
                   fontWeight: _isFloating ? FontWeight.w500 : FontWeight.w400,
                 ),
                 child: Align(
@@ -550,32 +564,42 @@ class _FloatingTextField extends StatelessWidget {
               ),
             ),
           ),
-          Positioned.fill(
-            left: 44,
-            right: suffixIcon == null ? 8 : 42,
-            top: _isFloating ? 12 : 0,
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              keyboardType: keyboardType,
-              textInputAction: textInputAction,
-              obscureText: obscureText,
-              onSubmitted: onSubmitted,
-              inputFormatters: inputFormatters,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.only(top: 17, left: 4, right: 4),
-              ),
-              style: const TextStyle(
-                fontSize: 15,
-                color: _RegisterPageState._textPrimary,
-              ),
-            ),
-          ),
           if (suffixIcon != null)
-            Positioned(right: 0, top: 0, bottom: 0, child: suffixIcon!),
+            Positioned(
+              right: 5,
+              top: 0,
+              bottom: 0,
+              width: 34,
+              child: Center(child: suffixIcon!),
+            ),
         ],
+      ),
+    );
+  }
+}
+
+class _PasswordEyeButton extends StatelessWidget {
+  final bool obscure;
+  final VoidCallback onPressed;
+
+  const _PasswordEyeButton({required this.obscure, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      splashRadius: 16,
+      constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        foregroundColor: _RegisterPageState._labelColor,
+        hoverColor: const Color(0x0A000000),
+        highlightColor: const Color(0x14000000),
+      ),
+      icon: Icon(
+        obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+        size: 19,
       ),
     );
   }
