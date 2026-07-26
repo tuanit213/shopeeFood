@@ -179,6 +179,24 @@ void main() {
     );
   });
 
+  test('cart and delivery summaries count independent restaurant states', () {
+    OrderState.mergeCartItem(
+      _orderWith(_cartItem(id: 'tea', quantity: 2), restaurantId: 'store-1'),
+    );
+    OrderState.mergeCartItem(
+      _orderWith(_cartItem(id: 'rice', quantity: 3), restaurantId: 'store-2'),
+    );
+    OrderState.markDelivering(
+      _orderWith(_cartItem(id: 'pho'), restaurantId: 'store-3'),
+    );
+
+    expect(OrderState.carts(), hasLength(2));
+    expect(OrderState.cartItemCount(), 5);
+    expect(OrderState.activeDeliveries(), hasLength(1));
+    expect(OrderState.activeDeliveryCount(), 1);
+    expect(OrderState.completedOrders(), isEmpty);
+  });
+
   test('hydrate restores delivering entries from local storage', () async {
     final order = _orderWith(_cartItem(id: 'rice', name: 'Com ga'));
     OrderState.markDelivering(order);
@@ -287,14 +305,18 @@ CheckoutOrder _orderWith(
   );
 }
 
-CartItem _cartItem({required String id, required String name}) {
+CartItem _cartItem({
+  required String id,
+  String name = 'Mon ngon',
+  int quantity = 1,
+}) {
   return CartItem(
     id: id,
     name: name,
     description: 'Mon dang giam',
     imageUrl: 'assets/images/restaurants/food_01.jpg',
     unitPrice: 25000,
-    quantity: 1,
+    quantity: quantity,
     toppings: const [],
     note: '',
   );

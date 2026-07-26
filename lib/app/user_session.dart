@@ -24,6 +24,8 @@ class UserSession {
     await saveSession(userId: userId, phone: phone, rememberMe: remember);
   }
 
+  static DateTime expiryFromNow() => DateTime.now().add(rememberDuration);
+
   static Future<void> saveSession({
     required String userId,
     required String phone,
@@ -41,7 +43,7 @@ class UserSession {
       return;
     }
 
-    final expiresAt = DateTime.now().add(rememberDuration);
+    final expiresAt = expiryFromNow();
     await prefs.setString(_userIdKey, userId);
     await prefs.setInt(_expiresAtKey, expiresAt.millisecondsSinceEpoch);
     _log('saved persistent session until ${expiresAt.toIso8601String()}');

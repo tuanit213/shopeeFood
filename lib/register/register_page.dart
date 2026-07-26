@@ -1,12 +1,10 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_repository.dart';
 import '../app/user_session.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -117,21 +115,12 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      final phone = _phoneController.text.replaceAll(RegExp(r'\s+'), '');
-      final userRef = await FirebaseFirestore.instance.collection('users').add({
-        'fullName': _nameController.text.trim(),
-        'phone': phone,
-        'email': _emailController.text.trim(),
-        'passwordHash': _hashPassword(_passwordController.text),
-        'acceptedTerms': _acceptedTerms,
-        'provider': 'email_password_form',
-        'orderCount': 0,
-        'shopeeXu': 0,
-        'ratingCount': 0,
-        'ratingAverage': null,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      final userRef = await UserRepository.createUser(
+        fullName: _nameController.text,
+        phone: _phoneController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
       await UserSession.saveUserId(userRef.id);
 
       if (!mounted) {
@@ -145,7 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       );
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
-    } on FirebaseException catch (error) {
+    } on UserRepositoryException catch (error) {
       if (!mounted) {
         return;
       }
@@ -158,15 +147,33 @@ class _RegisterPageState extends State<RegisterPage> {
           backgroundColor: _errorColor,
         ),
       );
+    } on FirebaseException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      final message = error.code == 'permission-denied'
+          ? 'Máy chủ từ chối quyền ghi dữ liệu. Vui lòng kiểm tra lại Firestore Rules rồi thử lại.'
+          : 'Lỗi kết nối máy chủ: ${error.message ?? error.code}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: _errorColor),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã có lỗi xảy ra, vui lòng thử lại.'),
+          backgroundColor: Color(0xFFE53935),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
-  }
-
-  String _hashPassword(String password) {
-    return sha256.convert(utf8.encode(password)).toString();
   }
 
   @override

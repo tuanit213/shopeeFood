@@ -3,33 +3,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
-      allow create: if request.resource.data.keys().hasOnly([
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasAll([
+          'uid',
           'fullName',
+          'displayName',
           'phone',
           'email',
+          'passwordHash',
           'acceptedTerms',
           'provider',
+          'stats',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.uid == userId
+        && request.resource.data.fullName is string
+        && request.resource.data.displayName is string
+        && request.resource.data.phone is string
+        && request.resource.data.email is string
+        && request.resource.data.passwordHash is string
+        && request.resource.data.acceptedTerms == true
+        && request.resource.data.provider == 'email_password_form';
+
+      allow update: if request.resource.data.diff(resource.data).changedKeys()
+        .hasOnly([
+          'displayName',
+          'avatarUrl',
+          'rememberMe',
+          'sessionExpiry',
+          'lastLoginAt',
+          'stats',
+          'savedAddresses',
           'orderCount',
           'shopeeXu',
           'ratingCount',
           'ratingAverage',
-          'createdAt',
           'updatedAt'
-        ])
-        && request.resource.data.fullName is string
-        && request.resource.data.phone is string
-        && request.resource.data.email is string
-        && request.resource.data.acceptedTerms == true
-        && request.resource.data.provider == 'email_password_form'
-        && request.resource.data.orderCount == 0
-        && request.resource.data.shopeeXu == 0
-        && request.resource.data.ratingCount == 0
-        && request.resource.data.ratingAverage == null
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.updatedAt == request.time;
+        ]);
 
+      allow delete: if false;
+    }
+
+    // Danh mục quán ăn và menu.
+    //
+    // Ứng dụng chỉ ĐỌC dữ liệu này. Quyền ghi đang mở để nạp dữ liệu mẫu
+    // lần đầu (nút "DEV: Nạp dữ liệu quán lên Firestore").
+    //
+    // >>> SAU KHI NẠP XONG: đổi cả hai dòng `allow write` thành
+    // >>> `allow write: if false;` rồi Publish lại để khoá dữ liệu.
+    match /restaurants/{restaurantId} {
       allow read: if true;
-      allow update, delete: if false;
+      allow write: if true;
+
+      match /menuItems/{menuItemId} {
+        allow read: if true;
+        allow write: if true;
+      }
     }
   }
 }

@@ -118,6 +118,34 @@ class OrderState {
     return null;
   }
 
+  static List<OrderEntry> carts() {
+    return entries.value
+        .where((entry) => entry.status == OrderStatus.cart)
+        .toList(growable: false);
+  }
+
+  static List<OrderEntry> activeDeliveries() {
+    return entries.value
+        .where((entry) => entry.status == OrderStatus.delivering)
+        .toList(growable: false);
+  }
+
+  static List<OrderEntry> completedOrders() {
+    return entries.value
+        .where(
+          (entry) =>
+              entry.status == OrderStatus.delivered ||
+              entry.status == OrderStatus.rated,
+        )
+        .toList(growable: false);
+  }
+
+  static int cartItemCount() {
+    return carts().fold(0, (total, entry) => total + entry.order.itemCount);
+  }
+
+  static int activeDeliveryCount() => activeDeliveries().length;
+
   static void upsertCart(CheckoutOrder order) {
     final current = List<OrderEntry>.of(entries.value);
     final index = current.indexWhere(

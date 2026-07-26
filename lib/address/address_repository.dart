@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../app/user_repository.dart';
+import '../app/user_session.dart';
 import 'delivery_address.dart';
 
 class AddressRepository {
@@ -56,10 +58,21 @@ class AddressRepository {
       jsonEncode(addresses.map((item) => item.toJson()).toList()),
     );
     await prefs.setString(_selectedAddressKey, normalizedAddress.id);
+    await _syncUserAddresses(addresses);
   }
 
   static Future<void> select(String id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedAddressKey, id);
+    await _syncUserAddresses(await loadAddresses());
+  }
+
+  static Future<void> _syncUserAddresses(List<DeliveryAddress> addresses) async {
+    final userId = await UserSession.getUserId();
+    if (userId == null || userId.isEmpty) return;
+    await UserRepository.syncSavedAddresses(
+      userId: userId,
+      addresses: addresses.map((item) => item.toJson()).toList(),
+    );
   }
 }

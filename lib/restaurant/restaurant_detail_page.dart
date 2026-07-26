@@ -8,6 +8,9 @@ import '../app/app_colors.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
 import '../orders/order_state.dart';
+import 'dish_images.dart';
+import 'menu_catalog.dart';
+import 'menu_repository.dart';
 
 class RestaurantDetailInput {
   final String id;
@@ -58,8 +61,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   static const _favoritePrefsKey = 'favorite_restaurant_ids_v1';
   static const _favoriteSnapshotPrefsKey = 'favorite_restaurant_snapshots_v1';
 
-  late final List<MenuSection> _sections;
-  late final List<MenuItemData> _popularItems;
+  List<MenuSection> _sections = const [];
+  List<MenuItemData> _popularItems = const [];
   final List<CartItem> _cartItems = [];
   String _searchQuery = '';
   bool _isFavorite = false;
@@ -89,16 +92,31 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   @override
   void initState() {
     super.initState();
-    _sections = MenuFactory.sectionsFor(widget.restaurant);
-    _popularItems = _sections
-        .expand((section) => section.items)
-        .take(4)
-        .toList();
+    // Hiện menu offline ngay để không có màn hình chờ trống, sau đó nâng cấp
+    // lên dữ liệu thật từ Firestore khi tải xong.
+    _applySections(MenuFactory.sectionsFor(widget.restaurant));
     final existingCart = OrderState.cartForRestaurant(widget.restaurant.id);
     if (existingCart != null) {
       _cartItems.addAll(existingCart.order.items);
     }
     _loadFavoriteState();
+    _loadMenuFromServer();
+  }
+
+  void _applySections(List<MenuSection> sections) {
+    _sections = sections;
+    _popularItems = sections.expand((section) => section.items).take(4).toList();
+  }
+
+  Future<void> _loadMenuFromServer() async {
+    final remoteSections = await MenuRepository.fetchSections(
+      widget.restaurant.id,
+    );
+    if (!mounted || remoteSections == null || remoteSections.isEmpty) {
+      return;
+    }
+
+    setState(() => _applySections(remoteSections));
   }
 
   Future<void> _loadFavoriteState() async {
@@ -2272,29 +2290,275 @@ class MenuItemData {
 
 class MenuFactory {
   static List<MenuSection> sectionsFor(RestaurantDetailInput restaurant) {
-    final text = '${restaurant.name} ${restaurant.category}'.toLowerCase();
+    // Ưu tiên bộ menu riêng theo loại quán (bún bò -> bún/phở, ốc -> hải sản).
+    final blueprint = MenuCatalog.blueprintFor(
+      category: restaurant.category,
+      name: restaurant.name,
+    );
+    if (blueprint != null) {
+      return _fromBlueprint(blueprint, restaurant);
+    }
+
+    // Quán lấy từ API địa điểm chỉ có category chung -> dùng bộ theme cũ.
+    return switch (_themeFor(restaurant)) {
+      'drink' => _expandSections(
+        _drinkSections(restaurant),
+        restaurant,
+        'drink',
+      ),
+      'snack' => _expandSections(
+        _snackSections(restaurant),
+        restaurant,
+        'snack',
+      ),
+      'fast_food' => _expandSections(
+        _fastFoodSections(restaurant),
+        restaurant,
+        'fast_food',
+      ),
+      _ => _expandSections(
+        _riceAndNoodleSections(restaurant),
+        restaurant,
+        'rice_noodle',
+      ),
+    };
+  }
+
+  /// `category` là tín hiệu đáng tin nhất vì luôn là giá trị máy không dấu
+  /// (`rice`, `milk_tea`, `fast_food`...). Chỉ khi category lạ mới đoán theo
+  /// tên quán. Thứ tự này tránh việc "Cơm gà xối mỡ" bị nhận thành quán gà rán
+  /// chỉ vì trong tên có chữ "gà".
+  static String _themeFor(RestaurantDetailInput restaurant) {
+    const categoryThemes = <String, String>{
+      'coffee': 'drink',
+      'cafe': 'drink',
+      'milk_tea': 'drink',
+      'dessert': 'drink',
+      'snack': 'snack',
+      'bakery': 'snack',
+      'breakfast': 'snack',
+      'fast_food': 'fast_food',
+      'korean': 'fast_food',
+      'western': 'fast_food',
+      'rice': 'rice_noodle',
+      'noodle': 'rice_noodle',
+      'hotpot': 'rice_noodle',
+      'seafood': 'rice_noodle',
+      'vegetarian': 'rice_noodle',
+      'healthy': 'rice_noodle',
+      'vietnamese': 'rice_noodle',
+      'japanese': 'rice_noodle',
+    };
+
+    final category = restaurant.category.trim().toLowerCase();
+    final mapped = categoryThemes[category];
+    if (mapped != null) {
+      return mapped;
+    }
+
+    final text = '${restaurant.name} $category'.toLowerCase();
     if (_containsAny(text, [
       'cafe',
       'coffee',
       'cà phê',
+      'ca phe',
       'trà sữa',
       'tra sua',
+      'matcha',
+      'trà',
     ])) {
-      return _drinkSections(restaurant);
+      return 'drink';
     }
-    if (_containsAny(text, ['bánh', 'banh mi', 'phá lấu', 'pha lau'])) {
-      return _snackSections(restaurant);
+    if (_containsAny(text, [
+      'bánh mì',
+      'banh mi',
+      'bánh tráng',
+      'banh trang',
+      'phá lấu',
+      'pha lau',
+      'xiên que',
+      'xien que',
+      'ăn vặt',
+      'an vat',
+    ])) {
+      return 'snack';
     }
-    if (_containsAny(text, ['gà', 'ga ran', 'fast_food'])) {
-      return _fastFoodSections(restaurant);
+    if (_containsAny(text, [
+      'gà rán',
+      'ga ran',
+      'burger',
+      'pizza',
+      'fast_food',
+      'mì cay',
+      'mi cay',
+    ])) {
+      return 'fast_food';
     }
-    return _riceAndNoodleSections(restaurant);
+    return 'rice_noodle';
   }
 
   static bool _containsAny(String value, List<String> needles) {
     return needles.any(value.contains);
   }
 
+  /// Dựng [MenuSection] từ bộ menu định nghĩa sẵn trong [MenuCatalog].
+  static List<MenuSection> _fromBlueprint(
+    List<MenuBlueprint> blueprint,
+    RestaurantDetailInput restaurant,
+  ) {
+    final sections = <MenuSection>[];
+    for (final group in blueprint) {
+      final items = <MenuItemData>[];
+      for (final dish in group.dishes) {
+        items.add(
+          _item(
+            dish.name,
+            dish.description,
+            dish.price,
+            restaurant,
+            // Ảnh riêng của món nếu đã có trong assets/images/dishes/,
+            // nếu chưa thì lấy ảnh gần đúng nhất theo loại món.
+            DishImages.resolve(dish.name, salt: restaurant.id),
+          ),
+        );
+      }
+      if (items.isNotEmpty) {
+        sections.add(MenuSection(title: group.title, items: items));
+      }
+    }
+    return sections;
+  }
+
+  static List<MenuSection> _expandSections(
+    List<MenuSection> sections,
+    RestaurantDetailInput restaurant,
+    String theme,
+  ) {
+    final currentCount = sections.fold<int>(
+      0,
+      (total, section) => total + section.items.length,
+    );
+    if (currentCount >= 22) return sections;
+
+    final names = sections
+        .expand((section) => section.items)
+        .map((item) => item.name.toLowerCase())
+        .toSet();
+    final generated = <MenuItemData>[];
+    final pool = _generatedPool(theme);
+    var imageIndex = 0;
+    for (final spec in pool) {
+      if (generated.length + currentCount >= 22) break;
+      if (!names.add(spec.$1.toLowerCase())) continue;
+      generated.add(
+        _item(
+          spec.$1,
+          spec.$2,
+          spec.$3,
+          restaurant,
+          DishImages.resolve(
+            spec.$1,
+            salt: '${restaurant.id}-generated-${imageIndex++}',
+          ),
+        ),
+      );
+    }
+
+    if (generated.isEmpty) return sections;
+    return [
+      ...sections,
+      MenuSection(title: 'Món gợi ý', items: generated),
+    ];
+  }
+
+  /// Xếp thứ tự ảnh cho các món sinh thêm sao cho:
+  /// 1. Ưu tiên ảnh CHƯA xuất hiện ở các mục có sẵn của quán.
+  /// 2. Mỗi quán có thứ tự riêng nhưng ổn định (xoay theo id quán), nên hai
+  ///    quán khác nhau không mở ra cùng một dãy ảnh giống hệt.
+  /// 3. Chỉ lặp lại ảnh sau khi đã dùng hết kho -> giảm tối đa cảm giác
+  ///    dữ liệu trùng lặp trong cùng một menu.
+  static List<(String, String, int)> _generatedPool(String theme) {
+    return switch (theme) {
+      'drink' => const [
+        ('Trà đào cam sả', 'Đào miếng, cam vàng và sả thơm', 39000),
+        ('Oolong sữa trân châu', 'Trà oolong đậm vị, trân châu đen', 42000),
+        ('Matcha latte đậu đỏ', 'Matcha Nhật, đậu đỏ mềm', 45000),
+        ('Sữa tươi trân châu đường đen', 'Sữa tươi, caramel nâu', 43000),
+        ('Hồng trà macchiato', 'Kem cheese mặn nhẹ', 41000),
+        ('Trà vải hoa hồng', 'Vải tươi, hương hoa hồng', 39000),
+        ('Cà phê sữa đá', 'Cà phê pha phin, sữa đặc', 29000),
+        ('Bạc xỉu đá', 'Nhiều sữa, ít cà phê', 32000),
+        ('Cookie cream đá xay', 'Kem béo, bánh cookie giòn', 49000),
+        ('Trà tắc mật ong', 'Tắc tươi, mật ong rừng', 28000),
+        ('Soda chanh dây', 'Chanh dây tươi, soda mát lạnh', 36000),
+        ('Yakult dâu tằm', 'Yakult, dâu tằm chua ngọt', 42000),
+        ('Trà sữa khoai môn', 'Khoai môn béo và trân châu', 43000),
+        ('Cà phê cốt dừa', 'Cốt dừa béo, cà phê đậm', 45000),
+        ('Oreo cacao đá xay', 'Cacao, Oreo và kem tươi', 49000),
+        ('Trà xanh sữa nhài', 'Trà xanh thanh, thạch nhài', 39000),
+        ('Sữa chua việt quất', 'Việt quất, sữa chua mịn', 42000),
+      ],
+      'snack' => const [
+        ('Bánh tráng trộn', 'Khô bò, trứng cút, xoài xanh', 35000),
+        ('Bánh tráng cuốn sốt bơ', 'Sốt bơ trứng muối béo nhẹ', 42000),
+        ('Xiên que thập cẩm', 'Cá viên, bò viên, tôm viên', 49000),
+        ('Khoai lang kén', 'Vỏ giòn, nhân khoai mềm', 29000),
+        ('Nem chua rán', 'Chiên nóng, chấm tương cay', 39000),
+        ('Phô mai que', 'Phô mai kéo sợi, vỏ xù', 35000),
+        ('Takoyaki bạch tuộc', '6 viên, cá bào và mayo', 45000),
+        ('Gà lắc phô mai', 'Gà viên chiên, bột phô mai', 45000),
+        ('Bắp xào tôm khô', 'Bắp Mỹ, bơ, tôm khô', 32000),
+        ('Cá viên chiên', 'Phần lớn kèm rau răm', 39000),
+        ('Hồ lô nướng', 'Xúc xích hồ lô nóng', 28000),
+        ('Bánh mì chả cá', 'Chả cá chiên, rau dưa', 30000),
+        ('Phá lấu bò', 'Lòng bò, nước dừa béo', 59000),
+        ('Súp cua trứng bắc thảo', 'Cua, nấm, trứng bắc thảo', 42000),
+        ('Gỏi khô bò', 'Đu đủ, khô bò, đậu phộng', 39000),
+        ('Trứng cút sốt me', 'Sốt me chua ngọt', 35000),
+        ('Bánh flan caramel', 'Flan mềm, caramel đắng nhẹ', 22000),
+      ],
+      'fast_food' => const [
+        ('Gà giòn cay 1 miếng', 'Gà chiên giòn, vị cay', 39000),
+        ('Combo gà burger', 'Burger, gà miếng và nước', 99000),
+        ('Burger bò phô mai', 'Bò nướng, phô mai, rau tươi', 69000),
+        ('Mì Ý sốt bò bằm', 'Sốt cà chua, bò bằm', 79000),
+        ('Pizza hải sản mini', 'Tôm, mực, phô mai', 89000),
+        ('Khoai tây chiên vừa', 'Khoai giòn, sốt tự chọn', 35000),
+        ('Gà popcorn', 'Gà viên giòn cay nhẹ', 45000),
+        ('Cánh gà BBQ', 'Cánh gà phủ sốt BBQ', 59000),
+        ('Salad cá ngừ', 'Rau trộn, cá ngừ, sốt mè', 52000),
+        ('Burger gà cay', 'Gà giòn, sốt cay', 65000),
+        ('Cơm gà sốt tiêu', 'Cơm nóng, gà sốt tiêu đen', 69000),
+        ('Mì cay gà giòn', 'Mì Hàn, gà giòn cay', 75000),
+        ('Hotdog phô mai', 'Xúc xích, phô mai, ketchup', 42000),
+        ('Combo gia đình', '4 miếng gà, khoai, 2 nước', 199000),
+        ('Gà sốt Hàn Quốc', 'Sốt gochujang cay ngọt', 69000),
+        ('Burger tôm', 'Tôm chiên, rau giòn', 72000),
+        ('Nước ngọt lon', 'Pepsi/Coca/Sprite', 18000),
+      ],
+      _ => const [
+        ('Cơm tấm sườn bì chả', 'Sườn nướng, bì, chả trứng', 59000),
+        ('Cơm gà xối mỡ', 'Gà giòn da, cơm chiên tỏi', 62000),
+        ('Bún bò Huế', 'Nước dùng đậm, bò bắp', 65000),
+        ('Phở bò tái nạm', 'Phở nóng, thịt bò mềm', 59000),
+        ('Hủ tiếu Nam Vang', 'Tôm, thịt, gan, trứng cút', 62000),
+        ('Mì trộn xá xíu', 'Mì dai, xá xíu, trứng lòng đào', 55000),
+        ('Bún thịt nướng chả giò', 'Thịt nướng than, chả giò', 58000),
+        ('Bún đậu mắm tôm', 'Đậu giòn, chả cốm, thịt luộc', 79000),
+        ('Cơm chiên hải sản', 'Tôm, mực, trứng, rau củ', 69000),
+        ('Mì cay bò Mỹ', 'Bò Mỹ, xúc xích, nấm', 79000),
+        ('Cháo sườn trứng bắc thảo', 'Cháo mềm, sườn non', 42000),
+        ('Gỏi cuốn tôm thịt', 'Rau tươi, sốt đậu phộng', 39000),
+        ('Bò kho bánh mì', 'Bò mềm, cà rốt, bánh mì', 65000),
+        ('Bánh canh cua', 'Cua, chả cá, nấm rơm', 69000),
+        ('Cơm bò lúc lắc', 'Bò lúc lắc, khoai chiên', 79000),
+        ('Lẩu cá nhân tomyum', 'Tomyum cay chua, topping', 99000),
+        ('Trà tắc ly lớn', 'Trà tắc mát lạnh', 18000),
+      ],
+    };
+  }
+
+  /// Số ảnh món có trong assets/images/restaurants (food_01..food_12).
   static List<MenuSection> _drinkSections(RestaurantDetailInput restaurant) {
     return [
       MenuSection(
@@ -2395,7 +2659,7 @@ class MenuFactory {
             'Bánh mì giòn, phá lấu chan sốt riêng',
             32000,
             restaurant,
-            _img('banh-mi', 11),
+            _img('banh-mi-pha-lau', 11),
           ),
         ],
       ),
@@ -2515,6 +2779,9 @@ class MenuFactory {
       0,
       (a, b) => a + b,
     );
+    final resolvedImage = imageUrl.startsWith('assets/images/restaurants/')
+        ? DishImages.resolve(name, salt: '${restaurant.id}-$seed')
+        : imageUrl;
     return MenuItemData(
       id: _stableItemId(restaurant, name),
       name: name,
@@ -2522,7 +2789,7 @@ class MenuFactory {
       price: price,
       sold: 8 + seed % 520,
       likes: 2 + seed % 96,
-      imageUrl: imageUrl,
+      imageUrl: resolvedImage,
     );
   }
 
@@ -2539,29 +2806,7 @@ class MenuFactory {
   }
 
   static String _img(String query, int lock) {
-    const images = {
-      'milk-tea': 'assets/images/restaurants/food_05.jpg',
-      'green-milk-tea': 'assets/images/restaurants/food_12.jpg',
-      'choco-latte': 'assets/images/restaurants/food_04.jpg',
-      'sausage': 'assets/images/restaurants/food_06.jpg',
-      'fries': 'assets/images/restaurants/food_11.jpg',
-      'snack': 'assets/images/restaurants/food_08.jpg',
-      'banh-mi': 'assets/images/restaurants/food_10.jpg',
-      'noodle': 'assets/images/restaurants/food_02.jpg',
-      'pha-lau': 'assets/images/restaurants/food_09.jpg',
-      'beef-stew': 'assets/images/restaurants/food_08.jpg',
-      'fried-chicken': 'assets/images/restaurants/food_06.jpg',
-      'burger': 'assets/images/restaurants/food_07.jpg',
-      'chicken-wing': 'assets/images/restaurants/food_01.jpg',
-      'salad': 'assets/images/restaurants/food_03.jpg',
-      'com-suon': 'assets/images/restaurants/food_01.jpg',
-      'bun-thit-nuong': 'assets/images/restaurants/food_07.jpg',
-      'mixed-noodle': 'assets/images/restaurants/food_02.jpg',
-      'spring-roll': 'assets/images/restaurants/food_03.jpg',
-      'iced-tea': 'assets/images/restaurants/food_05.jpg',
-      'vietnamese-food': 'assets/images/restaurants/food_01.jpg',
-    };
-    return images[query] ?? images['vietnamese-food']!;
+    return DishImages.remoteUrlFor(query, salt: 'legacy-$lock');
   }
 }
 

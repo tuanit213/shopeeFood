@@ -4,6 +4,7 @@ import '../app/app_colors.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
 import '../orders/order_state.dart';
+import '../restaurant/dish_images.dart';
 import '../restaurant/restaurant_detail_page.dart';
 
 class PromoResultsPage extends StatefulWidget {
@@ -1332,9 +1333,10 @@ List<_PromoMenuPreview> _previewItemsFor(_PromoItem item) {
       name: _alternateDishName(item),
       price: (item.price * 0.82).round(),
       originalPrice: (item.originalPrice * 0.92).round(),
-      image:
-          _localFoodImages[(item.id.hashCode.abs() + 7) %
-              _localFoodImages.length],
+      image: DishImages.resolve(
+        _alternateDishName(item),
+        salt: '${item.id}-combo',
+      ),
     ),
   ];
 }
@@ -1865,7 +1867,10 @@ class _PromoItem {
         rating: 4.2 + ((index + config.id.length) % 8) / 10,
         sold: 38 + index * 9 + config.id.length * 3,
         deliveryMinutes: 18 + (index % 8) * 3,
-        image: config.images[index % config.images.length],
+        image: DishImages.resolve(
+          dishes[index % dishes.length],
+          salt: '${config.id}-$index',
+        ),
         tagA: tags[index % tags.length],
         tagB: index.isEven ? 'Mã giảm ${(15 + index % 5 * 5)}K' : 'Freeship',
       );

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,12 +11,14 @@ import '../address/address_pages.dart';
 import '../address/address_repository.dart';
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_repository.dart';
 import '../app/user_session.dart';
 import '../checkout/checkout_pages.dart';
 import '../home/promo_results_page.dart';
 import '../location/location_service.dart';
 import '../orders/order_state.dart';
 import '../restaurant/restaurant_detail_page.dart';
+import '../tools/catalog_seeder.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -28,16 +31,19 @@ class _ProfilePageState extends State<ProfilePage> {
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
   _UserProfile? _profile;
   String? _errorMessage;
+  String? _userId;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    OrderState.entries.addListener(_syncOrderMetricsToFirestore);
     _loadProfile();
   }
 
   @override
   void dispose() {
+    OrderState.entries.removeListener(_syncOrderMetricsToFirestore);
     _userSub?.cancel();
     super.dispose();
   }
@@ -54,6 +60,7 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     final userId = await UserSession.getUserId();
+    _userId = userId;
     if (!mounted) {
       return;
     }
@@ -140,6 +147,22 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _goToLogin(BuildContext context) {
     Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  }
+
+  void _syncOrderMetricsToFirestore() {
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return;
+    final metrics = _ProfileOrderMetrics.fromEntries(OrderState.entries.value);
+    unawaited(
+      UserRepository.syncStatsFromOrders(
+        userId: userId,
+        totalOrders: metrics.completedOrderCount,
+        totalSpent: metrics.totalSpent,
+        shopeeXu: metrics.shopeeXu,
+        ratingCount: metrics.ratingCount,
+        avgRating: metrics.ratingAverage,
+      ),
+    );
   }
 }
 
@@ -234,8 +257,15 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            height: 146,
-            padding: const EdgeInsets.fromLTRB(16, 48, 16, 14),
+            // Không khóa cứng height: chiều cao thật của Column phụ thuộc
+            // line-height kế thừa từ theme (1.32) nên khóa cứng gây overflow.
+            // Padding trên lấy theo vùng an toàn của thiết bị (tai thỏ/status bar).
+            padding: EdgeInsets.fromLTRB(
+              16,
+              MediaQuery.paddingOf(context).top + 12,
+              16,
+              14,
+            ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFFFF512F), AppColors.primary],
@@ -244,6 +274,7 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
               ),
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
@@ -268,13 +299,24 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _CompactProfileStat('${profile.orderCount}', 'Đơn'),
+                    Expanded(
+                      child: _CompactProfileStat(
+                        '${profile.orderCount}',
+                        'Đơn',
+                      ),
+                    ),
                     _CompactDivider(),
-                    _CompactProfileStat('${profile.shopeeXu}', 'Xu'),
+                    Expanded(
+                      child: _CompactProfileStat('${profile.shopeeXu}', 'Xu'),
+                    ),
                     _CompactDivider(),
-                    _CompactProfileStat(profile.ratingLabel, 'Đánh giá'),
+                    Expanded(
+                      child: _CompactProfileStat(
+                        profile.ratingLabel,
+                        'Đánh giá',
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -344,6 +386,21 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
               ),
             ],
           ),
+          // Công cụ dành cho lập trình viên: chỉ tồn tại khi chạy debug,
+          // không bao giờ xuất hiện trong bản release cho người dùng.
+          if (kDebugMode) ...[
+            const SizedBox(height: 8),
+            _ShopeeMenuGroup(
+              children: [
+                _ShopeeMenuRow(
+                  icon: Icons.cloud_upload_outlined,
+                  iconColor: Color(0xFF6A1B9A),
+                  label: 'DEV: Nạp dữ liệu quán lên Firestore',
+                  onTap: () => _seedCatalog(context),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 32),
         ],
       ),
@@ -412,6 +469,57 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
           subtitle: 'Flash Sale, Freeship Xtra và voucher món ngon hôm nay',
           seed: 'profile-trum-deal',
         ),
+      ),
+    );
+  }
+
+  /// Nạp danh mục quán + menu lên Firestore. Chỉ dùng trong lúc phát triển.
+  Future<void> _seedCatalog(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text(
+          'Nạp dữ liệu lên Firestore?',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Ghi 25 quán và menu của từng quán lên Firestore. '
+          'Chỉ cần chạy một lần, và cần Rules đang cho phép ghi.',
+          style: TextStyle(color: AppColors.gray500),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Huỷ'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Nạp dữ liệu'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Đang nạp dữ liệu lên Firestore...')),
+    );
+
+    final location = await LocationService.getCurrentLocation();
+    final report = await CatalogSeeder.seed(location);
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(report.message),
+        backgroundColor: report.isSuccess
+            ? AppColors.success
+            : const Color(0xFFE53935),
+        duration: const Duration(seconds: 5),
       ),
     );
   }
@@ -651,27 +759,33 @@ class _CompactProfileStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 78,
-      child: Column(
-        children: [
-          Text(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // scaleDown: chuỗi dài như "Chưa đánh giá" tự co nhỏ vừa khung
+        // thay vì bị cắt thành "Chưa đán...".
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
             value,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
+      ],
     );
   }
 }
@@ -1663,16 +1777,28 @@ class _UserProfile {
   });
 
   factory _UserProfile.fromMap(Map<String, dynamic> data) {
+    final stats = data['stats'] as Map<String, dynamic>? ?? const {};
     final rating = data['ratingAverage'];
     return _UserProfile(
       fullName: (data['fullName'] as String?)?.trim().isNotEmpty == true
           ? (data['fullName'] as String).trim()
           : 'Người dùng',
       phone: (data['phone'] as String?)?.trim() ?? '',
-      orderCount: (data['orderCount'] as num?)?.toInt() ?? 0,
-      shopeeXu: (data['shopeeXu'] as num?)?.toInt() ?? 0,
-      ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
-      ratingAverage: rating is num ? rating.toDouble() : null,
+      orderCount:
+          (stats['totalOrders'] as num?)?.toInt() ??
+          (data['orderCount'] as num?)?.toInt() ??
+          0,
+      shopeeXu:
+          (stats['shopeeXu'] as num?)?.toInt() ??
+          (data['shopeeXu'] as num?)?.toInt() ??
+          0,
+      ratingCount:
+          (stats['ratingCount'] as num?)?.toInt() ??
+          (data['ratingCount'] as num?)?.toInt() ??
+          0,
+      ratingAverage:
+          (stats['avgRating'] as num?)?.toDouble() ??
+          (rating is num ? rating.toDouble() : null),
     );
   }
 
@@ -1698,12 +1824,14 @@ class _UserProfile {
 
 class _ProfileOrderMetrics {
   final int completedOrderCount;
+  final int totalSpent;
   final int shopeeXu;
   final int ratingCount;
   final double? ratingAverage;
 
   const _ProfileOrderMetrics({
     required this.completedOrderCount,
+    required this.totalSpent,
     required this.shopeeXu,
     required this.ratingCount,
     required this.ratingAverage,
@@ -1732,6 +1860,10 @@ class _ProfileOrderMetrics {
 
     return _ProfileOrderMetrics(
       completedOrderCount: completed.length,
+      totalSpent: completed.fold<int>(
+        0,
+        (total, entry) => total + entry.order.total,
+      ),
       shopeeXu: completed.fold<int>(
         0,
         (total, entry) => total + (entry.order.total / 1000).floor(),

@@ -5,6 +5,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
+import '../address/address_repository.dart';
+
 class AppLocation {
   final double latitude;
   final double longitude;
@@ -34,6 +36,8 @@ class LocationService {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         debugPrint('[Location] service disabled');
+        final saved = await _savedDeliveryLocation();
+        if (saved != null) return saved;
         return await _lastKnownLocation(maxAge: const Duration(minutes: 10)) ??
             AppLocation.fallback;
       }
@@ -46,6 +50,8 @@ class LocationService {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         debugPrint('[Location] permission denied');
+        final saved = await _savedDeliveryLocation();
+        if (saved != null) return saved;
         return await _lastKnownLocation(maxAge: const Duration(minutes: 10)) ??
             AppLocation.fallback;
       }
@@ -76,8 +82,31 @@ class LocationService {
       );
     } catch (error) {
       debugPrint('[Location] fallback: $error');
+      final saved = await _savedDeliveryLocation();
+      if (saved != null) return saved;
       return await _lastKnownLocation(maxAge: const Duration(minutes: 10)) ??
           AppLocation.fallback;
+    }
+  }
+
+  static Future<AppLocation?> _savedDeliveryLocation() async {
+    try {
+      final selected = await AddressRepository.loadSelectedAddress();
+      if (selected == null ||
+          selected.latitude == 0 ||
+          selected.longitude == 0 ||
+          selected.displayAddress.isEmpty) {
+        return null;
+      }
+      return AppLocation(
+        latitude: selected.latitude,
+        longitude: selected.longitude,
+        address: selected.displayAddress,
+        isFallback: false,
+      );
+    } catch (error) {
+      debugPrint('[Location] saved address fallback failed: $error');
+      return null;
     }
   }
 

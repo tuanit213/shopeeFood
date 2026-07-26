@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
+import '../app/user_repository.dart';
 import '../app/user_session.dart';
 
 class LoginPage extends StatefulWidget {
@@ -169,18 +167,14 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final phone = _phoneController.text.trim();
-      final users = await FirebaseFirestore.instance
-          .collection('users')
-          .where('phone', isEqualTo: phone)
-          .limit(1)
-          .get();
+      final phone = UserRepository.normalizePhone(_phoneController.text);
+      final userDoc = await UserRepository.findByPhone(phone);
 
       if (!mounted) {
         return;
       }
 
-      if (users.docs.isEmpty) {
+      if (userDoc == null) {
         setState(() {
           _showApiError = true;
           _isLoading = false;
@@ -189,14 +183,13 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      final userDoc = users.docs.first;
-      final userData = userDoc.data();
+      final userData = userDoc.data() ?? const <String, dynamic>{};
       final password = _passwordController.text;
       final storedPasswordHash = (userData['passwordHash'] as String?)?.trim();
       final legacyPassword = (userData['password'] as String?)?.trim();
       final passwordMatches =
           storedPasswordHash == null && legacyPassword == null ||
-          storedPasswordHash == _hashPassword(password) ||
+          storedPasswordHash == UserRepository.hashPassword(password) ||
           legacyPassword == password;
       if (!passwordMatches) {
         setState(() {
@@ -207,10 +200,16 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      final sessionExpiry = _rememberLogin ? UserSession.expiryFromNow() : null;
       await UserSession.saveSession(
         userId: userDoc.id,
         phone: phone,
         rememberMe: _rememberLogin,
+      );
+      await UserRepository.recordLogin(
+        userId: userDoc.id,
+        rememberMe: _rememberLogin,
+        sessionExpiry: sessionExpiry,
       );
 
       if (!mounted) {
@@ -239,10 +238,6 @@ class _LoginPageState extends State<LoginPage> {
       });
       _showErrorSnackBar('Đã có lỗi xảy ra: $error');
     }
-  }
-
-  String _hashPassword(String password) {
-    return sha256.convert(utf8.encode(password)).toString();
   }
 
   @override
