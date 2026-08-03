@@ -10,9 +10,11 @@ import '../address/delivery_address.dart';
 import '../app/app_colors.dart';
 import '../checkout/checkout_pages.dart';
 import '../checkout/checkout_models.dart';
+import '../common/food_image.dart';
 import '../location/location_service.dart';
 import '../orders/order_state.dart';
 import '../orders/order_tracking_detail_page.dart';
+import '../restaurant/dish_images.dart';
 import '../restaurant/restaurant_detail_page.dart';
 import 'nearby_restaurant_service.dart';
 import 'promo_results_page.dart';
@@ -933,12 +935,11 @@ class _HomePageState extends State<HomePage>
           address: restaurants[index].address,
           latitude: restaurants[index].latitude,
           longitude: restaurants[index].longitude,
-          imageUrl:
-              restaurants[index].photoUrl ??
-              _imageUrlForCategory(
-                restaurants[index].category,
-                restaurants[index].id,
-              ),
+          imageUrl: _normalizeFoodImage(
+            label: restaurants[index].name,
+            seed: restaurants[index].id,
+            imageUrl: restaurants[index].photoUrl,
+          ),
           category: restaurants[index].category,
           verified: true,
           isFavorite: index < 2,
@@ -1782,7 +1783,7 @@ class _SearchResultTile extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(7),
-                child: _SearchFoodImage(path: item.imageUrl),
+                child: _SearchFoodImage(path: item.imageUrl, label: item.name),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -1877,36 +1878,19 @@ class _SearchAddButton extends StatelessWidget {
 
 class _SearchFoodImage extends StatelessWidget {
   final String path;
+  final String label;
 
-  const _SearchFoodImage({required this.path});
+  const _SearchFoodImage({required this.path, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    Widget fallback() {
-      return Container(
-        width: 58,
-        height: 58,
-        color: const Color(0xFFEDEDED),
-        child: const Icon(Icons.restaurant_rounded, color: Colors.white),
-      );
-    }
-
-    if (path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        width: 58,
-        height: 58,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback(),
-      );
-    }
-
-    return Image.network(
-      path,
+    return FoodImage(
+      source: path,
+      label: label,
       width: 58,
       height: 58,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => fallback(),
+      radius: 0,
+      showLabel: false,
     );
   }
 }
@@ -1969,7 +1953,11 @@ RestaurantDetailInput _restaurantInputForSearch(
     distance: restaurant.distance,
     time: restaurant.time,
     sold: restaurant.sold,
-    imageUrl: restaurant.imageUrl ?? _imageUrlForSeed(restaurant.seed),
+    imageUrl: _normalizeFoodImage(
+      label: restaurant.name,
+      seed: restaurant.seed,
+      imageUrl: restaurant.imageUrl,
+    ),
     openNow: !restaurant.isClosingSoon,
     latitude: restaurant.latitude,
     longitude: restaurant.longitude,
@@ -2316,7 +2304,7 @@ class _Deal77Banner extends StatelessWidget {
             bottom: -8,
             width: 176,
             height: 176,
-            child: _BannerNetworkImage(seed: data.seed, fit: BoxFit.contain),
+            child: _BannerFoodImage(seed: data.seed, fit: BoxFit.contain),
           ),
           const _PercentBadge(),
           Positioned(
@@ -2488,7 +2476,7 @@ class _FreeshipBanner extends StatelessWidget {
             top: 0,
             width: 234,
             height: 160,
-            child: _BannerNetworkImage(seed: data.seed, fit: BoxFit.cover),
+            child: _BannerFoodImage(seed: data.seed, fit: BoxFit.cover),
           ),
           Positioned.fill(
             child: DecoratedBox(
@@ -2587,7 +2575,7 @@ class _FlashCountdownBanner extends StatelessWidget {
             bottom: -14,
             width: 196,
             height: 178,
-            child: _BannerNetworkImage(seed: data.seed, fit: BoxFit.cover),
+            child: _BannerFoodImage(seed: data.seed, fit: BoxFit.cover),
           ),
           Positioned.fill(
             child: DecoratedBox(
@@ -2677,7 +2665,7 @@ class _HiddenDealBanner extends StatelessWidget {
             top: -8,
             width: 196,
             height: 178,
-            child: _BannerNetworkImage(seed: data.seed, fit: BoxFit.cover),
+            child: _BannerFoodImage(seed: data.seed, fit: BoxFit.cover),
           ),
           Positioned(
             right: 18,
@@ -3145,14 +3133,15 @@ class _PercentBadge extends StatelessWidget {
   }
 }
 
-class _BannerNetworkImage extends StatelessWidget {
+class _BannerFoodImage extends StatelessWidget {
   final String seed;
   final BoxFit fit;
 
-  const _BannerNetworkImage({required this.seed, required this.fit});
+  const _BannerFoodImage({required this.seed, required this.fit});
 
   @override
   Widget build(BuildContext context) {
+    final label = _imageLabelForUiSeed(seed);
     return DecoratedBox(
       decoration: const BoxDecoration(
         boxShadow: [
@@ -3163,11 +3152,13 @@ class _BannerNetworkImage extends StatelessWidget {
           ),
         ],
       ),
-      child: Image.network(
-        _imageUrlForSeed(seed),
+      child: FoodImage(
+        source: _normalizeFoodImage(label: label, seed: seed),
+        label: label,
         fit: fit,
+        radius: 0,
+        showLabel: false,
         alignment: Alignment.bottomRight,
-        errorBuilder: (_, _, _) => const SizedBox.shrink(),
       ),
     );
   }
@@ -3470,6 +3461,7 @@ class _DealLargeCard extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: data.seed,
+                  label: data.name,
                   width: double.infinity,
                   height: 152,
                   radius: 0,
@@ -3519,6 +3511,7 @@ class _DealSmallCard extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: data.seed,
+                  label: data.name,
                   width: 70,
                   height: double.infinity,
                   radius: 0,
@@ -3690,6 +3683,7 @@ class _CollectionCard extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: item.seed,
+                  label: item.name,
                   width: width,
                   height: 180,
                   radius: 12,
@@ -3759,7 +3753,13 @@ class _FlashCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                _ImageTile(seed: item.seed, width: 140, height: 130, radius: 0),
+                _ImageTile(
+                  seed: item.seed,
+                  label: item.name,
+                  width: 140,
+                  height: 130,
+                  radius: 0,
+                ),
                 Positioned(
                   top: 7,
                   left: 7,
@@ -3849,6 +3849,7 @@ class _RecentCard extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: item.seed,
+                  label: item.name,
                   width: double.infinity,
                   height: 92,
                   radius: 0,
@@ -3925,6 +3926,7 @@ class _ShelfRestaurantCard extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: item.seed,
+                  label: item.name,
                   imageUrl: item.imageUrl,
                   width: 112,
                   height: 112,
@@ -4007,6 +4009,7 @@ class _TopPhotoCard extends StatelessWidget {
                 aspectRatio: 1,
                 child: _ImageTile(
                   seed: item.seed,
+                  label: item.name,
                   imageUrl: item.imageUrl,
                   width: double.infinity,
                   height: double.infinity,
@@ -4069,6 +4072,7 @@ class _RestaurantRow extends StatelessWidget {
               children: [
                 _ImageTile(
                   seed: item.seed,
+                  label: item.name,
                   imageUrl: item.imageUrl,
                   width: 88,
                   height: 88,
@@ -4242,6 +4246,7 @@ class _WidePromoBanner extends StatelessWidget {
                   width: 160,
                   height: 130,
                   radius: 60,
+                  showLabel: false,
                 ),
               ),
               Positioned(
@@ -4312,6 +4317,10 @@ void _openPromoResults(
   required String subtitle,
   required String seed,
 }) {
+  // Không luồn toạ độ qua đây: hàm này được gọi từ 16 chỗ, phần lớn nằm trong
+  // các widget con không giữ vị trí. `PromoResultsPage` tự hỏi
+  // `LocationService` nên mọi lối vào (kể cả từ trang cá nhân) đều dùng đúng
+  // vị trí thật.
   Navigator.push(
     context,
     MaterialPageRoute(
@@ -4340,7 +4349,11 @@ void _openRestaurantDetail(
           distance: item.distance,
           time: item.time,
           sold: item.sold,
-          imageUrl: item.imageUrl ?? _imageUrlForSeed(item.seed),
+          imageUrl: _normalizeFoodImage(
+            label: item.name,
+            seed: item.seed,
+            imageUrl: item.imageUrl,
+          ),
           openNow: !item.isClosingSoon,
           latitude: item.latitude,
           longitude: item.longitude,
@@ -4659,7 +4672,13 @@ class _PromoFoodOrb extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 3),
       ),
       child: ClipOval(
-        child: _ImageTile(seed: seed, width: size, height: size, radius: size),
+        child: _ImageTile(
+          seed: seed,
+          width: size,
+          height: size,
+          radius: size,
+          showLabel: false,
+        ),
       ),
     );
   }
@@ -4721,174 +4740,153 @@ class _HorizontalRow extends StatelessWidget {
   }
 }
 
+/// Ô ảnh dùng chung trên trang chủ.
+///
+/// [label] là tên món/tên quán thật — dùng để tìm ảnh trong
+/// `assets/images/dishes/`.
+/// [seed] chỉ còn dùng làm nhãn dự phòng khi call site chưa truyền tên.
 class _ImageTile extends StatelessWidget {
   final String seed;
+  final String? label;
   final String? imageUrl;
   final double width;
   final double height;
   final double radius;
+  final bool showLabel;
 
   const _ImageTile({
     required this.seed,
+    this.label,
     this.imageUrl,
     required this.width,
     required this.height,
     required this.radius,
+    this.showLabel = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final resolvedImage = imageUrl ?? _imageUrlForSeed(seed);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          Container(
-            width: width,
-            height: height,
-            color: const Color(0xFFE0E0E0),
-            child: const Icon(
-              Icons.restaurant_rounded,
-              color: Colors.white,
-              size: 34,
-            ),
-          ),
-          if (resolvedImage.startsWith('assets/'))
-            Image.asset(
-              resolvedImage,
-              width: width,
-              height: height,
-              fit: BoxFit.cover,
-            )
-          else
-            Image.network(
-              resolvedImage,
-              width: width,
-              height: height,
-              fit: BoxFit.cover,
-              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                if (wasSynchronouslyLoaded || frame != null) return child;
-                return const SizedBox.shrink();
-              },
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.shrink(),
-            ),
-        ],
-      ),
+    final name = (label ?? '').trim().isEmpty ? seed : label!.trim();
+    return FoodImage(
+      source: _normalizeFoodImage(label: name, seed: seed, imageUrl: imageUrl),
+      label: name,
+      width: width,
+      height: height,
+      radius: radius,
+      showLabel: showLabel,
     );
   }
 }
 
-String _imageUrlForSeed(String seed) {
-  const imageMap = {
-    'shopee-drinks-banner':
-        'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80',
-    'tutimi-orange-banner':
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
-    'dau-homemade-banner':
-        'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=80',
-    'flash-sale-food-banner':
-        'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=800&q=80',
-    'tutimi-mid-banner':
-        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80',
-    'restaurant-list-promo':
-        'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=900&q=80',
-    'popeyes-fried-chicken':
-        'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80',
-    'kfc-combo-deal':
-        'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=800&q=80',
-    'bun-dau-mam-tom':
-        'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80',
-    'collection-deal-dinh':
-        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
-    'collection-freeship':
-        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
-    'collection-noodle':
-        'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=800&q=80',
-    'flash-mi-y':
-        'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=800&q=80',
-    'flash-tra-sua-thai':
-        'https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=800&q=80',
-    'flash-com-suon':
-        'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80',
-    'flash-ga-ran':
-        'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80',
-    'recent-bun-dau':
-        'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80',
-    'recent-matcha-mi':
-        'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80',
-    'recent-com-tam':
-        'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80',
-    'recent-ga-nuong':
-        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
-    'bun-dau-met-ap-1a':
-        'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80',
-    'bun-dau-vinh-loc-a':
-        'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=800&q=80',
-    'matcha-latte-mi-cay':
-        'https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=800&q=80',
-    'banh-loc-hue':
-        'https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=800&q=80',
-    'pmt-beefsteak-pasta':
-        'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=800&q=80',
-    'an-vat-hem':
-        'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=800&q=80',
-    'mai-coffee-le-thi-ngay':
-        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
-    'com-tam-dem-hoang-truong':
-        'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=800&q=80',
-    'chan-ga-chien-mr-kay':
-        'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80',
-    'ga-nuong-com-lam':
-        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80',
-  };
-
-  return imageMap[seed] ??
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80';
+/// Ảnh chuẩn hoá cho một món/quán.
+///
+/// Chỉ chấp nhận ảnh thật (asset của món). Ảnh cũ trong Firestore/cache —
+/// URL của dịch vụ ảnh ngẫu nhiên và kho ảnh dùng chung trong
+/// `assets/images/restaurants/` — bị loại để không hiện ảnh sai món.
+String _normalizeFoodImage({
+  required String label,
+  required String seed,
+  String? imageUrl,
+}) {
+  final normalized = DishImages.normalize(label: label, imageUrl: imageUrl);
+  if (normalized.isNotEmpty) {
+    return normalized;
+  }
+  final seedLabel = _imageLabelForUiSeed(seed);
+  if (seedLabel == label) {
+    return '';
+  }
+  return DishImages.normalize(label: seedLabel, imageUrl: imageUrl);
 }
 
-String _imageUrlForCategory(String category, String seed) {
-  const cafeImages = [
-    'assets/images/restaurants/food_05.jpg',
-    'assets/images/restaurants/food_04.jpg',
-    'assets/images/restaurants/food_08.jpg',
-    'assets/images/restaurants/food_12.jpg',
-  ];
-  const fastFoodImages = [
-    'assets/images/restaurants/food_06.jpg',
-    'assets/images/restaurants/food_07.jpg',
-    'assets/images/restaurants/food_01.jpg',
-    'assets/images/restaurants/food_11.jpg',
-  ];
-  const foodCourtImages = [
-    'assets/images/restaurants/food_01.jpg',
-    'assets/images/restaurants/food_02.jpg',
-    'assets/images/restaurants/food_03.jpg',
-    'assets/images/restaurants/food_09.jpg',
-  ];
-  const bakeryImages = [
-    'assets/images/restaurants/food_10.jpg',
-    'assets/images/restaurants/food_12.jpg',
-    'assets/images/restaurants/food_08.jpg',
-    'assets/images/restaurants/food_05.jpg',
-  ];
-  const restaurantImages = [
-    'assets/images/restaurants/food_01.jpg',
-    'assets/images/restaurants/food_02.jpg',
-    'assets/images/restaurants/food_07.jpg',
-    'assets/images/restaurants/food_09.jpg',
-  ];
+String _imageLabelForUiSeed(String seed) {
+  return _uiSeedImageLabels[seed] ?? _restaurantSeedImageLabels[seed] ?? seed;
+}
 
-  final pool = switch (category) {
-    'cafe' => cafeImages,
-    'fast_food' => fastFoodImages,
-    'food_court' => foodCourtImages,
-    'bakery' => bakeryImages,
-    _ => restaurantImages,
+const _uiSeedImageLabels = <String, String>{
+  'shopee-drinks-banner': 'Trà sữa combo 2 ly',
+  'flash-sale-food-banner': 'Combo Gà Giòn + Khoai Tây',
+  'dau-homemade-banner': 'Oolong sen vàng',
+  'collection-freeship': 'Tung Deal Toàn Sàn Freeship 0Đ',
+  'tutimi-orange-banner': 'Combo gia đình 4 món',
+  'tutimi-mid-banner': 'Combo burger bò giảm 50K',
+  'restaurant-list-promo': 'Tung Deal Toàn Sàn Freeship 0Đ',
+  'late-night-mini-promo': 'Combo đêm không ngủ',
+  'late-night-popup-promo': 'Combo đêm không ngủ',
+  'flash-tra-sua-thai': 'Trà sữa Thái trân châu',
+  'recent-com-tam': 'Cơm tấm đêm Hoàng Trường',
+  'collection-deal-dinh': 'Món ngon deal đỉnh giảm tới 50%',
+  'home-deal-section': 'Combo trùm deal 79',
+  'home-collection-section': 'Món ngon deal đỉnh giảm tới 50%',
+  'home-flash-sale-section': 'Combo Gà Giòn + Khoai Tây',
+  'home-recent-section': 'Cơm tấm đêm Hoàng Trường',
+};
+
+const _restaurantSeedImageLabels = <String, String>{
+  'bun-dau-met-ap-1a': 'Bún đậu nem chua chả cốm',
+  'bun-dau-vinh-loc-a': 'Bún đậu chả cốm',
+  'matcha-latte-mi-cay': 'Matcha latte kem mặn',
+  'banh-loc-hue': 'Bánh bột lọc Huế',
+  'pmt-beefsteak-pasta': 'Mì Ý sốt bò băm',
+  'an-vat-hem': 'Bánh tráng trộn đặc biệt',
+  'mai-coffee-le-thi-ngay': 'Cà phê sữa đá',
+  'com-tam-dem-hoang-truong': 'Cơm tấm đêm Hoàng Trường',
+  'chan-ga-chien-mr-kay': 'Chân gà sả tắc',
+  'ga-nuong-com-lam': 'Combo gà nướng cơm lam',
+};
+
+@visibleForTesting
+Map<String, String> homeImageSourcesForTesting() {
+  return <String, String>{
+    for (final item in _banners)
+      'banner:${item.seed}': _normalizeFoodImage(
+        label: _imageLabelForUiSeed(item.seed),
+        seed: item.seed,
+      ),
+    for (final item in _dealCards)
+      'deal:${item.seed}': _normalizeFoodImage(
+        label: item.name,
+        seed: item.seed,
+      ),
+    for (final item in _collections)
+      'collection:${item.seed}': _normalizeFoodImage(
+        label: item.name,
+        seed: item.seed,
+      ),
+    for (final item in _flashItems)
+      'flash:${item.seed}': _normalizeFoodImage(
+        label: item.name,
+        seed: item.seed,
+      ),
+    for (final item in _recentItems)
+      'recent:${item.seed}': _normalizeFoodImage(
+        label: item.name,
+        seed: item.seed,
+      ),
+    for (final item in _restaurants)
+      'restaurant:${item.seed}': _normalizeFoodImage(
+        label: item.name,
+        seed: item.seed,
+        imageUrl: item.imageUrl,
+      ),
+    for (final seed in const [
+      'tutimi-mid-banner',
+      'restaurant-list-promo',
+      'late-night-mini-promo',
+      'late-night-popup-promo',
+      'flash-tra-sua-thai',
+      'recent-com-tam',
+      'collection-deal-dinh',
+      'home-deal-section',
+      'home-collection-section',
+      'home-flash-sale-section',
+      'home-recent-section',
+    ])
+      'ui:$seed': _normalizeFoodImage(
+        label: _imageLabelForUiSeed(seed),
+        seed: seed,
+      ),
   };
-  final index = seed.codeUnits.fold<int>(0, (sum, code) => sum + code);
-  return pool[index % pool.length];
 }
 
 class _Countdown extends StatelessWidget {
@@ -5478,11 +5476,11 @@ const _dealCards = [
 
 const _collections = [
   _CollectionData(
-    name: 'Món Ngon Deal Đỉnh, Giảm Tới 50%',
+    name: 'Món Ngon Deal Đỉnh Giảm Tới 50%',
     seed: 'collection-deal-dinh',
   ),
   _CollectionData(
-    name: 'Tung Deal Toàn Sàn, Freeship 0Đ',
+    name: 'Tung Deal Toàn Sàn Freeship 0Đ',
     seed: 'collection-freeship',
   ),
   _CollectionData(
@@ -5531,7 +5529,7 @@ const _recentItems = [
     badge: 'X9',
   ),
   _RecentData(
-    name: 'Matcha Latte & Mì Trộn',
+    name: 'Matcha Latte Kem Mặn',
     seed: 'recent-matcha-mi',
     viewedAt: 'Đã xem hôm qua',
     badge: 'Siêu tiệc',
@@ -5562,7 +5560,6 @@ const _restaurants = [
     time: 22,
     sold: 980,
     badges: ['Mã giảm 22%'],
-    imageUrl: 'assets/images/restaurants/food_01.jpg',
   ),
   _RestaurantData(
     name: 'Bún Đậu Mắm Tôm Hà Nội - Vĩnh Lộc A',
@@ -5575,7 +5572,6 @@ const _restaurants = [
     time: 22,
     sold: 1120,
     badges: ['Mã giảm 11%'],
-    imageUrl: 'assets/images/restaurants/food_02.jpg',
   ),
   _RestaurantData(
     name: 'MƠ - Matcha Latte, Mì Cay & Mì Trộn',
@@ -5589,7 +5585,6 @@ const _restaurants = [
     sold: 1520,
     badges: ['Giảm món', 'Mã giảm 22%'],
     isFavorite: true,
-    imageUrl: 'assets/images/restaurants/food_03.jpg',
   ),
   _RestaurantData(
     name: 'Bánh Lọc Huế - Kinh Trung Ương',
@@ -5603,7 +5598,6 @@ const _restaurants = [
     sold: 180,
     badges: ['Mã giảm 22%'],
     verified: false,
-    imageUrl: 'assets/images/restaurants/food_04.jpg',
   ),
   _RestaurantData(
     name: 'PMT Beefsteak & Pasta - Ap 3A',
@@ -5616,7 +5610,6 @@ const _restaurants = [
     time: 27,
     sold: 730,
     badges: ['Flash Sale', 'Mã giảm 22%'],
-    imageUrl: 'assets/images/restaurants/food_05.jpg',
   ),
   _RestaurantData(
     name: 'Ăn Vặt Hẻm - Sứa Sốt Mắm Nhĩ',
@@ -5629,7 +5622,6 @@ const _restaurants = [
     time: 22,
     sold: 870,
     badges: ['Mã giảm 22%'],
-    imageUrl: 'assets/images/restaurants/food_06.jpg',
   ),
   _RestaurantData(
     name: 'Mai Coffee - Cà Phê - Lê Thị Ngay',
@@ -5644,7 +5636,6 @@ const _restaurants = [
     badges: ['Mã giảm 22%'],
     isClosingSoon: true,
     closingAt: '23:30',
-    imageUrl: 'assets/images/restaurants/food_07.jpg',
   ),
   _RestaurantData(
     name: 'Cơm Tấm Đêm Hoàng Trường',
@@ -5657,7 +5648,6 @@ const _restaurants = [
     time: 27,
     sold: 640,
     badges: ['Giảm món', 'Mã giảm 22%'],
-    imageUrl: 'assets/images/restaurants/food_08.jpg',
   ),
   _RestaurantData(
     name: 'Chân Gà Chiên - Mr. Kay',
@@ -5671,7 +5661,6 @@ const _restaurants = [
     sold: 905,
     badges: ['Giảm món', 'Mã giảm 22%'],
     isFavorite: true,
-    imageUrl: 'assets/images/restaurants/food_09.jpg',
   ),
   _RestaurantData(
     name: 'Gà Nướng Cơm Lam - Bánh Bao Kim Chi',
@@ -5685,7 +5674,6 @@ const _restaurants = [
     sold: 520,
     badges: ['Mã giảm 22%'],
     freeshipXtra: true,
-    imageUrl: 'assets/images/restaurants/food_10.jpg',
   ),
 ];
 

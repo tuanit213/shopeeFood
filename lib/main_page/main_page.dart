@@ -3,12 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../app/app_colors.dart';
+import '../common/food_image.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
 import '../home/home_page.dart';
 import '../orders/orders_page.dart';
 import '../orders/order_state.dart';
 import '../profile/profile_page.dart';
+import '../restaurant/dish_images.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -75,7 +77,6 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildPage(int index) {
     if (_pages[index] == null) {
-      debugPrint('[MainPage] build tab $index');
       _pages[index] = _pageBuilders[index]();
     }
     return _pages[index]!;
@@ -608,7 +609,7 @@ class _CartItemRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _CartFoodImage(path: item.imageUrl),
+        _CartFoodImage(path: item.imageUrl, label: item.name),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -801,7 +802,10 @@ class _LegacyCartDetailSheet extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _CartFoodImage(path: item.imageUrl),
+                            _CartFoodImage(
+                              path: item.imageUrl,
+                              label: item.name,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -904,15 +908,20 @@ class _LegacyCartDetailSheet extends StatelessWidget {
 
 class _CartFoodImage extends StatelessWidget {
   final String path;
+  final String label;
 
-  const _CartFoodImage({required this.path});
+  const _CartFoodImage({required this.path, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final image = path.startsWith('assets/')
-        ? Image.asset(path, width: 54, height: 54, fit: BoxFit.cover)
-        : Image.network(path, width: 54, height: 54, fit: BoxFit.cover);
-    return ClipRRect(borderRadius: BorderRadius.circular(7), child: image);
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: path),
+      label: label,
+      width: 54,
+      height: 54,
+      radius: 7,
+      showLabel: false,
+    );
   }
 }
 

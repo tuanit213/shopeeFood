@@ -24,6 +24,44 @@ class GeoapifyAddressService {
 
   static bool get hasApiKey => _apiKey.trim().isNotEmpty;
 
+  /// Tra ngược toạ độ ra ĐÚNG địa chỉ tại điểm đó, để nơi gọi (VD: trang chi
+  /// tiết quán ăn) có thể thay một chuỗi địa chỉ gõ tay — có thể lệch khỏi
+  /// toạ độ ghim trên bản đồ — bằng địa chỉ thật khớp với đúng vị trí đó.
+  ///
+  /// Khác với [reverse]: hàm này trả về `null` khi không có API key hoặc gọi
+  /// mạng thất bại, KHÔNG rơi về `AppLocation.fallback.address` (một chuỗi
+  /// chung chung "Vĩnh Lộc A, Bình Chánh"). Nếu dùng [reverse] ở đây, một lần
+  /// mất mạng sẽ ghi đè địa chỉ cụ thể của quán bằng chuỗi chung chung đó rồi
+  /// lỡ tay cache lại — biến một địa chỉ đúng thành sai.
+  static Future<String?> reverseExact(double latitude, double longitude) async {
+    if (!hasApiKey) return null;
+    try {
+      final uri = Uri.https('api.geoapify.com', '/v1/geocode/reverse', {
+        'lat': latitude.toString(),
+        'lon': longitude.toString(),
+        'lang': 'vi',
+        'apiKey': _apiKey,
+      });
+      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint('[Address] reverseExact failed ${response.statusCode}');
+        return null;
+      }
+
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      final features = payload['features'] as List<dynamic>? ?? const [];
+      if (features.isEmpty) return null;
+
+      final address = _suggestionFromFeature(
+        features.first as Map<String, dynamic>,
+      ).address;
+      return address.trim().isEmpty ? null : address;
+    } catch (error) {
+      debugPrint('[Address] reverseExact lỗi: $error');
+      return null;
+    }
+  }
+
   static Future<AddressSuggestion> reverse(
     double latitude,
     double longitude,

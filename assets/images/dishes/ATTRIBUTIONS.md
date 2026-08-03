@@ -1,0 +1,1933 @@
+# Dish Image Attributions
+
+- `1-mieng-ga-ran-gion-khoai-tay` — 1-mieng-ga-ran-gion-khoai-tay
+  - Source: Manual-selected exact web food photo
+  - URL: https://i.pinimg.com/originals/4b/2f/07/4b2f07a0d7276cd848c5956e64dfbeb1.jpg
+  - License: Source page image metadata unavailable
+- `americano` — Americano
+  - Source: Bing image source result
+  - URL: https://myeverydaytable.com/americano-coffee-hot-or-iced/
+  - License: Source page image metadata unavailable
+- `americano-da` — Americano Đá
+  - Source: DDGS exact web image result
+  - URL: https://arecipeforfun.com/iced-americano-coffee/
+  - License: Source page image metadata unavailable
+- `bac-xiu` — Bạc xỉu
+  - Source: DDGS exact web image result
+  - URL: https://dailyphin.com/how-to-make-vietnamese-salt-coffee/
+  - License: Source page image metadata unavailable
+- `bac-xiu-da` — Bạc xỉu đá
+  - Source: Manual curated exact drink photo
+  - URL: https://savourthepho.com/bac-xiu-saigon-white-coffee/
+  - License: Source page image metadata unavailable; local demo asset
+- `bach-tuoc-nuong` — Bạch tuộc nướng
+  - Source: Manual-selected exact web food photo
+  - URL: https://vietnamesefood.com.vn/pictures/VietnameseFood/Grilled_Octopus_(1).jpg
+  - License: Source page image metadata unavailable
+- `banh-bao-nong` — Bánh Bao Nóng
+  - Source: DDGS exact web image result
+  - URL: https://eva.vn/bep-eva/4-mon-banh-bao-nong-hoi-de-an-cho-bua-sang-c162a291876.html
+  - License: Source page image metadata unavailable
+- `banh-bot-loc-hue` — Bánh bột lọc Huế
+  - Source: DDGS exact web image result
+  - URL: https://hue360.net/banh-bot-loc-mon-an-ngon-phai-thuong-thuc-moi-khi-den-hue
+  - License: Source page image metadata unavailable
+- `banh-ca-han-quoc` — Bánh Cá Hàn Quốc
+  - Source: DDGS exact web image result
+  - URL: https://www.abay.vn/tin-tuc/kham-pha-am-thuc-mua-dong-han-quoc-voi-nhung-mon-an-hap-dan-nay.aspx
+  - License: Source page image metadata unavailable
+- `banh-canh-cua` — Bánh canh cua
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-canh-cua-cha-ca` — Bánh Canh Cua Chả Cá
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-canh-cua-hoan-xu` — Bánh Canh Cua Hoàn Xu
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-canh-cua-nong` — Bánh Canh Cua Nóng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-canh-ghe` — Bánh Canh Ghẹ
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-cuon-cha-lua` — Bánh cuốn chả lụa
+  - Source: Manual-selected DDGS web image result
+  - URL: https://bepnhatoi.net/banh-cuon-cha-lua/
+  - License: Source page image metadata unavailable
+- `banh-cuon-nhan-thit` — Bánh cuốn nhân thịt
+  - Source: Bing image source result
+  - URL: https://tubideli.com/bakery/
+  - License: Source page image metadata unavailable
+- `banh-cuon-nong` — Bánh Cuốn Nóng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-cuon-nong-ba-muoi` — Bánh cuốn nóng Bà Mười
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-flan-caramel` — Bánh flan caramel
+  - Source: DDGS exact web image result
+  - URL: https://www.caogiang.vn/products/lop-banh-flan-caramel-dac-biet
+  - License: Source page image metadata unavailable
+- `banh-flan-caramel-dua` — Bánh flan caramel dừa
+  - Source: Manual exact real food photo replacement
+  - URL: https://daylambanhngon.com/hoc-lam-banh-flan-kieu-moi-cung-nuoc-mau-dua/
+  - License: Source page image metadata unavailable
+- `banh-gao-cay-han-quoc` — Bánh Gạo Cay Hàn Quốc
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `banh-gao-lac-pho-mai` — Bánh Gạo Lắc Phô Mai
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `banh-mi-bo-toi` — Bánh mì bơ tỏi
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-cha-ca` — Bánh mì chả cá
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-chao-bo` — Bánh Mì Chảo Bò
+  - Source: Manual exact web food photo replacement
+  - URL: https://alltop.vn/all-top/quan-banh-mi-chao-ngon-va-noi-tieng-nhat-tp-hcm-11208
+  - License: Source page image metadata unavailable
+- `banh-mi-chao-cashback` — Bánh Mì Chảo Cashback
+  - Source: Manual exact web food photo replacement
+  - URL: https://keepupcooking.com/a-breakfast-skillet-with-bread-vietnamese-banh-mi-chao-recipe/
+  - License: Source page image metadata unavailable
+- `banh-mi-chao-dac-biet` — Bánh Mì Chảo Đặc Biệt
+  - Source: Manual exact web food photo replacement
+  - URL: https://kingfoodmart.com/bai-viet/cong-thuc-nau-an/banh-mi-chao-thom-ngon
+  - License: Source page image metadata unavailable
+- `banh-mi-ga-xe` — Bánh Mì Gà Xé
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-heo-quay` — Bánh Mì Heo Quay
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-heo-quay-gan-nha` — Bánh Mì Heo Quay Gần Nhà
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-heo-quay-gion-bi` — Bánh Mì Heo Quay Giòn Bì
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-khong` — Bánh mì không
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-que-combo` — Bánh Mì Que Combo
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-que-da-nang` — Bánh mì que Đà Nẵng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-que-pate` — Bánh Mì Que Pate
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-mi-thit-nuong` — Bánh mì thịt nướng
+  - Source: DDGS exact web image result
+  - URL: https://vnifood.com/recipe/banh-mi-thit-nuong/
+  - License: Source page image metadata unavailable
+- `banh-mi-trung-op-la` — Bánh mì trứng ốp la
+  - Source: Thanh Ni?n
+  - URL: https://thanhnien.vn/sang-nao-cung-banh-mi-trung-op-la-chuyen-gia-noi-gi-185251212215811589.htm
+  - License: Source page image metadata unavailable
+- `banh-quy-bo-hop-nho` — Bánh Quy Bơ Hộp Nhỏ
+  - Source: Manual exact real food photo replacement
+  - URL: https://kingfoodmart.com/
+  - License: Source page image metadata unavailable
+- `banh-sandwich-ca-phe-lon` — Bánh Sandwich + Cà Phê Lon
+  - Source: DDGS exact web image result
+  - URL: http://giavihanhphuc.com/bot-banh/banh-mi-sandwich-vi-ca-phe-kinh-doanh
+  - License: Source page image metadata unavailable
+- `banh-trang-cuon-bo` — Bánh Tráng Cuốn Bơ
+  - Source: DDGS exact web image result
+  - URL: https://ngocmai.com.vn/banh-trang-cuon-bo-trung/
+  - License: Source page image metadata unavailable
+- `banh-trang-cuon-sot-bo` — Bánh tráng cuốn sốt bơ
+  - Source: DDGS exact web image result
+  - URL: https://bepnhatoi.net/cach-lam-banh-trang-cuon-tai-nha/
+  - License: Source page image metadata unavailable
+- `banh-trang-nuong` — Bánh tráng nướng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-trang-tron` — Bánh tráng trộn
+  - Source: DDGS exact web image result
+  - URL: https://keepupcooking.com/banh-trang-tron-vietnamese-rice-paper-salad-recipe/
+  - License: Source page image metadata unavailable
+- `banh-trang-tron-dac-biet` — Bánh Tráng Trộn Đặc Biệt
+  - Source: Manual-selected exact web food photo
+  - URL: https://katana.bdatrip.com/image/w=0/https://images.bdatrip.com/2024/3/cke/banh-trang-tron-co-thao.jpg
+  - License: Source page image metadata unavailable
+- `banh-trang-tron-long-an` — Bánh tráng trộn Long An
+  - Source: Manual-selected exact web food photo
+  - URL: https://media.loveitopcdn.com/37853/dia-btrang-tron-lon.jpeg
+  - License: Source page image metadata unavailable
+- `banh-uot-thit-nuong` — Bánh ướt thịt nướng
+  - Source: Sunhouse
+  - URL: https://sunhouse.com.vn/bi-quyet-meo-vat/banh-uot-thit-nuong-dung-chat-hoi-an-bang-bep-nuong-dien-sunhouse.html
+  - License: Source page image metadata unavailable
+- `banh-xeo-mien-tay` — Bánh Xèo Miền Tây
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `banh-xeo-voucher-vi` — Bánh Xèo Voucher Ví
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bap-rang-bo-tui-lon` — Bắp Rang Bơ Túi Lớn
+  - Source: DDGS exact web image result
+  - URL: https://posi.com.vn/bap-rang-bo-mon-an-khong-the-thieu-khi-xem-phim/
+  - License: Source page image metadata unavailable
+- `bap-xao-bo-tep` — Bắp Xào Bơ Tép
+  - Source: DDGS exact web image result
+  - URL: https://toyenxin.com/blog-1/cach-lam-bap-xao-bo-tep-vi-cb.html
+  - License: Source page image metadata unavailable
+- `bap-xao-tom-kho` — Bắp xào tôm khô
+  - Source: DDGS exact web image result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/cach-lam-bap-xao-tom-kho-164484
+  - License: Source page image metadata unavailable
+- `bep-chay-an-nhien` — Bếp chay An Nhiên
+  - Source: DDGS exact web image result
+  - URL: https://webcoban.com/top-7-dia-chi-an-chay-ngon-chat-luong-nhat-tai-can-tho/
+  - License: Source page image metadata unavailable
+- `bo-kho-banh-mi` — Bò Kho Bánh Mì
+  - Source: Bing image source result
+  - URL: https://bepmina.vn/mon-viet/cach-lam-bo-luc-lac/
+  - License: Source page image metadata unavailable
+- `bo-luc-lac-khoai-tay` — Bò Lúc Lắc Khoai Tây
+  - Source: DDGS exact web image result
+  - URL: https://xaydungso.vn/blog/huong-dan-cach-lam-bo-luc-lac-khoai-tay-chien-tuyet-chieu-nau-mon-an-ngon-mieng-vi-cb.html
+  - License: Source page image metadata unavailable
+- `bo-ne-chao-nong` — Bò Né Chảo Nóng
+  - Source: Manual exact real food photo replacement
+  - URL: https://znews.vn/5-tiem-bo-ne-ngon-co-tieng-o-tphcm-post1011149.html
+  - License: Source page image metadata unavailable
+- `bo-vien-sot-sa-te` — Bò Viên Sốt Sa Tế
+  - Source: Manual exact web image replacement
+  - URL: https://lcfoods.vn/tin-tuc/bo-vien-nau-gi-ngon-tong-hop-nhung-mon-ngon-tu-bo-vien
+  - License: Source page image metadata unavailable
+- `bun-bo-hue` — Bún bò Huế
+  - Source: Bing image source result
+  - URL: https://toyenxin.com/blog-1/bun-cha-pho-hue-vi-cb.html
+  - License: Source page image metadata unavailable
+- `bun-bo-hue-gan-ban` — Bún Bò Huế Gần Bạn
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-bo-hue-o-thuong` — Bún bò Huế O Thương
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-bo-hue-to-dac-biet` — Bún Bò Huế Tô Đặc Biệt
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-bo-voucher-vi` — Bún Bò Voucher Ví
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-cha-ca` — Bún chả cá
+  - Source: Bing image source result
+  - URL: https://barona.vn/mon-ngon/bun-cha
+  - License: Source page image metadata unavailable
+- `bun-cha-ha-noi` — Bún Chả Hà Nội
+  - Source: DDGS exact web image result
+  - URL: https://myvietkitchen.com/bun-cha-ha-noi-recipe/
+  - License: Source page image metadata unavailable
+- `bun-dau-cha-com` — Bún đậu chả cốm
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-dau-mam-tom` — Bún Đậu Mắm Tôm
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-dau-mam-tom-day-du` — Bún đậu mắm tôm đầy đủ
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-dau-mam-tom-ha-noi-vinh-loc-a` — bun-dau-mam-tom-ha-noi-vinh-loc-a
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `bun-dau-mam-tom-pho-co` — Bún đậu mắm tôm Phố Cổ
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-dau-met-ap-1a` — bun-dau-met-ap-1a
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `bun-dau-nem-chua-cha-com` — Bún Đậu Nem Chua Chả Cốm
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-dau-thanh-toan-vi` — Bún Đậu Thanh Toán Ví
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-oc-chuoi-dau` — Bún ốc chuối đậu
+  - Source: DDGS exact web image result
+  - URL: https://maivutravel.com/mon-ngon-ha-noi-dam-da-huong-vi-thu-do
+  - License: Source page image metadata unavailable
+- `bun-rieu-chay` — Bún riêu chay
+  - Source: Bing image source result
+  - URL: https://monngon.tapchihoaky.com/2023/10/cach-nau-mon-bun-rieu-cua-cong-thuc-de.html
+  - License: Source page image metadata unavailable
+- `bun-rieu-cua` — Bún riêu cua
+  - Source: Bing image source result
+  - URL: https://nhaxinhplaza.vn/doi-song/hoi-dap/cac-mon-an-voi-bun-tuoi.html
+  - License: Source page image metadata unavailable
+- `bun-rieu-cua-dong` — Bún riêu cua đồng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-rieu-sang` — Bún riêu sáng
+  - Source: H??ng Nghi?p ? ?u
+  - URL: https://www.huongnghiepaau.com/bun-rieu-cua
+  - License: Source page image metadata unavailable
+- `bun-thai-hai-san-chua-cay` — Bún Thái Hải Sản Chua Cay
+  - Source: Bing image source result
+  - URL: https://toyenxin.com/blog-1/hinh-anh-bun-thai-hai-san-vi-cb.html
+  - License: Source page image metadata unavailable
+- `bun-thit-nuong` — Bún thịt nướng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-thit-nuong-cha-gio` — Bún thịt nướng chả giò
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-thit-nuong-freeship` — Bún Thịt Nướng Freeship
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `bun-thit-nuong-nem` — Bún Thịt Nướng Nem
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `burger-bo-dup` — Burger bò đúp
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `burger-bo-pho-mai` — Burger bò phô mai
+  - Source: Manual curated real food photo
+  - URL: https://unsplash.com/photos/jh5XyK4Rr3Y
+  - License: Source page image metadata unavailable; local demo asset
+- `burger-bo-pho-mai-pepsi` — Burger Bò Phô Mai + Pepsi
+  - Source: Manual curated real food photo
+  - URL: https://www.pexels.com/photo/burger-and-french-fries-with-pepsi-cola-can-14709726/
+  - License: Source page image metadata unavailable; local demo asset
+- `burger-ga-cay` — Burger gà cay
+  - Source: DDGS exact web image result
+  - URL: https://putinofood.vn/burger-ga-chien-gion-voi-sot-cay-nong/
+  - License: Source page image metadata unavailable
+- `burger-ga-gion-tang-xu` — Burger Gà Giòn Tặng Xu
+  - Source: DDGS exact web image result
+  - URL: https://torkifood.vn/burger-nhan-ga-gion-cong-thuc-sang-tao-day-moi-me/
+  - License: Source page image metadata unavailable
+- `burger-tom` — Burger tôm
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ca-phe-cot-dua` — Cà phê cốt dừa
+  - Source: DDGS exact web image result
+  - URL: https://www.lacademie.com/vietnamese-coconut-coffee-recipe/
+  - License: Source page image metadata unavailable
+- `ca-phe-den-da` — Cà phê đen đá
+  - Source: DDGS exact web image result
+  - URL: https://phostreet.com.sg/vietnamese-iced-black-coffee-ca-phe-den-da-recipe/
+  - License: Source page image metadata unavailable
+- `ca-phe-muoi` — Cà Phê Muối
+  - Source: DDGS exact web image result
+  - URL: https://myvietkitchen.com/ca-phe-muoi/
+  - License: Source page image metadata unavailable
+- `ca-phe-sua-da` — Cà phê sữa đá
+  - Source: DDGS exact web image result
+  - URL: https://howdykitchen.com/ca-phe-sua-da/
+  - License: Source page image metadata unavailable
+- `ca-phe-sua-da-24h` — Cà phê sữa đá 24h
+  - Source: DDGS exact web image result
+  - URL: https://pho-na-vegi.ch/portfolio-item/ca-phe-sua-da/
+  - License: Source page image metadata unavailable
+- `ca-phe-sua-da-dam-vi` — Cà Phê Sữa Đá Đậm Vị
+  - Source: DDGS exact web image result
+  - URL: https://phostreet.com.sg/vietnamese-iced-coffee-with-condensed-milk-ca-phe-sua-da-recipe/
+  - License: Source page image metadata unavailable
+- `ca-phe-sua-da-dong-chai` — Cà Phê Sữa Đá Đóng Chai
+  - Source: DDGS exact web image result
+  - URL: https://teerangathome.com/incredibly-easy-ca-phe-sua-da-vietnamese-coffee/
+  - License: Source page image metadata unavailable
+- `ca-phe-sua-vi-giam` — Cà Phê Sữa Ví Giảm
+  - Source: DDGS exact web image result
+  - URL: https://vietnamisawesome.com/articles/street-food-in-vietnam/
+  - License: Source page image metadata unavailable
+- `ca-vien-chien` — Cá viên chiên
+  - Source: DDGS exact web image result
+  - URL: https://riviu.vn/ca-vien-chien-mon-an-vat-than-thanh
+  - License: Source page image metadata unavailable
+- `ca-vien-chien-mam-toi` — Cá Viên Chiên Mắm Tỏi
+  - Source: DDGS exact web image result
+  - URL: https://tnhelearning.edu.vn/3-ways-to-make-fried-fish-balls-with-fish-sauce-snacks-and-rice-are-delicious/
+  - License: Source page image metadata unavailable
+- `cacao-kem-cheese` — Cacao Kem Cheese
+  - Source: DDGS exact web image result
+  - URL: https://www.tulipcocoarista.com/en/recipes/54/fruity-iced-tea-cocoa-cheese-foam
+  - License: Source page image metadata unavailable
+- `cacao-nong` — Cacao nóng
+  - Source: DDGS exact web image result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/cacao-nong-181675
+  - License: Source page image metadata unavailable
+- `canh-chua-chay` — Canh chua chay
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `canh-cua-rau-day` — Canh cua rau đay
+  - Source: Manual-selected DDGS web image result
+  - URL: https://bepmina.vn/mon-viet/cach-nau-canh-cua-rau-day/
+  - License: Source page image metadata unavailable
+- `canh-ga-bbq` — Cánh gà BBQ
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `canh-ga-sot-cay` — Cánh Gà Sốt Cay
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `canh-ga-sot-cay-han-quoc` — Cánh Gà Sốt Cay Hàn Quốc
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `canh-kimchi-thit-heo` — Canh kimchi thịt heo
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `cappuccino` — Cappuccino
+  - Source: Manual-selected exact web food photo
+  - URL: https://images.pexels.com/photos/29621582/pexels-photo-29621582.jpeg?cs=srgb&dl=pexels-zehra-k-710717493-29621582.jpg&fm=jpg
+  - License: Source page image metadata unavailable
+- `cha-ca-han-quoc-xien` — Chả Cá Hàn Quốc Xiên
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `cha-chay-chien-gion` — Chả chay chiên giòn
+  - Source: DDGS exact web image result
+  - URL: https://chayngonhungphat.com/cha-chay-chien-gion-mon-an-hap-dan-va-de-lam
+  - License: Source page image metadata unavailable
+- `cha-com-them` — Chả cốm thêm
+  - Source: DDGS exact web image result
+  - URL: https://motogo.tours/cha-com-green-rice-patties-2234.html
+  - License: Source page image metadata unavailable
+- `cha-gio` — Chả giò
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `chan-ga-sa-tac` — Chân Gà Sả Tắc
+  - Source: DDGS exact web image result
+  - URL: https://buffethaisan.vn/blogs/vaobep/cach-lam-chan-ga-sa-tac-giai-ngay-cung-hp3-seafood-cuc-ngon
+  - License: Source page image metadata unavailable
+- `chao-ech-singapore` — Cháo Ếch Singapore
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `chao-ga-la-chanh` — Cháo gà lá chanh
+  - Source: Vicky Pham
+  - URL: https://vickypham.com/blog/vietnamese-chicken-porridge-chao-ga/
+  - License: Source page image metadata unavailable
+- `chao-long-nong` — Cháo Lòng Nóng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `chao-suon-non` — Cháo sườn non
+  - Source: K?nh14
+  - URL: https://kenh14.vn/
+  - License: Source page image metadata unavailable
+- `chao-suon-quay-gion` — Cháo Sườn Quẩy Giòn
+  - Source: Bing image source result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/chao-suon-gan-ngo-xao-dai-loan-168967
+  - License: Source page image metadata unavailable
+- `chao-suon-trung-bac-thao` — Cháo sườn trứng bắc thảo
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `che-buoi` — Chè bưởi
+  - Source: DDGS exact web image result
+  - URL: https://keepupcooking.com/che-buoi-recipe-vietnamese-pomelo-sweet-soup/
+  - License: Source page image metadata unavailable
+- `che-khuc-bach` — Chè khúc bạch
+  - Source: DDGS exact web image result
+  - URL: https://savourthepho.com/che-khuc-bach-recipe/
+  - License: Source page image metadata unavailable
+- `che-thai-sau-rieng` — Chè Thái sầu riêng
+  - Source: VinWonders
+  - URL: https://vinwonders.com/vi/wonderpedia/news/che-sau-rieng-da-nang/
+  - License: Source page image metadata unavailable
+- `cold-brew-cam-vang` — Cold Brew Cam Vàng
+  - Source: DDGS exact web image result
+  - URL: https://www.happyfoodstube.com/orange-cold-brew-coffee/
+  - License: Source page image metadata unavailable
+- `com-bento-ga-teriyaki` — Cơm bento gà teriyaki
+  - Source: Bing image source result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/com-bento-187556
+  - License: Source page image metadata unavailable
+- `com-bento-han-quoc` — Cơm Bento Hàn Quốc
+  - Source: Bing image source result
+  - URL: https://storage.googleapis.com/deipgphoxahcke/bento-box-japanese-meaning.html
+  - License: Source page image metadata unavailable
+- `com-bo-luc-lac` — Cơm bò lúc lắc
+  - Source: DDGS exact web image result
+  - URL: https://www.recipesbykelly.com/traditional-vietnamese-shaking-beef-bo-luc-lac/
+  - License: Source page image metadata unavailable
+- `com-bo-luc-lac-vi-deal` — Cơm Bò Lúc Lắc Ví Deal
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `com-ca-hoi-ap-chao` — Cơm cá hồi áp chảo
+  - Source: Manual exact real food photo replacement
+  - URL: https://juliasalbum.com/
+  - License: Source page image metadata unavailable
+- `com-ca-kho-to` — Cơm Cá Kho Tộ
+  - Source: Bing image source result
+  - URL: https://hocnauan.edu.vn/nau-an-gia-dinh
+  - License: Source page image metadata unavailable
+- `com-ca-ri-nhat` — Cơm cà ri Nhật
+  - Source: Bing image source result
+  - URL: https://giadinh.suckhoedoisong.vn/an-gi-hom-nay-xem-ngay-50-mam-com-gia-dinh-viet-ai-nhin-cung-phai-thot-len-com-nha-la-nhat-172250506045954006.htm
+  - License: Source page image metadata unavailable
+- `com-chay-thap-cam` — Cơm chay thập cẩm
+  - Source: Manual-selected DDGS web image result
+  - URL: http://giavihanhphuc.com/thuc-pham-chay/com-chien-thap-cam-chay-ryan-pham
+  - License: Source page image metadata unavailable
+- `com-chien-duong-chau` — Cơm chiên Dương Châu
+  - Source: DDGS exact web image result
+  - URL: https://rosa.edu.vn/cong-thuc-hoc-cach-lam-mon-com-chien-duong-chau-gion-rum-day-du-duong-chat-dam-vi-trung-hoa-pvn906
+  - License: Source page image metadata unavailable
+- `com-chien-duong-chau-lon` — Cơm Chiên Dương Châu Lớn
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `com-chien-hai-san` — Cơm Chiên Hải Sản
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `com-cuon-thanh-cua` — Cơm cuộn thanh cua
+  - Source: DDGS exact web image result
+  - URL: https://kindkitchenrecipes.com/crab-stick-recipes/
+  - License: Source page image metadata unavailable
+- `com-ga-hai-nam` — Cơm gà Hải Nam
+  - Source: Bing image source result
+  - URL: https://afamily.vn/tham-khao-loat-mam-com-am-cung-cho-ngay-gia-dinh-viet-nam-20210628161535423.chn
+  - License: Source page image metadata unavailable
+- `com-ga-hoi-an` — Cơm Gà Hội An
+  - Source: Bing image source result
+  - URL: https://www.vickypham.com/blog/com-tam
+  - License: Source page image metadata unavailable
+- `com-ga-mam-toi-voucher` — Cơm Gà Mắm Tỏi Voucher
+  - Source: Bing image source result
+  - URL: https://afamily.vn/tham-khao-loat-mam-com-am-cung-cho-ngay-gia-dinh-viet-nam-20210628161535423.chn
+  - License: Source page image metadata unavailable
+- `com-ga-nuong-mat-ong` — Cơm gà nướng mật ong
+  - Source: Bing image source result
+  - URL: https://afamily.vn/tham-khao-loat-mam-com-am-cung-cho-ngay-gia-dinh-viet-nam-20210628161535423.chn
+  - License: Source page image metadata unavailable
+- `com-ga-nuong-sot-mat-ong` — Cơm Gà Nướng Sốt Mật Ong
+  - Source: Bing image source result
+  - URL: https://bepnhatoi.net/thuc-don-bua-an-cho-gia-dinh/
+  - License: Source page image metadata unavailable
+- `com-ga-sot-teriyaki` — Cơm Gà Sốt Teriyaki
+  - Source: Bing image source result
+  - URL: https://cookpad.com/vn/tim-kiem/cơm gia đình
+  - License: Source page image metadata unavailable
+- `com-ga-sot-tieu` — Cơm gà sốt tiêu
+  - Source: Bing image source result
+  - URL: https://memart.vn/tin-tuc/blog2/com-nha-ngon-moi-ngay-vi-cb.html
+  - License: Source page image metadata unavailable
+- `com-ga-teriyaki-vi` — Cơm Gà Teriyaki Ví
+  - Source: Manual exact web food photo replacement
+  - URL: https://nangtamvn.com/products/com-ga-sot-teriyaki
+  - License: Source page image metadata unavailable
+- `com-ga-xoi-mo` — Cơm gà xối mỡ
+  - Source: DDGS exact web image result
+  - URL: https://nhaxinhplaza.vn/doi-song/tu-van/com-ga-xoi-mo-cach-lam.html
+  - License: Source page image metadata unavailable
+- `com-ga-xoi-mo-da-gion` — Cơm Gà Xối Mỡ Da Giòn
+  - Source: DDGS exact web image result
+  - URL: https://rosa.edu.vn/cong-thuc-hoc-com-ga-xoi-mo-da-gion-cuc-ngon-1-von-4-loi-mo-quanh-kinh-doanh-dat-khach-pvn897
+  - License: Source page image metadata unavailable
+- `com-ga-xoi-mo-dat-truoc` — Cơm Gà Xối Mỡ Đặt Trước
+  - Source: DDGS exact web image result
+  - URL: https://laodongdongnai.vn/top-17-cach-lam-com-ga-xoi-mo-moi-nhat-nam-2022-1676681096/
+  - License: Source page image metadata unavailable
+- `com-ga-xoi-mo-minh-long` — Cơm gà xối mỡ Minh Long
+  - Source: DDGS exact web image result
+  - URL: https://ticotravel.com.vn/com-ga-xoi-mo/
+  - License: Source page image metadata unavailable
+- `com-ga-xoi-mo-ship-nhanh` — Cơm Gà Xối Mỡ Ship Nhanh
+  - Source: DDGS exact web image result
+  - URL: https://nhaxinhplaza.vn/doi-song/tu-van/com-ga-xoi-mo-cach-lam.html
+  - License: Source page image metadata unavailable
+- `com-gao-lut-uc-ga` — Cơm gạo lứt ức gà
+  - Source: DDGS exact web image result
+  - URL: https://www.mealprepottawa.com/products/chicken-breast-brown-rice-mixed-vegetables-meal
+  - License: Source page image metadata unavailable
+- `com-nieu-ca-kho` — Cơm Niêu Cá Kho
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `com-suon-cay` — Cơm sườn cây
+  - Source: DDGS exact web image result
+  - URL: https://vietgiaitri.com/suon-cay-thai-lan-mon-ngon-voi-cach-nau-don-gian-20220525i6460994/
+  - License: Source page image metadata unavailable
+- `com-suon-nuong-mo-hanh` — Cơm Sườn Nướng Mỡ Hành
+  - Source: DDGS exact web image result
+  - URL: https://yeuamthuc.org/suon-nuong-com-tam/
+  - License: Source page image metadata unavailable
+- `com-suon-que-mat-ong` — Cơm Sườn Que Mật Ong
+  - Source: Bing image source result
+  - URL: https://giadinh.suckhoedoisong.vn/mon-ngon-trong-mam-com-gia-dinh-viet-noi-huong-vi-que-huong-va-tinh-than-dong-day-172250527135644881.htm
+  - License: Source page image metadata unavailable
+- `com-suon-trung-op-la` — Cơm sườn trứng ốp la
+  - Source: Manual-selected DDGS web image result
+  - URL: https://www.bachhoaxanh.com/kinh-nghiem-hay/tu-lam-com-tam-suon-trung-don-gian-thom-ngon-nhu-ngoai-hang-1373996
+  - License: Source page image metadata unavailable
+- `com-tam-bi-cha-trung` — Cơm Tấm Bì Chả Trứng
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `com-tam-dem-hoang-truong` — com-tam-dem-hoang-truong
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `com-tam-freeship-xtra` — Cơm Tấm Freeship Xtra
+  - Source: Bing image source result
+  - URL: https://www.her86m2.com/cooking/com-nha-typical-vietnamese-homecook
+  - License: Source page image metadata unavailable
+- `com-tam-hoan-xu-x5` — Cơm Tấm Hoàn Xu X5
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `com-tam-suon-bi-cha` — Cơm tấm sườn bì chả
+  - Source: Bing image source result
+  - URL: https://afamily.vn/com-tam-sai-gon-bieu-tuong-giao-thoa-van-hoa-am-thuc-giua-phuong-dong-va-phuong-tay-20221207111834268.chn
+  - License: Source page image metadata unavailable
+- `com-thit-kho-trung` — Cơm thịt kho trứng
+  - Source: DDGS exact web image result
+  - URL: https://thefeedfeed.com/TwayDaBae/vietnamese-thit-kho-trung
+  - License: Source page image metadata unavailable
+- `com-tom-rim` — Cơm Tôm Rim
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `com-tron-bibimbap` — Cơm trộn Bibimbap
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `com-tron-bulgogi-bibimbap` — Cơm Trộn Bulgogi Bibimbap
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `com-trua-suon-bi-cha` — Cơm Trưa Sườn Bì Chả
+  - Source: DDGS exact web image result
+  - URL: https://www.bachhoaxanh.com/kinh-nghiem-hay/doi-gio-cho-ca-nha-voi-mon-com-tam-suon-bi-cha-chay-hap-dan-1266699
+  - License: Source page image metadata unavailable
+- `com-van-phong-3-mon` — Cơm Văn Phòng 3 Món
+  - Source: Bing image source result
+  - URL: https://wikihuongdan.com/y-nghia-bua-com-gia-dinh-trong-truyen-thong-van-hoa-cua-nguoi-viet-nam/
+  - License: Source page image metadata unavailable
+- `com-van-phong-freeship` — Cơm Văn Phòng Freeship
+  - Source: DDGS exact web image result
+  - URL: https://replus.vn/com-van-phong/
+  - License: Source page image metadata unavailable
+- `combo-2-ly-best-seller` — Combo 2 Ly Best Seller
+  - Source: Manual curated real food photo
+  - URL: https://unsplash.com/photos/dHQQv-BKTjo
+  - License: Source page image metadata unavailable; local demo asset
+- `combo-2-mieng-ga` — Combo 2 miếng gà
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+- `combo-2-nguoi-xu-xtra` — Combo 2 Người Xu Xtra
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+- `combo-burger-3-nguoi` — Combo Burger 3 Người
+  - Source: Manual-selected exact web food photo
+  - URL: https://images.pexels.com/photos/19247569/pexels-photo-19247569.jpeg?cs=srgb&dl=pexels-jonathanborba-19247569.jpg&fm=jpg
+  - License: Source page image metadata unavailable
+- `combo-burger-bo-giam-50k` — Combo Burger Bò Giảm 50K
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `combo-com-ga-hoan-xu` — Combo Cơm Gà Hoàn Xu
+  - Source: Manual exact web food photo replacement
+  - URL: https://vinwonders.com/vi/wonderpedia/news/com-ga-hoi-an-mon-ngon-xu-quang-an-la-me/
+  - License: Source page image metadata unavailable
+- `combo-com-suon-nuong` — Combo Cơm Sườn Nướng
+  - Source: DDGS exact web image result
+  - URL: https://deploy.grandma-singletons.co.uk/com-tam-suon-nuong-recipe-suon-nuong-vietnamese-pork-chops-recipe/
+  - License: Source page image metadata unavailable
+- `combo-dem-khong-ngu` — Combo Đêm Không Ngủ
+  - Source: Manual-selected DDGS web image result
+  - URL: https://www.sligro.nl/recepten/2023/03/late-night-snack.html
+  - License: Source page image metadata unavailable
+- `combo-ga-burger` — Combo gà burger
+  - Source: Bing image source result
+  - URL: https://www.thedailymeal.com/1076595/the-city-youll-find-the-most-expensive-fast-food-burger-combo-in-2022/
+  - License: Source page image metadata unavailable
+- `combo-ga-gion-khoai-tay` — Combo Gà Giòn + Khoai Tây
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `combo-ga-nuong-com-lam` — Combo Gà Nướng Cơm Lam
+  - Source: Manual curated real food photo
+  - URL: https://vnexpress.net/ga-nuong-niu-chan-du-khach-den-nui-rung-tay-nguyen-2902523.html
+  - License: Source page image metadata unavailable; local demo asset
+- `combo-ga-ran-sot-han-khoai` — Combo Gà Rán Sốt Hàn + Khoai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `combo-gan-day-gia-tot` — Combo Gần Đây Giá Tốt
+  - Source: DDGS exact web image result
+  - URL: https://eva.vn/suc-khoe/7-mon-an-sang-tot-nhat-cho-gan-an-deu-dan-ngan-chan-ung-thu-thai-sach-doc-to-c131a444472.html
+  - License: Source page image metadata unavailable
+- `combo-gia-dinh` — Combo gia đình
+  - Source: DDGS exact web image result
+  - URL: https://furamavietnam.com/com-viet-tren-mam-go-khi-bua-com-gia-dinh-tro-thanh-hanh-trinh-cam-xuc/
+  - License: Source page image metadata unavailable
+- `combo-gia-dinh-4-mon` — Combo Gia Đình 4 Món
+  - Source: DDGS exact web image result
+  - URL: https://xaydungso.vn/bai-viet-khac/thu-vien-anh-hinh-anh-mon-an-gia-dinh-day-du-cho-bua-an-hang-ngay-vi-cb.html
+  - License: Source page image metadata unavailable
+- `combo-kem-mat-lanh` — Combo Kem Mát Lạnh
+  - Source: DDGS exact web image result
+  - URL: https://genk.vn/nhung-dieu-thu-vi-co-the-ban-chua-biet-ve-mon-kem-mat-lanh-20120620112311921.chn
+  - License: Source page image metadata unavailable
+- `combo-lau-2-nguoi` — Combo lẩu 2 người
+  - Source: Manual-selected DDGS web image result
+  - URL: https://www.hotpotmaster.com.sg/product-category/order-now/hotpot/
+  - License: Source page image metadata unavailable
+- `combo-mi-cay-tang-xu` — Combo Mì Cay Tặng Xu
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `combo-mi-trung-nuoc` — Combo Mì + Trứng + Nước
+  - Source: Manual curated real food photo
+  - URL: https://unsplash.com/photos/fried-noodles-with-a-sunny-side-up-egg-VN8dBdBkhPo
+  - License: Source page image metadata unavailable; local demo asset
+- `combo-nuoc-suoi-snack-khoai` — Combo Nước Suối + Snack Khoai
+  - Source: Manual exact real food photo replacement
+  - URL: https://www.hotdeal.vn/ho-chi-minh/cafe--kem-banh-am-thuc/2-ly-tra-sua-tran-chau-syro-da-bao-1-dia-khoai-tay-chien-bee-quan-180057.html
+  - License: Source page image metadata unavailable
+- `combo-snack-xem-phim` — Combo Snack Xem Phim
+  - Source: Bing image source result
+  - URL: https://ar.inspiredpencil.com/pictures-2023/healthy-snack
+  - License: Source page image metadata unavailable
+- `combo-tra-sua-4-ly` — Combo Trà Sữa 4 Ly
+  - Source: DDGS exact web image result
+  - URL: https://toplist.vn/top-list/mon-an-vat-duoc-gioi-tre-sai-thanh-ua-chuong-nhat-557.htm
+  - License: Source page image metadata unavailable
+- `combo-trum-deal-79` — combo-trum-deal-79
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `cookie-cream-da-xay` — Cookie cream đá xay
+  - Source: DDGS exact web image result
+  - URL: https://ficlay.com/san-pham/mo-hinh-cookie-cream-da-xay
+  - License: Source page image metadata unavailable
+- `cua-rang-me` — Cua rang me
+  - Source: DDGS exact web image result
+  - URL: https://www.banana-breads.com/cua-rang-me-recipe/
+  - License: Source page image metadata unavailable
+- `dau-hu-ca-pho-mai` — Đậu Hũ Cá Phô Mai
+  - Source: Manual exact real food photo replacement
+  - URL: https://www.vinhhoan.com/product/cheese-fish-tofu-cloned-6888/
+  - License: Source page image metadata unavailable
+- `dau-hu-chien-gion` — Đậu hũ chiên giòn
+  - Source: DDGS exact web image result
+  - URL: https://monngonmoingay.com/lam-the-nao-de-mon-dau-hu-chien-gion-phong-thom-ngon/
+  - License: Source page image metadata unavailable
+- `dau-hu-chien-phong` — Đậu hũ chiên phồng
+  - Source: DDGS exact web image result
+  - URL: https://monngonmoingay.com/lam-the-nao-de-mon-dau-hu-chien-gion-phong-thom-ngon/
+  - License: Source page image metadata unavailable
+- `dau-hu-non-nhung-lau` — Đậu hũ non nhúng lẩu
+  - Source: DDGS exact web image result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/dau-hu-non-lam-mon-gi-166390
+  - License: Source page image metadata unavailable
+- `dau-hu-sot-ca-chua` — Đậu hũ sốt cà chua
+  - Source: DDGS exact web image result
+  - URL: https://www.lacademie.com/vietnamese-fried-tofu-in-tomato-sauce-recipe/
+  - License: Source page image metadata unavailable
+- `deal-no-bung-50k` — Deal No Bụng 50K
+  - Source: 
+  - URL: https://commons.wikimedia.org/wiki/File:Nem_n%C6%B0%E1%BB%9Bng_by_Baoothersks.jpg
+  - License: CC BY-SA 4.0
+- `deal-trua-hoan-xu` — Deal Trưa Hoàn Xu
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: Dataset asset for local demo use
+  - Creator: 30VNFoods dataset
+- `ga-gion-cay-1-mieng` — Gà giòn cay 1 miếng
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-khong-xuong-sot-mat-ong` — Gà Không Xương Sốt Mật Ong
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-lac-pho-mai` — Gà lắc phô mai
+  - Source: DDGS exact web image result
+  - URL: https://toplist.vn/top-list/mon-an-ngon-cho-tin-do-pho-mai-o-ha-noi-24774.htm
+  - License: Source page image metadata unavailable
+- `ga-nuong-com-lam` — Gà Nướng Cơm Lam
+  - Source: DDGS exact web image result
+  - URL: https://www.cotrang.org/ga-nuong-com-lam-gia-lai-mon-an-dac-san-noi-tieng-khong-the-bo-lo-n1215.html
+  - License: Source page image metadata unavailable
+- `ga-nuong-nguyen-phan` — Gà nướng nguyên phần
+  - Source: DDGS exact web image result
+  - URL: https://top360.vn/quan-ga-nuong-ngon-sai-gon/
+  - License: Source page image metadata unavailable
+- `ga-popcorn` — Gà popcorn
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-combo-voucher-50k` — Gà Rán Combo Voucher 50K
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-gion-cay` — ga-ran-gion-cay
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+- `ga-ran-ship-0d` — Gà Rán Ship 0Đ
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-sot-cay-seoul` — Gà rán sốt cay Seoul
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-sot-snow-cheese` — Gà Rán Sốt Snow Cheese
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-tiec-nhom` — Gà Rán Tiệc Nhóm
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-ran-vi-uu-dai` — Gà Rán Ví Ưu Đãi
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-sot-cay-han-quoc` — Gà Sốt Cay Hàn Quốc
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-sot-han-quoc` — Gà sốt Hàn Quốc
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-sot-pho-mai` — Gà sốt phô mai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-sot-toi-dau-nanh` — Gà Sốt Tỏi Đậu Nành
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `ga-vien-sot-cay` — Gà Viên Sốt Cay
+  - Source: DDGS exact web image result
+  - URL: https://www.nguoiduatin.vn/mon-ngon-cuoi-tuan-ga-vien-sot-cay-ngot-kieu-han-cho-ngay-lanh-204532213.htm
+  - License: Source page image metadata unavailable
+- `ghe-hap-bia` — Ghẹ hấp bia
+  - Source: DDGS exact web image result
+  - URL: https://crabseafood.vn/cach-lam-ghe-hap-bia-sa-sang-chanh/
+  - License: Source page image metadata unavailable
+- `goi-cuon-ca-hoi` — Gỏi cuốn cá hồi
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `goi-cuon-chay` — Gỏi cuốn chay
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `goi-cuon-khai-vi` — Gỏi Cuốn Khai Vị
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `goi-cuon-tom-thit` — Gỏi Cuốn Tôm Thịt
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `goi-cuon-tom-thit-tang-xu` — Gỏi Cuốn Tôm Thịt Tặng Xu
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `goi-ga-mang-cut` — Gỏi Gà Măng Cụt
+  - Source: DDGS exact web image result
+  - URL: https://khesafood.com/goi-ga-mang-cut/
+  - License: Source page image metadata unavailable
+- `goi-kho-bo` — Gỏi khô bò
+  - Source: DDGS exact web image result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/goi-kho-bo-169121
+  - License: Source page image metadata unavailable
+- `gyoza-chien` — Gyoza chiên
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `hai-san-nhung-them` — Hải sản nhúng thêm
+  - Source: DDGS exact web image result
+  - URL: https://www.ivivu.com/blog/2014/04/nhung-mon-hai-san-tuyet-ngon-o-da-nang/
+  - License: Source page image metadata unavailable
+- `hau-nuong-pho-mai` — Hàu nướng phô mai
+  - Source: Bing image source result
+  - URL: https://memart.vn/tin-tuc/blog2/hau-nuong-trung-ga-mo-hanh-vi-cb.html
+  - License: Source page image metadata unavailable
+- `ho-lo-nuong` — Hồ lô nướng
+  - Source: DDGS exact web image result
+  - URL: https://www.monngon.tv/cach-lam-ho-lo-nuong-vo-cung-don-gian-827.html
+  - License: Source page image metadata unavailable
+- `ho-lo-nuong-mat-ong` — Hồ Lô Nướng Mật Ong
+  - Source: Manual exact real food photo replacement
+  - URL: https://bloganchoi.com/do-an-vat-ngon-sai-gon/
+  - License: Source page image metadata unavailable
+- `hong-tra-macchiato` — Hồng trà macchiato
+  - Source: DDGS exact web image result
+  - URL: https://supperclean.vn/macchiato-la-gi/
+  - License: Source page image metadata unavailable
+- `hop-com-ga-teriyaki` — Hộp Cơm Gà Teriyaki
+  - Source: DDGS exact web image result
+  - URL: https://aeoneshop.com/product/19006/aeon-delica-bento-dui-ga-sot-teriyaki-dac-biet-400g
+  - License: Source page image metadata unavailable
+- `hotdog-pho-mai` — Hotdog phô mai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `hotdog-pho-mai-keo-soi` — Hotdog Phô Mai Kéo Sợi
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `hu-tieu-bo-kho` — Hủ Tiếu Bò Kho
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-kho` — Hủ tiếu khô
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-nam-vang` — Hủ tiếu Nam Vang
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-nam-vang-co-ba` — Hủ tiếu Nam Vang Cô Ba
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-nam-vang-giam-vi` — Hủ Tiếu Nam Vang Giảm Ví
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-nam-vang-tom-thit` — Hủ Tiếu Nam Vang Tôm Thịt
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `hu-tieu-sa-te-nai` — Hủ Tiếu Sa Tế Nai
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `katinat-coffee-tea` — Katinat Coffee & Tea
+  - Source: Manual-selected DDGS web image result
+  - URL: https://cafef.vn/3-chiec-ly-tao-nen-buoc-ngoat-cua-katinat-tu-cua-hang-vo-danh-den-chuoi-ca-phe-noi-nhat-mxh-vuot-scandal-tay-chay-thanh-cai-ten-duoc-san-lung-188241113233900564.chn
+  - License: Source page image metadata unavailable
+- `kem-cheese` — Kem cheese
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `kem-dua-thai` — Kem dừa Thái
+  - Source: DDGS exact web image result
+  - URL: https://bazantravel.com/mon-an-vat-thai-lan/
+  - License: Source page image metadata unavailable
+- `kem-oc-que-chocolate` — Kem Ốc Quế Chocolate
+  - Source: DDGS exact web image result
+  - URL: https://www.indiamart.com/proddetail/chocolate-cone-ice-cream-12686681533.html
+  - License: Source page image metadata unavailable
+- `kho-ga-la-chanh` — Khô Gà Lá Chanh
+  - Source: DDGS exact web image result
+  - URL: https://www.lorca.vn/lam-mon-kho-ga-la-chanh-bang-lo-nuong-sieu-don-gian-tai-nha/
+  - License: Source page image metadata unavailable
+- `khoai-lang-ken` — Khoai lang kén
+  - Source: DDGS exact web image result
+  - URL: https://www.dienmayxanh.com/vao-bep/tim-kiem/lam-khoai-lang-ken
+  - License: Source page image metadata unavailable
+- `khoai-tay-chien` — Khoai tây chiên
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `khoai-tay-chien-pho-mai` — Khoai tây chiên phô mai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `khoai-tay-chien-vua` — Khoai tây chiên vừa
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `khoai-tay-lac-pho-mai` — Khoai tây lắc phô mai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `khoai-tay-lac-xi-muoi` — Khoai Tây Lắc Xí Muội
+  - Source: Manual exact real food photo replacement
+  - URL: https://www.thegioididong.com/
+  - License: Source page image metadata unavailable
+- `kim-chi-cai-thao` — Kim chi cải thảo
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `kimbap-bo` — Kimbap bò
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `kimbap-bulgogi` — Kimbap Bulgogi
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `kimbap-ca-ngu-rong-bien` — Kimbap Cá Ngừ Rong Biển
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `kimbap-tokbokki-hanuri` — Kimbap & Tokbokki Hanuri
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `latte` — Latte
+  - Source: DDGS exact web image result
+  - URL: https://www.nescafe.com/coffee-culture/knowledge/coffee-cup-guide
+  - License: Source page image metadata unavailable
+- `latte-caramel-da` — Latte Caramel Đá
+  - Source: DDGS exact web image result
+  - URL: https://recipeshype.com/iced-latte-caramel/
+  - License: Source page image metadata unavailable
+- `lau-bo-nhung-ot` — Lẩu Bò Nhúng Ớt
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog2/cach-nau-lau-bo-nhung-ot-vi-cb.html
+  - License: Source page image metadata unavailable
+- `lau-ca-keo-la-giang` — Lẩu cá kèo lá giang
+  - Source: DDGS exact web image result
+  - URL: https://nhahangphuongnam.com.vn/blogs/am-thuc-phuong-nam/lau-ca-keo-la-giang-ngon-ha-noi-mon-an-day-dinh-duong-cho-suc-khoe
+  - License: Source page image metadata unavailable
+- `lau-ca-nhan-tomyum` — Lẩu cá nhân tomyum
+  - Source: DDGS exact web image result
+  - URL: https://www.vietravel.com/vn/am-thuc-kham-pha/du-lich-thai-lan-thuong-thuc-mon-tomyum-dac-san-v16292.aspx
+  - License: Source page image metadata unavailable
+- `lau-ga-la-e` — Lẩu gà lá é
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog3/lau-ga-la-e-bat-nguon-tu-dau-vi-cb.html
+  - License: Source page image metadata unavailable
+- `lau-hai-san-chua-cay` — Lẩu hải sản chua cay
+  - Source: DDGS exact web image result
+  - URL: https://unispice.vn/mon-ngon-moi-ngay/lau-hai-san-chua-cay/
+  - License: Source page image metadata unavailable
+- `lau-kim-chi-gia-dinh` — Lẩu Kim Chi Gia Đình
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `lau-nam-chay` — Lẩu nấm chay
+  - Source: DDGS exact web image result
+  - URL: https://monngonmoingay.com/lau-nam-chay/
+  - License: Source page image metadata unavailable
+- `lau-thai-hai-san-mini` — Lẩu Thái Hải Sản Mini
+  - Source: DDGS exact web image result
+  - URL: https://www.klook.com/en-PH/activity/94342-thai-seafood-hot-pot-shen-zhen/
+  - License: Source page image metadata unavailable
+- `lau-thai-mini` — Lẩu Thái Mini
+  - Source: DDGS exact web image result
+  - URL: https://delightfulplate.com/thai-hotpot-lau-thai/
+  - License: Source page image metadata unavailable
+- `lau-thai-mini-cashback` — Lẩu Thái Mini Cashback
+  - Source: DDGS exact web image result
+  - URL: https://www.momo.vn/page/1048527
+  - License: Source page image metadata unavailable
+- `lau-thai-tomyum` — Lẩu Thái tomyum
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog2/lau-thai-tomyum-phung-khoang-vi-cb.html
+  - License: Source page image metadata unavailable
+- `lau-thai-tomyum-199k` — Lẩu Thái Tomyum 199k
+  - Source: Manual-selected exact web food photo
+  - URL: https://images.squarespace-cdn.com/content/v1/52d3fafee4b03c7eaedee15f/c523fb53-2812-4cf3-8ef6-9b8036d04914/after-7576.jpg
+  - License: Source page image metadata unavailable
+- `lau-tokbokki-hai-san` — Lẩu Tokbokki Hải Sản
+  - Source: Bing image source result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/lau-thap-cam-gom-nhung-gi-163630
+  - License: Source page image metadata unavailable
+- `lau-tokbokki-mini` — Lẩu Tokbokki Mini
+  - Source: Bing image source result
+  - URL: https://baolamdong.vn/10-mon-lau-don-gian-ngon-thich-hop-de-an-vao-mua-dong-167850.html
+  - License: Source page image metadata unavailable
+- `mai-coffee-ca-phe-le-thi-ngay` — mai-coffee-ca-phe-le-thi-ngay
+  - Source: Manual exact web image replacement
+  - URL: http://www.epicurious.com/recipes/food/views/vietnamese-ice-coffee-395453
+  - License: Source page image metadata unavailable
+- `mandu-chien-nhan-thit` — Mandu Chiên Nhân Thịt
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `matcha-dau-do` — Matcha Đậu Đỏ
+  - Source: DDGS exact web image result
+  - URL: https://storage.googleapis.com/dntwrbwwaludpe/matcha-red-bean-milk-tea-recipe.html
+  - License: Source page image metadata unavailable
+- `matcha-dua-non` — Matcha Dừa Non
+  - Source: DDGS exact web image result
+  - URL: https://oem-fgc.com/blog/matcha-coconut-milk-tea-discover-a-trendy-drink-of-the-youth/
+  - License: Source page image metadata unavailable
+- `matcha-latte-dau-do` — Matcha latte đậu đỏ
+  - Source: DDGS exact web image result
+  - URL: https://dorarecipes.com/delightful-matcha-latte-with-sweetened-red-bean-recipe/
+  - License: Source page image metadata unavailable
+- `matcha-latte-kem-man` — Matcha Latte Kem Mặn
+  - Source: DDGS exact web image result
+  - URL: https://cleanfoodiecravings.com/iced-matcha-latte-with-pumpkin-spice-cheese-foam/
+  - License: Source page image metadata unavailable
+- `matcha-latte-waffle` — Matcha latte & waffle
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `met-an-vat-2-nguoi` — Mẹt Ăn Vặt 2 Người
+  - Source: Manual-selected DDGS web image result
+  - URL: https://purple-eats.blogspot.com/2015/07/pho-street-vietnamese-street-delight.html
+  - License: Source page image metadata unavailable
+- `met-an-vat-le-hoi` — Mẹt Ăn Vặt Lễ Hội
+  - Source: Manual-selected exact web food photo
+  - URL: https://images.pexels.com/photos/30415961/pexels-photo-30415961/free-photo-of-vietnamese-cuisine-platter-with-fresh-herbs.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1
+  - License: Source page image metadata unavailable
+- `met-bun-dau-dai-tiec` — Mẹt Bún Đậu Đại Tiệc
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `mi-cay-7-cap-do-sasin` — Mì cay 7 cấp độ Sasin
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-cay-bo-my` — Mì Cay Bò Mỹ
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-cay-ga-gion` — Mì cay gà giòn
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-cay-hai-san` — Mì cay hải sản
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-cay-hai-san-cap-do-2` — Mì Cay Hải Sản Cấp Độ 2
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-cay-hai-san-dai-tiec` — Mì Cay Hải Sản Đại Tiệc
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-lanh-bibim-guksu` — Mì Lạnh Bibim Guksu
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-ly-hai-san-xuc-xich` — Mì Ly Hải Sản + Xúc Xích
+  - Source: DDGS exact web image result
+  - URL: https://memos.vn/vi/mi-ly-xuc-xich-p193
+  - License: Source page image metadata unavailable
+- `mi-quang-ga` — Mì Quảng Gà
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `mi-ramen-tonkotsu` — Mì ramen tonkotsu
+  - Source: DDGS exact web image result
+  - URL: https://blesseddish.com/creamy-tonkotsu-ramen-recipe-with-rich-pork-bone-broth/
+  - License: Source page image metadata unavailable
+- `mi-tron-top-mo` — Mì Trộn Tóp Mỡ
+  - Source: DDGS exact web image result
+  - URL: https://bepxua.vn/bi-quyet-lam-mon-an-vat-mi-tron-top-mo/
+  - License: Source page image metadata unavailable
+- `mi-tron-top-mo-0d-ship` — Mì Trộn Tóp Mỡ 0Đ Ship
+  - Source: DDGS exact web image result
+  - URL: https://yeuamthuc.org/mi-mien-tron/
+  - License: Source page image metadata unavailable
+- `mi-tron-top-mo-trung-long-dao` — Mì Trộn Tóp Mỡ Trứng Lòng Đào
+  - Source: DDGS exact web image result
+  - URL: https://toplist.vn/top-list/quan-mi-tron-ngon-nhat-binh-duong-57592.htm
+  - License: Source page image metadata unavailable
+- `mi-tron-xa-xiu` — Mì trộn xá xíu
+  - Source: DDGS exact web image result
+  - URL: https://toplist.vn/top-list/cach-lam-mi-tron-don-gian-thom-ngon-nhat-tai-nha-49755.htm
+  - License: Source page image metadata unavailable
+- `mi-tuoi-nhung-lau` — Mì tươi nhúng lẩu
+  - Source: DDGS exact web image result
+  - URL: https://www.ckktv.net/2021/08/lam-mi-tuoi-va-nui-tai-nha-cach-bao-quan.html
+  - License: Source page image metadata unavailable
+- `mi-tuong-den-jajangmyeon` — Mì Tương Đen Jajangmyeon
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-udon-bo` — Mì udon bò
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `mi-xao-chay-gion` — Mì xào chay giòn
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/how-blog/huong-dan-cach-lam-mi-xao-gion-chay-thom-ngon-voi-thanh-phan-chay-day-dinh-duong-vi-cb.html
+  - License: Source page image metadata unavailable
+- `mi-xao-hai-san` — Mì Xào Hải Sản
+  - Source: DDGS exact web image result
+  - URL: https://monviet88.com/zh/view/mi-goi-xao-hai-san/
+  - License: Source page image metadata unavailable
+- `mi-y-kem-tom-sot-cay` — Mì Ý Kem Tôm Sốt Cay
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/suc-khoe-3/nhung-meo-vat-mi-y-tom-sot-kem-don-gian-danh-cho-dan-nau-nuong-vi-cb.html
+  - License: Source page image metadata unavailable
+- `mi-y-sot-bo-bam` — Mì Ý sốt bò bằm
+  - Source: Manual curated real food photo
+  - URL: https://www.pexels.com/photo/cooked-pasta-on-brown-wooden-bowl-1279330/
+  - License: Source page image metadata unavailable; local demo asset
+- `mi-y-sot-kem-nam` — Mì Ý sốt kem nấm
+  - Source: Manual exact real food photo replacement
+  - URL: https://bepmina.vn/mon-au/cach-lam-mi-y-sot-kem-nam/
+  - License: Source page image metadata unavailable
+- `mien-tron-japchae` — Miến Trộn Japchae
+  - Source: DDGS exact web image result
+  - URL: https://mia.vn/cam-nang-du-lich/mien-tron-japchae-han-quoc-18392
+  - License: Source page image metadata unavailable
+- `mon-ngon-bun-pho-giam-55-000d` — mon-ngon-bun-pho-giam-55-000d
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `mon-ngon-deal-dinh-giam-toi-50` — mon-ngon-deal-dinh-giam-toi-50
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `muc-nuong-sa-te` — Mực nướng sa tế
+  - Source: DDGS exact web image result
+  - URL: https://tnhelearning.edu.vn/3-ways-to-marinate-delicious-grilled-squid-with-satay-chao-and-korea/
+  - License: Source page image metadata unavailable
+- `muc-vien-chien` — Mực Viên Chiên
+  - Source: DDGS exact web image result
+  - URL: https://giochabanhmi.com/ba-mon-an-ngon-de-lam-tu-muc-vien-chien.html
+  - License: Source page image metadata unavailable
+- `nam-xao-rau-cu` — Nấm xào rau củ
+  - Source: DDGS exact web image result
+  - URL: https://toyenxin.com/blog-1/nam-xao-rau-cu-vi-cb.html
+  - License: Source page image metadata unavailable
+- `nem-chua-ran` — Nem chua rán
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `nem-chua-ran-ha-noi` — Nem Chua Rán Hà Nội
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `nem-chua-thanh-hoa` — Nem chua Thanh Hoá
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `ngheu-hap-sa` — Nghêu hấp sả
+  - Source: DDGS exact web image result
+  - URL: https://ghesong.vn/mon-ngheu-bien-hap-sa.html
+  - License: Source page image metadata unavailable
+- `nom-hoa-chuoi` — Nộm hoa chuối
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/how-blog/cach-lam-cach-lam-nom-hoa-chuoi-ngon-nhat-huong-vi-dam-da-va-thanh-mat-vi-cb.html
+  - License: Source page image metadata unavailable
+- `nuoc-cam-ep-chai-lanh` — Nước Cam Ép Chai Lạnh
+  - Source: DDGS exact web image result
+  - URL: https://quancathaibinh.vn/nuoc-cam-ep
+  - License: Source page image metadata unavailable
+- `nuoc-ep-can-tay-tao` — Nước ép cần tây táo
+  - Source: DDGS exact web image result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/nuoc-ep-can-tay-tao-155754
+  - License: Source page image metadata unavailable
+- `nuoc-mia` — Nước mía
+  - Source: DDGS exact web image result
+  - URL: https://phostreet.com.sg/vietnamese-sugarcane-juice-nuoc-mia-recipe/
+  - License: Source page image metadata unavailable
+- `nuoc-ngot-lon` — Nước ngọt lon
+  - Source: DDGS exact web image result
+  - URL: https://vnexpress.net/5-mon-an-uong-nhieu-de-nuoi-soi-trong-than-4936533.html
+  - License: Source page image metadata unavailable
+- `nuoc-suoi` — Nước suối
+  - Source: DDGS exact web image result
+  - URL: https://haiminhmart.vn/
+  - License: Source page image metadata unavailable
+- `nuoc-tang-luc-lon` — Nước Tăng Lực Lon
+  - Source: DDGS exact web image result
+  - URL: https://bongrocer.vn/products/nuoc-tang-luc-monster-mango-lon-355ml-24
+  - License: Source page image metadata unavailable
+- `oc-dem-sai-gon` — Ốc đêm Sài Gòn
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `oc-huong-xao-toi` — Ốc hương xào tỏi
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `oc-mong-tay-xao-me` — Ốc móng tay xào me
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `oolong-dao-sua` — Oolong Đào Sữa
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/how-blog/huong-dan-cach-nau-tra-sua-dao-thom-ngot-va-day-mau-sac-vi-cb.html
+  - License: Source page image metadata unavailable
+- `oolong-sen-vang` — Oolong Sen Vàng
+  - Source: Manual-selected exact web food photo
+  - URL: https://photo2.tinhte.vn/data/attachment-files/2026/01/8939598_2B3D1C5A-1017-44A6-B8C9-013D831488D7.jpeg
+  - License: Source page image metadata unavailable
+- `oolong-sua` — Oolong sữa
+  - Source: Manual exact web image replacement
+  - URL: https://cornercoffeestore.com/oolong-milk-tea-recipe/
+  - License: Source page image metadata unavailable
+- `oolong-sua-tran-chau` — Oolong sữa trân châu
+  - Source: Manual-selected exact web food photo
+  - URL: https://www.foodiebaker.com/wp-content/uploads/2020/04/Fresh-Milk-Bubble-Tea-3.jpg
+  - License: Source page image metadata unavailable
+- `oreo-cacao-da-xay` — Oreo cacao đá xay
+  - Source: Manual-selected exact web food photo
+  - URL: https://thelittlestcrumb.com/wp-content/uploads/oreo-iced-coffee-featured-image-1.jpg
+  - License: Source page image metadata unavailable
+- `pha-lau-bo` — Phá lấu bò
+  - Source: DDGS exact web image result
+  - URL: http://dhfoods.com.vn/en/mon-ngon-de-lam/cong-thuc-nau-pha-lau-bo-nuoc-cot-dua-thom-ngon-beo-ngay
+  - License: Source page image metadata unavailable
+- `pho-bo-tai-gan-ban` — Phở Bò Tái Gần Bạn
+  - Source: Bing image source result
+  - URL: https://memart.vn/tin-tuc/blog2/pho-vi-cb.html
+  - License: Source page image metadata unavailable
+- `pho-bo-tai-nam` — Phở bò tái nạm
+  - Source: Bing image source result
+  - URL: https://fptshop.com.vn/tin-tuc/dien-may/cach-nau-pho-bo-nam-dinh-158089
+  - License: Source page image metadata unavailable
+- `pho-bo-tai-nam-gau` — Phở Bò Tái Nạm Gầu
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `pho-bo-tai-nam-gia-truyen` — Phở bò tái nạm Gia Truyền
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `pho-chay-nam-huong` — Phở chay nấm hương
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `pho-ga-ta` — Phở gà ta
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `pho-mai-que` — Phô mai que
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog2/pho-mai-que-mozzarella-vi-cb.html
+  - License: Source page image metadata unavailable
+- `pho-mai-que-chien` — Phô mai que chiên
+  - Source: DDGS exact web image result
+  - URL: https://giavichinsu.com/cach-lam-pho-mai-que-chien-gion.html
+  - License: Source page image metadata unavailable
+- `pho-mai-que-keo-soi` — Phô Mai Que Kéo Sợi
+  - Source: DDGS exact web image result
+  - URL: https://dienmaythienphu.vn/tin-tuc/tu-van-thiet-bi-nha-bep/bep-dien-tu-bep-hong-ngoai/cach-lam-pho-mai-que-keo-soi-dai-me-ly-don-gian-bang-bep-tu-bosch-pid675dc1e
+  - License: Source page image metadata unavailable
+- `pizza-bo-bbq` — Pizza bò BBQ
+  - Source: Bing image source result
+  - URL: http://thelistlove.com/10-tasty-dominos-pizza-facts-your-stomach-wants-you-to-know/
+  - License: Source page image metadata unavailable
+- `pizza-hai-san` — Pizza hải sản
+  - Source: Bing image source result
+  - URL: https://ar.inspiredpencil.com/pictures-2023/super-cheesy-pizza
+  - License: Source page image metadata unavailable
+- `pizza-hai-san-mini` — Pizza Hải Sản Mini
+  - Source: Bing image source result
+  - URL: https://www.rezeptesuchen.com/r/pizza-54571
+  - License: Source page image metadata unavailable
+- `pizza-hai-san-size-l` — Pizza Hải Sản Size L
+  - Source: Manual-selected exact web food photo
+  - URL: https://chefmaniac.com/wp-content/uploads/2025/06/484800619_122116618034761444_6834851400029625406_n.jpg
+  - License: Source page image metadata unavailable
+- `pizza-mini-thanh-toan-vi` — Pizza Mini Thanh Toán Ví
+  - Source: Bing image source result
+  - URL: https://www.thecandidcooks.com/pizza-of-the-month-spicy-sausage-and-pepper-pizza/
+  - License: Source page image metadata unavailable
+- `pizza-pho-mai-keo-soi` — Pizza phô mai kéo sợi
+  - Source: Bing image source result
+  - URL: http://showmelocal.dailynews.com/profile.aspx?bid=9787516
+  - License: Source page image metadata unavailable
+- `pizza-xuc-xich-pho-mai` — Pizza Xúc Xích Phô Mai
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `pudding-trung` — Pudding trứng
+  - Source: Manual exact real food photo replacement
+  - URL: https://www.momo.vn/page/9824178
+  - License: Source page image metadata unavailable
+- `rau-cau-dua` — Rau câu dừa
+  - Source: DDGS exact web image result
+  - URL: https://amerikanki.com/food/rau-cau-dua-vietnamese-coconut-jello-recipe/
+  - License: Source page image metadata unavailable
+- `rau-luoc-cham-chao` — Rau luộc chấm chao
+  - Source: DDGS exact web image result
+  - URL: https://cookbeo.com/recipes/rau-luoc-cham-chao
+  - License: Source page image metadata unavailable
+- `rau-nhung-lau` — Rau nhúng lẩu
+  - Source: DDGS exact web image result
+  - URL: https://phunutoday.vn/3-loai-rau-khong-nen-nhung-lau-an-nhieu-hai-than-d386545.html
+  - License: Source page image metadata unavailable
+- `salad-bap-cai` — Salad bắp cải
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-bo-trung` — Salad bơ trứng
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-ca-ngu` — Salad cá ngừ
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-caesar` — Salad Caesar
+  - Source: DDGS exact web image result
+  - URL: https://kenh14.vn/made-by-me/salad-caesar-mon-salad-noi-tieng-voi-cong-thuc-don-gian-2011322135952682.chn
+  - License: Source page image metadata unavailable
+- `salad-rau-cu-hop` — Salad Rau Củ Hộp
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-rong-bien` — Salad rong biển
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-uc-ga` — Salad ức gà
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `salad-uc-ga-sot-me-rang` — Salad Ức Gà Sốt Mè Rang
+  - Source: DDGS exact web image result
+  - URL: https://www.bluestone.com.vn/blogs/vao-bep/salad-uc-ga-sot-me-rang
+  - License: Source page image metadata unavailable
+- `set-an-trua-giao-nhanh` — Set Ăn Trưa Giao Nhanh
+  - Source: DDGS exact web image result
+  - URL: https://bigsalemuasam.com/mon-an-trua-van-phong/
+  - License: Source page image metadata unavailable
+- `set-an-vat-thanh-toan-vi` — Set Ăn Vặt Thanh Toán Ví
+  - Source: Manual-selected DDGS web image result
+  - URL: https://ar.inspiredpencil.com/pictures-2023/fried-food-platter
+  - License: Source page image metadata unavailable
+- `set-bbq-heo-bo-nuong` — Set BBQ Heo Bò Nướng
+  - Source: DDGS exact web image result
+  - URL: https://vincom.com.vn/trend/do-nuong-bbq
+  - License: Source page image metadata unavailable
+- `set-bbq-mini` — Set BBQ Mini
+  - Source: DDGS exact web image result
+  - URL: https://www.reddit.com/r/food/comments/vntmzi/homemade_bbq_meat_platter/
+  - License: Source page image metadata unavailable
+- `set-com-gia-dinh-mini` — Set Cơm Gia Đình Mini
+  - Source: Manual curated real food photo
+  - URL: https://www.pexels.com/photo/variety-of-dishes-on-table-2942320/
+  - License: Source page image metadata unavailable; local demo asset
+- `set-ga-ran-gia-dinh` — Set Gà Rán Gia Đình
+  - Source: Fast Food Classification dataset real photo
+  - URL: https://www.kaggle.com/datasets/utkarshsaxenadn/fast-food-classification-dataset
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Utkarsh Saxena / Fast Food Classification Dataset
+- `set-healthy-low-carb` — Set Healthy Low Carb
+  - Source: DDGS exact web image result
+  - URL: https://grantrecipes.com/easy-low-carb-chicken-and-vegetables-skillet-for-healthy-family-meals/
+  - License: Source page image metadata unavailable
+- `set-xien-nuong-muoi-ot` — Set Xiên Nướng Muối Ớt
+  - Source: DDGS exact web image result
+  - URL: https://toplist.vn/top-list/mon-xien-nuong-thom-ngon-va-de-lam-nhat-3086.htm
+  - License: Source page image metadata unavailable
+- `set-xien-nuong-party` — Set Xiên Nướng Party
+  - Source: DDGS exact web image result
+  - URL: https://mia.vn/cam-nang-du-lich/mon-an-mua-dong-ha-noi-17314
+  - License: Source page image metadata unavailable
+- `set-xien-que-sot-cay` — Set Xiên Que Sốt Cay
+  - Source: Manual-selected DDGS web image result
+  - URL: https://www.recipesbyelani.com/how-to-make-sweet-and-spicy-chicken-skewers-everyone-will-love/
+  - License: Source page image metadata unavailable
+- `sinh-to-bo-chuoi` — Sinh tố bơ chuối
+  - Source: Manual-selected exact web food photo
+  - URL: https://homecookyummy.com/wp-content/uploads/2025/10/0admin01_httpss.mj_.runRNX1pmg_eFc_An_ultra-close-up_AND_A_hyp_f5532d02-6409-43f5-8cde-884e44f1c138_2.png
+  - License: Source page image metadata unavailable
+- `snack-rong-bien-gion` — Snack Rong Biển Giòn
+  - Source: DDGS exact web image result
+  - URL: https://meoeva.com/4-cach-lam-snack-rong-bien-gion-rum-beo-ngay-ai-an-cung-ghien/
+  - License: Source page image metadata unavailable
+- `so-huyet-nuong-mo-hanh` — Sò huyết nướng mỡ hành
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `soda-chanh-day` — Soda chanh dây
+  - Source: DDGS exact web image result
+  - URL: https://www.masalaherb.com/passion-fruit-soda/
+  - License: Source page image metadata unavailable
+- `soda-vai-bac-ha` — Soda Vải Bạc Hà
+  - Source: DDGS exact web image result
+  - URL: https://gtp.com.vn/tin-tuc/goc-pha-che/soda-vai-bac-ha-thach-3q-vi-tuoi-mat-chuan-premium-gtp/5137
+  - License: Source page image metadata unavailable
+- `sua-chua-nep-cam` — Sữa chua nếp cẩm
+  - Source: Delightful Plate
+  - URL: https://delightfulplate.com/vietnamese-yogurt-black-sticky-rice-pudding/
+  - License: Source page image metadata unavailable
+- `sua-chua-uong-loc-4` — Sữa Chua Uống Lốc 4
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `sua-chua-viet-quat` — Sữa chua việt quất
+  - Source: DDGS exact web image result
+  - URL: https://www.huongnghiepaau.com/sua-chua-viet-quat
+  - License: Source page image metadata unavailable
+- `sua-dau-nanh` — Sữa đậu nành
+  - Source: Manual-selected exact web food photo
+  - URL: https://eatplant-based.com/wp-content/uploads/2022/04/Soy-Milk.jpg
+  - License: Source page image metadata unavailable
+- `sua-tuoi-it-duong-loc-4-hop` — Sữa Tươi Ít Đường Lốc 4 Hộp
+  - Source: DDGS exact web image result
+  - URL: https://suavasua.vn/loc-4-hop-sua-tuoi-it-duong-vinamilk-110ml/
+  - License: Source page image metadata unavailable
+- `sua-tuoi-tran-chau` — Sữa tươi trân châu
+  - Source: DDGS exact web image result
+  - URL: https://suangon.net/sua-tuoi-tran-chau-duong-den
+  - License: Source page image metadata unavailable
+- `sua-tuoi-tran-chau-duong-den` — Sữa Tươi Trân Châu Đường Đen
+  - Source: DDGS exact web image result
+  - URL: https://www.honestfoodtalks.com/brown-sugar-boba-pearls-recipe/
+  - License: Source page image metadata unavailable
+- `suon-nuong-bbq` — Sườn Nướng BBQ
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `sup-bi-do` — Súp bí đỏ
+  - Source: DDGS exact web image result
+  - URL: https://www.dienmayxanh.com/vao-bep/tim-kiem/sup-bi-do
+  - License: Source page image metadata unavailable
+- `sup-bi-do-hat-sen` — Súp bí đỏ hạt sen
+  - Source: Manual-selected exact web food photo
+  - URL: https://i.pinimg.com/736x/79/a8/d0/79a8d025201431e9a9dc530c25c01c91.jpg
+  - License: Source page image metadata unavailable
+- `sup-cua-trung-bac-thao` — Súp cua trứng bắc thảo
+  - Source: DDGS exact web image result
+  - URL: https://vuahaisan.vn/sup-cua-trung-bach-thao/
+  - License: Source page image metadata unavailable
+- `sushi-bento-tokyo` — Sushi Bento Tokyo
+  - Source: Bing image source result
+  - URL: https://fleurdesushi.fr/blog/cuisson-du-riz-a-sushi-recette/
+  - License: Source page image metadata unavailable
+- `sushi-bento-vi-dung-dinh` — Sushi Bento Ví Đúng Đỉnh
+  - Source: DDGS exact web image result
+  - URL: https://royalsushi.vn/blogs/goc-am-thuc/bua-trua-dinh-duong-voi-com-bento-nhat-ban
+  - License: Source page image metadata unavailable
+- `sushi-ca-hoi` — Sushi cá hồi
+  - Source: DDGS exact web image result
+  - URL: https://viap.org.vn/top-16-mon-an-ngon-tu-ca-hoi-thom-ngon-bo-duong-cho-gia-dinh/1-mon-sushi-ca-hoi/
+  - License: Source page image metadata unavailable
+- `sushi-mix-giam-50k` — Sushi Mix Giảm 50K
+  - Source: DDGS exact web image result
+  - URL: https://saordelmar.it/prodotto/sushi-mix/
+  - License: Source page image metadata unavailable
+- `sushi-party-box` — Sushi Party Box
+  - Source: DDGS exact web image result
+  - URL: https://sushigo.vn/danh-muc/sushi-box
+  - License: Source page image metadata unavailable
+- `sushi-tong-hop` — Sushi tổng hợp
+  - Source: DDGS exact web image result
+  - URL: https://phucuongfood.com.vn/san-pham/sushi-tong-hop-loai-nho/
+  - License: Source page image metadata unavailable
+- `takoyaki-bach-tuoc` — Takoyaki bạch tuộc
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `thach-dua` — Thạch dừa
+  - Source: DDGS exact web image result
+  - URL: https://runawayrice.com/desserts/coconut-agar-jelly/
+  - License: Source page image metadata unavailable
+- `thach-nhai` — Thạch nhài
+  - Source: DDGS exact web image result
+  - URL: https://bicake.edu.vn/khoa-hoc-online/khoa-hoc-mon-thach-nhai-nhan/
+  - License: Source page image metadata unavailable
+- `them-thit-bo` — Thêm thịt bò
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog2/cac-mon-an-tu-thit-bo-vi-cb.html
+  - License: Source page image metadata unavailable
+- `thit-luoc-mam-tom` — Thịt luộc mắm tôm
+  - Source: Manual-selected exact web food photo
+  - URL: https://statics.vinpearl.com/Bun-dau-mam-tom-2_1690367765.jpg
+  - License: Source page image metadata unavailable
+- `tiec-ngon-cuoi-tuan` — Tiệc Ngon Cuối Tuần
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog3/cac-mon-an-ngon-cuoi-tuan-vi-cb.html
+  - License: Source page image metadata unavailable
+- `tokbokki-hai-san` — Tokbokki Hải Sản
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `tokbokki-pho-mai` — Tokbokki phô mai
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `tokbokki-pho-mai-cay` — Tokbokki Phô Mai Cay
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `tokbokki-sot-pho-mai` — Tokbokki Sốt Phô Mai
+  - Source: Korean food dataset real photo
+  - URL: https://www.kaggle.com/datasets/moimaa/korean-food-categories
+  - License: Kaggle dataset asset for local demo use
+  - Creator: Kaggle Korean food image datasets
+- `tom-hap-bia` — Tôm hấp bia
+  - Source: DDGS exact web image result
+  - URL: https://thucthan.com/tom-hap-bia
+  - License: Source page image metadata unavailable
+- `tom-vien-chien-gion` — Tôm Viên Chiên Giòn
+  - Source: DDGS exact web image result
+  - URL: https://laodong.vn/chuyen-nha-minh/cach-lam-mon-tom-vien-chien-gion-la-mieng-doi-vi-cuoi-tuan-1032134.ldo
+  - License: Source page image metadata unavailable
+- `tra-chanh-mat-ong` — Trà Chanh Mật Ong
+  - Source: DDGS exact web image result
+  - URL: https://bachhoasongxanh.com/cac-mon-an-voi-mat-ong/
+  - License: Source page image metadata unavailable
+- `tra-da` — Trà đá
+  - Source: DDGS exact web image result
+  - URL: https://phostreet.com.sg/vietnamese-iced-tea-tra-da-recipe/
+  - License: Source page image metadata unavailable
+- `tra-dao-cam-sa` — Trà đào cam sả
+  - Source: DDGS exact web image result
+  - URL: https://remagan.com/product/lemongrass-orange-peach-tea-tra-dao-cam-sa-a5c867df
+  - License: Source page image metadata unavailable
+- `tra-dao-cam-sa-size-l` — Trà Đào Cam Sả Size L
+  - Source: Manual-selected DDGS web image result
+  - URL: https://salyshop.vn/blogs/cong-thuc-pha-che/tra-dao-cam-sa
+  - License: Source page image metadata unavailable
+- `tra-dao-chai-lanh` — Trà Đào Chai Lạnh
+  - Source: DDGS exact web image result
+  - URL: https://www.umall.com.au/products/vita-japanese-style-peach-tea-bottled-500ml
+  - License: Source page image metadata unavailable
+- `tra-dao-hoan-xu` — Trà Đào Hoàn Xu
+  - Source: DDGS exact web image result
+  - URL: https://nhacohainguoi.com/en/recipe/peach-tea-with-orange-lemongrass/
+  - License: Source page image metadata unavailable
+- `tra-dau-tam-nha-dam` — Trà Dâu Tằm Nha Đam
+  - Source: DDGS exact web image result
+  - URL: https://dalatfarm.net/phuong-phap-song-khoe/cach-lam-tra-dau-tam-thuc-uong-thanh-mat-giai-nhiet-co-the/
+  - License: Source page image metadata unavailable
+- `tra-lai-vai-tuoi` — Trà Lài Vải Tươi
+  - Source: DDGS exact web image result
+  - URL: https://bigbowl.vn/en/product/lychee-jasmine-tea/
+  - License: Source page image metadata unavailable
+- `tra-sua-combo-2-ly` — Trà Sữa Combo 2 Ly
+  - Source: Manual-selected exact web food photo
+  - URL: https://www.chowhound.com/img/gallery/why-some-dairy-free-boba-teas-arent-vegan/intro-1732564999.jpg
+  - License: Source page image metadata unavailable
+- `tra-sua-deal-vi-dung-dinh` — Trà Sữa Deal Ví Đúng Đỉnh
+  - Source: DDGS exact web image result
+  - URL: https://kingfoodmart.com/do-uong-dinh-duong-tra-sua
+  - License: Source page image metadata unavailable
+- `tra-sua-dong-chai` — Trà Sữa Đóng Chai
+  - Source: DDGS exact web image result
+  - URL: https://www.bachhoaxanh.com/kinh-nghiem-hay/cach-lam-tra-sua-khoai-mon-thom-ngon-chuan-vi-1395665
+  - License: Source page image metadata unavailable
+- `tra-sua-earl-grey` — Trà Sữa Earl Grey
+  - Source: Manual curated exact drink photo
+  - URL: https://entirelyelizabeth.com/earl-grey-milk-tea/
+  - License: Source page image metadata unavailable; local demo asset
+- `tra-sua-khoai-mon` — Trà Sữa Khoai Môn
+  - Source: DDGS exact web image result
+  - URL: https://infoupdate.org/taro-bubble-tea-recipe/
+  - License: Source page image metadata unavailable
+- `tra-sua-maycha-nguyen-trai` — Trà sữa Maycha Nguyễn Trãi
+  - Source: DDGS exact web image result
+  - URL: https://bitezly.com/taro-milk-tea-with-tapioca-pearls-recipe/
+  - License: Source page image metadata unavailable
+- `tra-sua-oolong-nuong` — Trà Sữa Oolong Nướng
+  - Source: DDGS exact web image result
+  - URL: https://winci.com.vn/cach-pha-tra-sua-oolong-nuong-tran-chau/
+  - License: Source page image metadata unavailable
+- `tra-sua-socola` — Trà Sữa Socola
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/blog2/socola-tra-sua-vi-cb.html
+  - License: Source page image metadata unavailable
+- `tra-sua-thai-tran-chau` — Trà sữa Thái trân châu
+  - Source: DDGS exact web image result
+  - URL: https://memart.vn/tin-tuc/how-blog/huong-dan-cach-lam-tra-sua-thai-tran-chau-ngon-tuyet-voi-tai-nha-vi-cb.html
+  - License: Source page image metadata unavailable
+- `tra-sua-tran-chau-duong-den` — Trà sữa trân châu đường đen
+  - Source: DDGS exact web image result
+  - URL: https://ricomoren.vercel.app/post/brown-sugar-bubble-tea-recipe/
+  - License: Source page image metadata unavailable
+- `tra-sua-truyen-thong` — Trà sữa truyền thống
+  - Source: DDGS exact web image result
+  - URL: https://chophache.com/3-cach-lam-tra-sua-truyen-thong
+  - License: Source page image metadata unavailable
+- `tra-tac` — Trà tắc
+  - Source: DDGS exact web image result
+  - URL: https://phocity.com/products/w2-nuoc-tra-tac-iced-kumquat-tea
+  - License: Source page image metadata unavailable
+- `tra-tac-ly-lon` — Trà tắc ly lớn
+  - Source: DDGS exact web image result
+  - URL: https://phocity.com/products/w2-nuoc-tra-tac-iced-kumquat-tea
+  - License: Source page image metadata unavailable
+- `tra-tac-mat-ong` — Trà tắc mật ong
+  - Source: DDGS exact web image result
+  - URL: https://tnhelearning.edu.vn/how-to-make-cool-honey-kumquat-tea-cool-down-on-hot-days/
+  - License: Source page image metadata unavailable
+- `tra-tac-xi-muoi` — Trà Tắc Xí Muội
+  - Source: DDGS exact web image result
+  - URL: https://helenrecipes.com/kumquat-tea-with-salted-dried-plum-tra-tac-o-mai-tao-do/
+  - License: Source page image metadata unavailable
+- `tra-vai-hoa-hong` — Trà vải hoa hồng
+  - Source: DDGS exact web image result
+  - URL: https://tnhelearning.edu.vn/how-to-make-simple-rose-and-lychee-tea-at-home/
+  - License: Source page image metadata unavailable
+- `tra-xanh-macchiato` — Trà Xanh Macchiato
+  - Source: DDGS exact web image result
+  - URL: https://danielfooddiary.com/2017/06/13/macchiato/
+  - License: Source page image metadata unavailable
+- `tra-xanh-sua-nhai` — Trà xanh sữa nhài
+  - Source: Manual-selected exact web food photo
+  - URL: https://cafemall.com.au/wp-content/uploads/2026/03/5.jpg
+  - License: Source page image metadata unavailable
+- `trai-cay-cat-san-hop-lon` — Trái Cây Cắt Sẵn Hộp Lớn
+  - Source: DDGS exact web image result
+  - URL: https://cater.thecraftedandco.nz/fresh-fruit-box
+  - License: Source page image metadata unavailable
+- `trai-cay-dia` — Trái cây dĩa
+  - Source: DDGS exact web image result
+  - URL: https://bentretoplist.com/top-5-quan-trai-cay-dia-tai-ben-tre-duoc-gioi-tre-thich-me/
+  - License: Source page image metadata unavailable
+- `tran-chau-den` — Trân châu đen
+  - Source: DDGS exact web image result
+  - URL: https://letrinh.vn/blogs/news/tong-hop-cac-mon-voi-tran-chau-den-thom-ngon-hot-trend-khong-the-bo-l
+  - License: Source page image metadata unavailable
+- `tran-chau-trang` — Trân châu trắng
+  - Source: DDGS exact web image result
+  - URL: https://monanngon.vn/cach-lam-tran-chau-trang-ngon-nhu-cua-gongcha-chinh-hieu/
+  - License: Source page image metadata unavailable
+- `trung-cut-lac-me` — Trứng Cút Lắc Me
+  - Source: DDGS exact web image result
+  - URL: https://www.ckktv.net/2024/06/cach-lam-mon-trung-cut-sot-me-chua-ngot.html
+  - License: Source page image metadata unavailable
+- `trung-cut-sot-me` — Trứng cút sốt me
+  - Source: DDGS exact web image result
+  - URL: https://phunutoday.vn/cach-lam-mon-trung-cut-sot-me-thom-ngon-an-mot-muon-muoi-d61485.html
+  - License: Source page image metadata unavailable
+- `trung-op-la` — Trứng ốp la
+  - Source: DDGS exact web image result
+  - URL: https://bepxua.vn/cach-lam-mon-trung-op-la-sot-nuoc-tuong-dac-biet-thom-ngon/
+  - License: Source page image metadata unavailable
+- `tung-deal-toan-san-freeship-0d` — tung-deal-toan-san-freeship-0d
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+- `waffle-kem-tuoi` — Waffle kem tươi
+  - Source: Food-101 dataset real photo
+  - URL: https://www.kaggle.com/datasets/dansbecker/food-101
+  - License: Food-101 dataset asset for local demo use
+  - Creator: Food-101 dataset
+- `xien-bo-la-lot-nuong` — Xiên Bò Lá Lốt Nướng
+  - Source: DDGS exact web image result
+  - URL: https://vietnamnet.vn/bao-uc-khen-mon-bo-nuong-la-lot-cua-viet-nam-ngon-nhat-hanh-tinh-2209756.html
+  - License: Source page image metadata unavailable
+- `xien-que-nuong-nha-trang` — Xiên que nướng Nha Trang
+  - Source: DDGS exact web image result
+  - URL: https://summerandspice.com/recipe/vietnamese-grilled-pork-skewers-thit-xien-nuong/
+  - License: Source page image metadata unavailable
+- `xien-que-thap-cam` — Xiên que thập cẩm
+  - Source: DDGS exact web image result
+  - URL: https://nemnuonghungviet.com/cach-lam-xien-que-nuong-thap-cam-thom-ngon-hut-khach/
+  - License: Source page image metadata unavailable
+- `xoi-ga-la-chanh` — Xôi Gà Lá Chanh
+  - Source: 30VNFoods dataset real photo
+  - URL: https://www.kaggle.com/datasets/quandang/vietnamese-foods
+  - License: MIT License file included in dataset package
+  - Creator: Quan Dang / 30VNFoods
+- `xoi-ga-xe` — Xôi gà xé
+  - Source: X?i M?c
+  - URL: https://xoimoc.com/mon-an/xoi-xeo-ga-xe
+  - License: Source page image metadata unavailable
+- `xoi-man-day-du` — Xôi mặn đầy đủ
+  - Source: B?p Tr??ng ? ?u
+  - URL: https://beptruong.edu.vn/day-nau-an/mon-ngon/xoi-man
+  - License: Source page image metadata unavailable
+- `xoi-man-thap-cam` — Xôi Mặn Thập Cẩm
+  - Source: DDGS exact web image result
+  - URL: https://nghikitchen.edu.vn/khoa-hoc-online/khoa-hoc-mon-xoi-man-thap-cam/
+  - License: Source page image metadata unavailable
+- `xuc-xich-an-lien` — Xúc Xích Ăn Liền
+  - Source: DDGS exact web image result
+  - URL: https://phfood.vn/xuc-xich-an-lien-500g/
+  - License: Source page image metadata unavailable
+- `xuc-xich-quay` — Xúc xích quay
+  - Source: Manual curated real food photo
+  - URL: https://www.pexels.com/photo/two-sausages-and-potato-wedges-on-a-plate-27643036/
+  - License: Pexels free photo; local demo asset
+- `xuc-xich-quay-khoai-lac` — Xúc Xích Quay + Khoai Lắc
+  - Source: DDGS exact web image result
+  - URL: https://afamily.vn/khoai-tay-chien-lac-xuc-xich-mon-vat-ngon-ma-an-com-cung-tuyet-2020032216183268.chn
+  - License: Source page image metadata unavailable
+- `yakult-dau-tam` — Yakult dâu tằm
+  - Source: DDGS exact web image result
+  - URL: https://yakultusa.com/recipes/
+  - License: Source page image metadata unavailable
+- `yaourt-trai-cay` — Yaourt trái cây
+  - Source: DDGS exact web image result
+  - URL: https://ngocmai.com.vn/yaourt-trai-cay/
+  - License: Source page image metadata unavailable

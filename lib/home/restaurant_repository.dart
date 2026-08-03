@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../location/location_service.dart';
+import '../restaurant/dish_images.dart';
 import 'nearby_restaurant_service.dart';
 
 class RestaurantListing {
@@ -53,6 +54,11 @@ class RestaurantListing {
       'rating': rating,
       'userRatingCount': userRatingCount,
       'photoUrl': photoUrl,
+      // Ảnh đã được chuẩn hoá trước khi ghi cache, nên đánh dấu phiên bản để
+      // lần đọc sau không hạ cấp một URL hợp lệ về placeholder.
+      'imageVersion': DishImages.isApprovedRemote(photoUrl ?? '')
+          ? DishImages.approvedImageVersion
+          : 0,
       'openNow': openNow,
       'category': category,
       'source': source,
@@ -68,7 +74,11 @@ class RestaurantListing {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       rating: (json['rating'] as num?)?.toDouble(),
       userRatingCount: (json['userRatingCount'] as num?)?.toInt(),
-      photoUrl: json['photoUrl'] as String?,
+      photoUrl: DishImages.normalize(
+        label: json['name'] as String? ?? 'Quán gần bạn',
+        imageUrl: json['photoUrl'] as String?,
+        imageVersion: (json['imageVersion'] as num?)?.toInt() ?? 0,
+      ),
       openNow: json['openNow'] as bool? ?? true,
       category: json['category'] as String? ?? 'restaurant',
       source: json['source'] as String? ?? 'cache',
@@ -84,7 +94,11 @@ class RestaurantListing {
       longitude: restaurant.longitude,
       rating: restaurant.rating,
       userRatingCount: restaurant.userRatingCount,
-      photoUrl: restaurant.photoUrl,
+      photoUrl: _photoForRestaurant(
+        id: restaurant.id,
+        name: restaurant.name,
+        category: restaurant.category,
+      ),
       openNow: restaurant.openNow,
       category: restaurant.category,
       source: NearbyRestaurantService.providerName,
@@ -103,13 +117,13 @@ class RestaurantLoadResult {
 }
 
 class RestaurantRepository {
-  static const _cachePrefix = 'restaurant_cache_v1';
+  static const _cachePrefix = 'restaurant_cache_v6';
   static const _cacheMaxAge = Duration(hours: 24);
 
   static const _catalogCollection = 'restaurants';
 
-  /// Dữ liệu seed offline. Dùng cho fallback khi không có mạng và cho việc
-  /// nạp dữ liệu mẫu lên Firestore (xem `CatalogSeeder`).
+  /// Dữ liệu seed offline. Dùng làm fallback khi không có mạng hoặc Firestore
+  /// chưa có dữ liệu phù hợp.
   static List<RestaurantListing> localSeedFor(AppLocation location) {
     return _seededRestaurantsNear(location);
   }
@@ -137,7 +151,9 @@ class RestaurantRepository {
           .where(_hasUsefulName)
           .toList();
 
-      debugPrint('[RestaurantRepository] firestore catalog: ${listings.length}');
+      debugPrint(
+        '[RestaurantRepository] firestore catalog: ${listings.length}',
+      );
       return listings;
     } catch (error) {
       debugPrint('[RestaurantRepository] firestore catalog failed: $error');
@@ -267,17 +283,31 @@ List<RestaurantListing> _seededRestaurantsNear(AppLocation location) {
     return RestaurantListing(
       id: 'seed-${seed.$1}-$index',
       name: seed.$2,
-      address: _addressNear(location, index),
+      address: _addressNear(location),
       latitude: latitude,
       longitude: longitude,
       rating: 4.3 + (index % 7) * 0.08,
       userRatingCount: 80 + index * 37,
-      photoUrl: _seededPhotoUrls[index % _seededPhotoUrls.length],
+      photoUrl: _photoForRestaurant(
+        id: 'seed-${seed.$1}-$index',
+        name: seed.$2,
+        category: seed.$3,
+      ),
       openNow: index % 9 != 0,
       category: seed.$3,
       source: 'seed',
     );
   });
+}
+
+/// Ảnh đại diện quán: chỉ dùng ảnh thật nếu có trong `assets/images/dishes/`,
+/// còn lại trả về '' để widget hiện placeholder thay vì ảnh sai món.
+String _photoForRestaurant({
+  required String id,
+  required String name,
+  required String category,
+}) {
+  return DishImages.resolve(name);
 }
 
 (double, double) _offsetForIndex(int index) {
@@ -296,25 +326,26 @@ List<RestaurantListing> _seededRestaurantsNear(AppLocation location) {
   return offsets[index % offsets.length];
 }
 
-String _addressNear(AppLocation location, int index) {
-  final streets = <String>[
-    'Nguyễn Trãi',
-    'Lê Văn Sỹ',
-    'Cách Mạng Tháng 8',
-    'Phạm Văn Đồng',
-    'Điện Biên Phủ',
-    'Nguyễn Thị Minh Khai',
-    'Võ Văn Tần',
-    'Phan Xích Long',
-    'Hoàng Sa',
-    'Trường Sa',
-  ];
-  final ward = index % 3 == 0 ? 'Phường 1' : 'Phường ${index % 12 + 2}';
-  final district = index % 4 == 0 ? 'Quận 1' : 'Quận ${index % 10 + 2}';
-  final base = location.address.trim().isEmpty
-      ? 'TP. Hồ Chí Minh'
-      : location.address;
-  return '${12 + index * 7} ${streets[index % streets.length]}, $ward, $district, $base';
+/// Địa chỉ hiển thị cho quán mẫu (fallback offline).
+///
+/// TRƯỚC ĐÂY hàm này ghép tên đường/phường/quận từ một danh sách cố định của
+/// khu trung tâm ("Lê Văn Sỹ, Phường 13, Quận 3"…) chọn theo `index`, hoàn
+/// toàn không liên quan tới toạ độ được gán kèm — mà toạ độ ấy chỉ lệch
+/// 100–450m quanh chính người dùng (xem [_offsetForIndex]).
+///
+/// Hệ quả người dùng nhìn thấy: thẻ quán hiện "0.3km" (tính đúng từ toạ độ)
+/// nhưng địa chỉ lại ghi Quận 3 — cách nhà họ ở Bình Chánh hơn chục km. Số km
+/// đúng, địa chỉ sai, hai thứ mâu thuẫn nhau ngay trên cùng một thẻ.
+///
+/// Quán mẫu được đặt quanh chính người dùng, nên điều DUY NHẤT nói đúng được
+/// về vị trí của chúng là khu vực của người dùng — và `location.address` vốn
+/// đã là kết quả reverse geocoding từ toạ độ GPS thật (xem
+/// `LocationService._reverseAddress`). Trang chi tiết quán sẽ tự nâng cấp lên
+/// địa chỉ chính xác hơn bằng cách reverse geocoding đúng điểm ghim của quán
+/// (xem `_resolveAccurateShopAddress` trong `restaurant_detail_page.dart`).
+String _addressNear(AppLocation location) {
+  final base = location.address.trim();
+  return base.isEmpty ? 'TP. Hồ Chí Minh' : base;
 }
 
 const _seededRestaurantNames = <(String, String, String)>[
@@ -343,19 +374,4 @@ const _seededRestaurantNames = <(String, String, String)>[
   ('oc', 'Ốc đêm Sài Gòn', 'seafood'),
   ('burger', 'Burger bò phô mai', 'western'),
   ('matcha', 'Matcha latte & waffle', 'dessert'),
-];
-
-const _seededPhotoUrls = <String>[
-  'assets/images/restaurants/food_01.jpg',
-  'assets/images/restaurants/food_02.jpg',
-  'assets/images/restaurants/food_03.jpg',
-  'assets/images/restaurants/food_04.jpg',
-  'assets/images/restaurants/food_05.jpg',
-  'assets/images/restaurants/food_06.jpg',
-  'assets/images/restaurants/food_07.jpg',
-  'assets/images/restaurants/food_08.jpg',
-  'assets/images/restaurants/food_09.jpg',
-  'assets/images/restaurants/food_10.jpg',
-  'assets/images/restaurants/food_11.jpg',
-  'assets/images/restaurants/food_12.jpg',
 ];

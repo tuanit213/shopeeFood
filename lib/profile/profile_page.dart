@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../address/address_pages.dart';
@@ -14,11 +14,13 @@ import '../app/app_routes.dart';
 import '../app/user_repository.dart';
 import '../app/user_session.dart';
 import '../checkout/checkout_pages.dart';
+import '../common/food_image.dart';
 import '../home/promo_results_page.dart';
 import '../location/location_service.dart';
 import '../orders/order_state.dart';
+import '../restaurant/dish_images.dart';
 import '../restaurant/restaurant_detail_page.dart';
-import '../tools/catalog_seeder.dart';
+import 'avatar_store.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,6 +35,11 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _errorMessage;
   String? _userId;
   bool _isLoading = true;
+
+  /// Ảnh đại diện đọc từ cache local (data URI base64). Hiện tức thì và ưu
+  /// tiên hơn giá trị từ Firestore để phản hồi ngay khi vừa đổi ảnh xong.
+  String? _localAvatarDataUri;
+  bool _updatingAvatar = false;
 
   @override
   void initState() {
@@ -63,6 +70,13 @@ class _ProfilePageState extends State<ProfilePage> {
     _userId = userId;
     if (!mounted) {
       return;
+    }
+
+    if (userId != null && userId.isNotEmpty) {
+      final localAvatar = await AvatarStore.loadLocal(userId);
+      if (mounted && localAvatar != null) {
+        setState(() => _localAvatarDataUri = localAvatar);
+      }
     }
 
     if (userId == null || userId.isEmpty) {
@@ -139,6 +153,9 @@ class _ProfilePageState extends State<ProfilePage> {
             profile: profile.withOrderMetrics(
               _ProfileOrderMetrics.fromEntries(entries),
             ),
+            avatarDataUri: _localAvatarDataUri ?? profile.avatarUrl,
+            isUpdatingAvatar: _updatingAvatar,
+            onEditAvatar: _changeAvatar,
           );
         },
       ),
@@ -147,6 +164,104 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _goToLogin(BuildContext context) {
     Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  }
+
+  Future<void> _changeAvatar() async {
+    final userId = _userId;
+    if (userId == null || userId.isEmpty || _updatingAvatar) return;
+
+    final source = await _pickAvatarSource();
+    if (source == null || !mounted) return;
+
+    setState(() => _updatingAvatar = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final dataUri = await AvatarStore.pickAsDataUri(source);
+      if (dataUri == null) {
+        // Người dùng huỷ chọn ảnh — không báo lỗi.
+        return;
+      }
+
+      // Local trước: hiện ngay, chắc chắn lưu được, không phụ thuộc mạng.
+      await AvatarStore.saveLocal(userId, dataUri);
+      if (mounted) setState(() => _localAvatarDataUri = dataUri);
+
+      // Firestore sau: best-effort, chỉ khi ảnh đủ nhỏ so với giới hạn 1MB.
+      if (dataUri.length <= AvatarStore.maxFirestoreDataUriLength) {
+        try {
+          await UserRepository.updateAvatar(userId: userId, avatarUrl: dataUri);
+        } catch (error) {
+          debugPrint('[Avatar] đồng bộ Firestore lỗi: $error');
+        }
+      }
+
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Đã cập nhật ảnh đại diện'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.primary,
+            duration: Duration(milliseconds: 1200),
+          ),
+        );
+    } catch (error) {
+      debugPrint('[Avatar] chọn ảnh lỗi: $error');
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Không mở được thư viện ảnh. Thử lại nhé'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    } finally {
+      if (mounted) setState(() => _updatingAvatar = false);
+    }
+  }
+
+  Future<ImageSource?> _pickAvatarSource() {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0E0E0),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primary,
+              ),
+              title: const Text('Chọn từ thư viện'),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_camera_outlined,
+                color: AppColors.primary,
+              ),
+              title: const Text('Chụp ảnh mới'),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   void _syncOrderMetricsToFirestore() {
@@ -246,8 +361,16 @@ class _ProfileErrorState extends StatelessWidget {
 
 class _ShopeeLikeProfileContent extends StatelessWidget {
   final _UserProfile profile;
+  final String? avatarDataUri;
+  final bool isUpdatingAvatar;
+  final Future<void> Function() onEditAvatar;
 
-  const _ShopeeLikeProfileContent({required this.profile});
+  const _ShopeeLikeProfileContent({
+    required this.profile,
+    required this.avatarDataUri,
+    required this.isUpdatingAvatar,
+    required this.onEditAvatar,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +400,13 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                _ProfileAvatar(
+                  dataUri: avatarDataUri,
+                  fullName: profile.fullName,
+                  isUpdating: isUpdatingAvatar,
+                  onTap: onEditAvatar,
+                ),
+                const SizedBox(height: 10),
                 Text(
                   profile.fullName,
                   maxLines: 1,
@@ -386,21 +516,6 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
               ),
             ],
           ),
-          // Công cụ dành cho lập trình viên: chỉ tồn tại khi chạy debug,
-          // không bao giờ xuất hiện trong bản release cho người dùng.
-          if (kDebugMode) ...[
-            const SizedBox(height: 8),
-            _ShopeeMenuGroup(
-              children: [
-                _ShopeeMenuRow(
-                  icon: Icons.cloud_upload_outlined,
-                  iconColor: Color(0xFF6A1B9A),
-                  label: 'DEV: Nạp dữ liệu quán lên Firestore',
-                  onTap: () => _seedCatalog(context),
-                ),
-              ],
-            ),
-          ],
           const SizedBox(height: 32),
         ],
       ),
@@ -469,57 +584,6 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
           subtitle: 'Flash Sale, Freeship Xtra và voucher món ngon hôm nay',
           seed: 'profile-trum-deal',
         ),
-      ),
-    );
-  }
-
-  /// Nạp danh mục quán + menu lên Firestore. Chỉ dùng trong lúc phát triển.
-  Future<void> _seedCatalog(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text(
-          'Nạp dữ liệu lên Firestore?',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        content: const Text(
-          'Ghi 25 quán và menu của từng quán lên Firestore. '
-          'Chỉ cần chạy một lần, và cần Rules đang cho phép ghi.',
-          style: TextStyle(color: AppColors.gray500),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Huỷ'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Nạp dữ liệu'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Đang nạp dữ liệu lên Firestore...')),
-    );
-
-    final location = await LocationService.getCurrentLocation();
-    final report = await CatalogSeeder.seed(location);
-
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(report.message),
-        backgroundColor: report.isSuccess
-            ? AppColors.success
-            : const Color(0xFFE53935),
-        duration: const Duration(seconds: 5),
       ),
     );
   }
@@ -1191,7 +1255,7 @@ class _MerchantBenefitRow extends StatelessWidget {
 }
 
 class _FavoriteRestaurantsPageState extends State<FavoriteRestaurantsPage> {
-  static const _favoriteSnapshotPrefsKey = 'favorite_restaurant_snapshots_v1';
+  static const _favoriteSnapshotPrefsKey = 'favorite_restaurant_snapshots_v2';
 
   late Future<List<_FavoriteRestaurant>> _favoritesFuture;
 
@@ -1351,7 +1415,12 @@ class _FavoriteRestaurant {
       name: json['name'] as String? ?? '',
       address: json['address'] as String? ?? '',
       category: json['category'] as String? ?? 'restaurant',
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: _favoriteImageFor(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        category: json['category'] as String? ?? 'restaurant',
+        imageUrl: json['imageUrl'] as String?,
+      ),
       rating: (json['rating'] as num?)?.toDouble(),
       distance: (json['distance'] as num?)?.toDouble() ?? 0,
       time: (json['time'] as num?)?.toInt() ?? 24,
@@ -1404,6 +1473,16 @@ class _FavoriteRestaurant {
   }
 }
 
+String _favoriteImageFor({
+  required String id,
+  required String name,
+  required String category,
+  required String? imageUrl,
+}) {
+  final label = name.trim().isEmpty ? id : name.trim();
+  return DishImages.normalize(label: label, imageUrl: imageUrl);
+}
+
 class _FavoriteRestaurantCard extends StatelessWidget {
   final _FavoriteRestaurant restaurant;
   final VoidCallback onTap;
@@ -1428,7 +1507,7 @@ class _FavoriteRestaurantCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _FavoriteImage(path: restaurant.imageUrl),
+              _FavoriteImage(path: restaurant.imageUrl, label: restaurant.name),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -1537,38 +1616,19 @@ class _FavoriteRestaurantCard extends StatelessWidget {
 
 class _FavoriteImage extends StatelessWidget {
   final String? path;
+  final String label;
 
-  const _FavoriteImage({required this.path});
+  const _FavoriteImage({required this.path, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: SizedBox(
-        width: 76,
-        height: 76,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              color: const Color(0xFFEDEDED),
-              child: const Icon(
-                Icons.restaurant_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            if (path != null && path!.startsWith('assets/'))
-              Image.asset(path!, fit: BoxFit.cover)
-            else if (path != null && path!.isNotEmpty)
-              Image.network(
-                path!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
-          ],
-        ),
-      ),
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: path),
+      label: label,
+      width: 76,
+      height: 76,
+      radius: 6,
+      showLabel: false,
     );
   }
 }
@@ -1759,9 +1819,129 @@ class _ProfileEmptyState extends StatelessWidget {
   }
 }
 
+class _ProfileAvatar extends StatelessWidget {
+  final String? dataUri;
+  final String fullName;
+  final bool isUpdating;
+  final Future<void> Function() onTap;
+
+  const _ProfileAvatar({
+    required this.dataUri,
+    required this.fullName,
+    required this.isUpdating,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 76.0;
+    final bytes = AvatarStore.bytesFromDataUri(dataUri);
+    final networkUrl =
+        (bytes == null &&
+            dataUri != null &&
+            (dataUri!.startsWith('http://') || dataUri!.startsWith('https://')))
+        ? dataUri
+        : null;
+
+    Widget avatarBody;
+    if (bytes != null) {
+      avatarBody = Image.memory(
+        bytes,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+      );
+    } else if (networkUrl != null) {
+      avatarBody = Image.network(
+        networkUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _initials(),
+      );
+    } else {
+      avatarBody = _initials();
+    }
+
+    return Semantics(
+      button: true,
+      label: 'Đổi ảnh đại diện',
+      child: GestureDetector(
+        onTap: isUpdating ? null : () => onTap(),
+        child: Stack(
+          children: [
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2.5),
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
+              child: ClipOval(
+                child: isUpdating
+                    ? const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        ),
+                      )
+                    : avatarBody,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.photo_camera_rounded,
+                  size: 15,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _initials() {
+    final trimmed = fullName.trim();
+    final initial = trimmed.isEmpty
+        ? '?'
+        : trimmed.characters.first.toUpperCase();
+    return Container(
+      color: Colors.white.withValues(alpha: 0.18),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 30,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _UserProfile {
   final String fullName;
   final String phone;
+  final String? avatarUrl;
   final int orderCount;
   final int shopeeXu;
   final int ratingCount;
@@ -1770,6 +1950,7 @@ class _UserProfile {
   const _UserProfile({
     required this.fullName,
     required this.phone,
+    required this.avatarUrl,
     required this.orderCount,
     required this.shopeeXu,
     required this.ratingCount,
@@ -1784,6 +1965,9 @@ class _UserProfile {
           ? (data['fullName'] as String).trim()
           : 'Người dùng',
       phone: (data['phone'] as String?)?.trim() ?? '',
+      avatarUrl: (data['avatarUrl'] as String?)?.trim().isNotEmpty == true
+          ? (data['avatarUrl'] as String).trim()
+          : null,
       orderCount:
           (stats['totalOrders'] as num?)?.toInt() ??
           (data['orderCount'] as num?)?.toInt() ??
@@ -1806,6 +1990,7 @@ class _UserProfile {
     return _UserProfile(
       fullName: fullName,
       phone: phone,
+      avatarUrl: avatarUrl,
       orderCount: metrics.completedOrderCount,
       shopeeXu: metrics.shopeeXu,
       ratingCount: metrics.ratingCount,

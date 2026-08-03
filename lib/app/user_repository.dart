@@ -43,11 +43,8 @@ class AppUserProfile {
       phone: _readString(data['phone']) ?? '',
       email: _readString(data['email']) ?? '',
       orderCount:
-          _readInt(stats['totalOrders']) ??
-          _readInt(data['orderCount']) ??
-          0,
-      shopeeXu:
-          _readInt(stats['shopeeXu']) ?? _readInt(data['shopeeXu']) ?? 0,
+          _readInt(stats['totalOrders']) ?? _readInt(data['orderCount']) ?? 0,
+      shopeeXu: _readInt(stats['shopeeXu']) ?? _readInt(data['shopeeXu']) ?? 0,
       ratingCount:
           _readInt(stats['ratingCount']) ?? _readInt(data['ratingCount']) ?? 0,
       ratingAverage: rating is num ? rating.toDouble() : null,
@@ -195,6 +192,19 @@ class UserRepository {
       'shopeeXu': shopeeXu,
       'ratingCount': ratingCount,
       'ratingAverage': avgRating,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /// Cập nhật ảnh đại diện. [avatarUrl] có thể là một data URI base64
+  /// (`data:image/...`) hoặc một URL http. Chỉ nên gọi khi chuỗi đủ nhỏ so với
+  /// giới hạn 1MB/document của Firestore (kiểm tra ở tầng gọi).
+  static Future<void> updateAvatar({
+    required String userId,
+    required String avatarUrl,
+  }) async {
+    await _users.doc(userId).set({
+      'avatarUrl': avatarUrl,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }

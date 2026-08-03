@@ -1,25 +1,70 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../common/dish_slug.dart';
+
+/// Nhóm món ăn — dùng để phân loại dữ liệu và style thẻ.
+enum DishCategory {
+  noodleSoup,
+  rice,
+  grill,
+  friedChicken,
+  seafood,
+  milkTea,
+  coffee,
+  juice,
+  dessert,
+  snack,
+  bread,
+  hotpot,
+  vegetarian,
+  western,
+  korean,
+  japanese,
+  mart,
+  generic,
+}
+
 /// Chọn ảnh cho từng món ăn.
 ///
-/// Cơ chế 2 tầng:
-/// 1. **Ảnh riêng của món** — `assets/images/dishes/<slug>.jpg`, trong đó slug
+/// Cơ chế 3 tầng, xếp theo độ tin cậy giảm dần:
+/// 1. **Ảnh thật của món** — `assets/images/dishes/<slug>.jpg`, trong đó slug
 ///    sinh tự động từ tên món ("Bún bò Huế" -> `bun-bo-hue`). Chỉ cần thả file
 ///    đúng tên vào thư mục đó là app tự dùng, KHÔNG phải sửa code.
-/// 2. **Ảnh dự phòng theo loại món** — nếu chưa có ảnh riêng thì dùng ảnh gần
-///    đúng nhất trong kho `assets/images/restaurants/`.
+/// 2. **Alias hiển thị đã duyệt** — tên quán/deal trên UI trỏ tới ảnh món thật
+///    phù hợp, không dùng đoán fuzzy.
+/// 3. **Ảnh thật trên CDN** — URL http(s) do seeder ghi vào Firestore. Chỉ dùng
+///    khi bundle chưa có ảnh local phù hợp và document có
+///    `imageVersion >= approvedImageVersion`.
+/// 4. **Placeholder trung tính** — [resolve] trả về chuỗi rỗng để lỗi lộ rõ.
 ///
-/// [warmUp] đọc danh sách asset thật có trong bundle, nên món chưa có ảnh sẽ
-/// không bao giờ gây lỗi "asset not found".
+/// App KHÔNG còn phụ thuộc dịch vụ ảnh ngẫu nhiên (loremflickr) hay asset dùng
+/// chung `food_01..12`.
 class DishImages {
-  static const _dishDirectory = 'assets/images/dishes/';
+  static const dishDirectory = 'assets/images/dishes/';
+
+  /// Ảnh cũ dùng chung cho nhiều món — nguyên nhân chính gây cảm giác trùng
+  /// lặp. Gặp URL/asset thuộc nhóm này thì bỏ để tránh ảnh sai món.
+  static final RegExp _bannedPattern = RegExp(
+    r'loremflickr\.com|picsum\.photos|placeholder\.com|placehold\.co'
+    r'|assets/images/restaurants/food_(0[1-9]|1[0-2])\.(jpg|png)',
+    caseSensitive: false,
+  );
+
+  /// Phiên bản dữ liệu ảnh. Chỉ ảnh remote được seed lại từ v2 mới được tin.
+  static const int approvedImageVersion = 2;
 
   static Set<String> _availableAssets = const <String>{};
   static bool _warmedUp = false;
 
-  /// Số ảnh riêng của món đang có trong bundle (dùng để kiểm tra nhanh).
+  /// Số ảnh thật của món đang có trong bundle (dùng để kiểm tra nhanh).
   static int get availableDishImageCount => _availableAssets.length;
+
+  @visibleForTesting
+  static void debugSetAvailableAssets(Set<String> assets) {
+    _availableAssets = assets;
+    _warmedUp = true;
+  }
 
   /// Đọc AssetManifest để biết ảnh nào thực sự tồn tại.
   /// Gọi một lần trong `main()` trước `runApp`.
@@ -33,10 +78,17 @@ class DishImages {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
       _availableAssets = manifest
           .listAssets()
-          .where((asset) => asset.startsWith(_dishDirectory))
+          .where(
+            (asset) =>
+                asset.startsWith(dishDirectory) &&
+                (asset.endsWith('.jpg') ||
+                    asset.endsWith('.jpeg') ||
+                    asset.endsWith('.png') ||
+                    asset.endsWith('.webp')),
+          )
           .toSet();
       debugPrint(
-        '[DishImages] có ${_availableAssets.length} ảnh món riêng trong bundle',
+        '[DishImages] có ${_availableAssets.length} ảnh món thật trong bundle',
       );
     } catch (error) {
       _availableAssets = const <String>{};
@@ -45,343 +97,392 @@ class DishImages {
   }
 
   /// Đường dẫn ảnh nên dùng cho [dishName].
+  ///
+  /// Trả về `''` khi chưa có ảnh thật đúng slug — lúc đó `FoodImage` hiện
+  /// placeholder. Một số nhãn UI không phải tên món (tên quán/deal) được map
+  /// qua [_curatedAliasSlugs].
+  /// [salt] chỉ còn giữ cho tương thích chữ ký cũ: ảnh bây giờ phụ
+  /// thuộc DUY NHẤT vào tên món, nên hai màn hình khác nhau luôn hiện cùng
+  /// một hình cho cùng một món.
   static String resolve(String dishName, {String salt = ''}) {
     final slug = slugFor(dishName);
-    final preferred = '$_dishDirectory$slug.jpg';
-    if (_availableAssets.contains(preferred)) {
-      return preferred;
+    if (slug.isEmpty) {
+      return '';
     }
-
-    final preferredPng = '$_dishDirectory$slug.png';
-    if (_availableAssets.contains(preferredPng)) {
-      return preferredPng;
+    final exact = _assetForSlug(slug);
+    if (exact.isNotEmpty) {
+      return exact;
     }
-
-    return _fallbackFor(dishName, salt: salt);
+    return _assetForSlug(_curatedAliasSlugs[slug] ?? '');
   }
 
-  /// Real food photo URL ổn định. `lock` khác nhau giúp mỗi món có ảnh riêng,
-  /// kể cả khi nhiều món cùng nhóm query như "fried chicken".
-  static String remoteUrlFor(String dishName, {String salt = ''}) {
-    return _remoteFoodImageFor(dishName, salt: salt);
-  }
-
-  /// Bỏ dấu tiếng Việt: "Bún bò Huế" -> "bun bo hue".
-  static String asciiOf(String value) => _removeDiacritics(value.toLowerCase());
-
-  /// "Bún bò Huế" -> "bun-bo-hue". Bỏ dấu để tên file dễ gõ và an toàn.
-  static String slugFor(String dishName) {
-    final normalized = _removeDiacritics(dishName.toLowerCase());
-    return normalized
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-+|-+$'), '');
-  }
-
-  /// Ảnh gần đúng nhất trong kho cũ, chọn theo từ khoá trong tên món.
-  ///
-  /// Lưu ý: `food_09` (ảnh chụp màn hình app) và `food_12` (trùng `food_10`)
-  /// bị loại khỏi danh sách này.
-  static String _fallbackFor(String dishName, {required String salt}) {
-    final name = _removeDiacritics(dishName.toLowerCase());
-
-    for (final rule in _fallbackRules) {
-      if (rule.$1.any(name.contains)) {
-        return _remoteFoodImageFor('$dishName ${rule.$2}', salt: salt);
+  static String _assetForSlug(String slug) {
+    if (slug.isEmpty) {
+      return '';
+    }
+    for (final ext in const ['.jpg', '.jpeg', '.png', '.webp']) {
+      final candidate = '$dishDirectory$slug$ext';
+      if (_availableAssets.contains(candidate)) {
+        return candidate;
       }
     }
-    return _remoteFoodImageFor(dishName, salt: salt);
+    return '';
   }
 
-  static String _remoteFoodImageFor(String dishName, {required String salt}) {
-    final tags = _photoTagsFor(dishName);
-    final lock = _stableLock('$salt|$dishName|$tags');
-    return 'https://loremflickr.com/640/480/$tags?lock=$lock';
+  /// Chuẩn hoá ảnh đọc từ Firestore / SharedPreferences.
+  ///
+  /// - Luôn ưu tiên ảnh asset thật suy ra từ [label]. Điều này chặn dữ liệu
+  ///   Firestore/SharedPreferences cũ đè lên ảnh món đúng bằng URL sai.
+  /// - Giữ ảnh asset thật được truyền vào nếu label chưa có ảnh local.
+  /// - Giữ URL http(s) khi dữ liệu đã được seed lại ([imageVersion] đủ mới) và
+  ///   không có ảnh local phù hợp.
+  /// - Mọi thứ còn lại (ảnh dùng chung cũ, loremflickr, URL hỏng, chuỗi rỗng)
+  ///   đều quy về `''` để widget hiện placeholder.
+  static String normalize({
+    required String label,
+    String? imageUrl,
+    int imageVersion = 0,
+  }) {
+    final value = imageUrl?.trim() ?? '';
+    final local = resolve(label);
+    if (local.isNotEmpty) {
+      return local;
+    }
+    if (isLocalDishAsset(value)) {
+      return value;
+    }
+    if (imageVersion >= approvedImageVersion && isApprovedRemote(value)) {
+      return value;
+    }
+    return '';
   }
 
-  static String _photoTagsFor(String dishName) {
-    final name = _removeDiacritics(
-      dishName.toLowerCase().replaceAll('-', ' '),
-    );
+  /// Khoá "hình nhìn thấy được" của một món.
+  ///
+  /// Dùng để kiểm tra trùng ảnh THEO NỘI DUNG chứ không theo chuỗi URL.
+  static String visualKey({required String label, String? imageUrl}) {
+    final normalized = normalize(label: label, imageUrl: imageUrl);
+    return normalized.isEmpty ? 'missing:${slugFor(label)}' : normalized;
+  }
 
-    for (final rule in _photoTagRules) {
+  static bool isLocalDishAsset(String value) {
+    return value.startsWith(dishDirectory) &&
+        !isBanned(value) &&
+        _availableAssets.contains(value);
+  }
+
+  /// URL remote được phép dùng: http(s) thật, không thuộc danh sách cấm.
+  static bool isApprovedRemote(String value) {
+    if (!value.startsWith('http://') && !value.startsWith('https://')) {
+      return false;
+    }
+    return !isBanned(value);
+  }
+
+  /// Ảnh thuộc kho dùng chung cũ hoặc dịch vụ ảnh ngẫu nhiên.
+  static bool isBanned(String value) => _bannedPattern.hasMatch(value);
+
+  /// Bỏ dấu tiếng Việt: "Bún bò Huế" -> "bun bo hue".
+  static String asciiOf(String value) => DishSlug.ascii(value);
+
+  /// "Bún bò Huế" -> "bun-bo-hue". Bỏ dấu để tên file dễ gõ và an toàn.
+  ///
+  /// Dùng chung hàm với script kiểm tra ảnh (`tools/audit_images.dart`).
+  static String slugFor(String dishName) => DishSlug.of(dishName);
+
+  /// Số ổn định cho một tên món — còn giữ cho API cũ.
+  static int seedFor(String value) => DishSlug.seedOf(value);
+
+  static const _curatedAliasSlugs = <String, String>{
+    'banh-mi-chao-co-ba': 'banh-mi-chao-dac-biet',
+    'banh-mi-chao-co-ba-cn-23': 'banh-mi-chao-dac-biet',
+    'mi-them': 'mi-tuoi-nhung-lau',
+    'uu-dai-chi-co-hom-nay': 'deal-no-bung-50k',
+  };
+
+  /// Đoán nhóm món từ tên để phân loại giao diện và dữ liệu.
+  static DishCategory categoryFor(String dishName) {
+    final name = _removeDiacritics(dishName.toLowerCase().replaceAll('-', ' '))
+        // "phô mai" sau khi bỏ dấu thành "pho mai" nên trùng với từ khoá
+        // "pho " của nhóm bún/phở — dính lại để "Burger bò phô mai" không bị
+        // xếp nhầm thành món nước.
+        .replaceAll('pho mai', 'phomai');
+    for (final rule in _categoryRules) {
       if (rule.$1.any(name.contains)) {
         return rule.$2;
       }
     }
-    return 'vietnamese-food,dish';
+    return DishCategory.generic;
   }
 
-  static int _stableLock(String value) {
-    var hash = 0x811C9DC5;
-    for (final unit in value.codeUnits) {
-      hash ^= unit;
-      hash = (hash * 0x01000193) & 0x7fffffff;
-    }
-    return 1000 + hash % 900000;
-  }
-
-  /// (từ khoá không dấu, tên file) — xét theo thứ tự, cụ thể trước tổng quát.
-  static const _fallbackRules = <(List<String>, String)>[
-    (['com tam', 'com suon', 'suon bi cha', 'suon cay'], 'food_06.jpg'),
-    ([
-      'pho ',
-      'pho bo',
-      'pho ga',
-      'pho chay',
-      'bun bo',
-      'bun rieu',
-      'bun oc',
-      'bun cha ca',
-      'bun thit nuong',
-      'hu tieu',
-      'banh canh',
-      'canh cua',
-    ], 'food_02.jpg'),
-    ([
-      'mi xao',
-      'mi tron',
-      'japchae',
-      'mien tron',
-      'mi cay',
-      'udon',
-      'ramen',
-      'mi tuoi',
-    ], 'food_03.jpg'),
-    (['mi y', 'spaghetti', 'pasta', 'pizza'], 'food_04.jpg'),
-    ([
-      'tra sua',
-      'tra dao',
-      'tra vai',
-      'tra xanh',
-      'tra tac',
-      'tra da',
-      'tra chanh',
-      'hong tra',
-      'oolong',
-      'matcha',
-      'sua tuoi',
-      'sua chua',
-      'ca phe',
-      'bac xiu',
-      'latte',
-      'americano',
-      'cappuccino',
-      'cold brew',
-      'cacao',
-      'sinh to',
-      'nuoc ep',
-      'nuoc mia',
-      'sua dau nanh',
-      'nuoc ngot',
-      'nuoc suoi',
-      'tran chau',
-      'pudding',
-      'thach',
-      'kem cheese',
-    ], 'food_05.jpg'),
-    ([
-      'ga ',
-      'ga sot',
-      'ga ran',
-      'ga nuong',
-      'ga lac',
-      'canh ga',
-      'popcorn',
-      'burger',
-      'hotdog',
-      'xuc xich',
-      'combo',
-      'mieng ga',
-    ], 'food_07.jpg'),
-    ([
-      'bo kho',
-      'bo luc lac',
-      'thit kho',
-      'thit luoc',
-      'thit bo',
-      'ca kho',
-      'lau',
-      'pha lau',
-      'canh kimchi',
-      'canh chua',
-      'sup ',
-      'chao ',
-    ], 'food_08.jpg'),
-    (['banh mi', 'banh cuon', 'banh uot', 'xoi '], 'food_10.jpg'),
-    ([
-      'bun dau',
-      'mam tom',
-      'cha com',
-      'nem chua',
-      'dau hu',
-      'nom ',
-      'goi ',
-      'rau ',
-      'kim chi',
-      'salad',
-      'com chay',
-      'nam xao',
-      'cha chay',
-      'trai cay',
-      'yaourt',
-      'gao lut',
-    ], 'food_11.jpg'),
-    ([
-      'banh trang',
-      'xien que',
-      'pho mai que',
-      'khoai',
-      'bap xao',
-      'ca vien',
-      'trung cut',
-      'takoyaki',
-      'gyoza',
-      'cha gio',
-      'trung op la',
-    ], 'food_03.jpg'),
-    ([
-      'oc ',
-      'ngheu',
-      'so huyet',
-      'tom ',
-      'muc ',
-      'cua ',
-      'bach tuoc',
-      'hau ',
-      'ghe ',
-      'ca hoi',
-      'hai san',
-      'sushi',
-      'kimbap',
-      'com cuon',
-      'bento',
-      'cari',
-    ], 'food_03.jpg'),
-    ([
-      'che ',
-      'kem ',
-      'flan',
-      'nep cam',
-      'rau cau',
-      'waffle',
-      'tokbokki',
-      'bibimbap',
-    ], 'food_05.jpg'),
-    (['com '], 'food_01.jpg'),
+  /// Bảng phân loại theo từ khoá. Xếp từ cụ thể đến chung — dòng đầu tiên
+  /// khớp sẽ thắng.
+  static const _categoryRules = <(List<String>, DishCategory)>[
+    (
+      [
+        'bun bo',
+        'bun rieu',
+        'bun cha',
+        'bun mam',
+        'bun thai',
+        'bun oc',
+        'bun moc',
+        'bun dau',
+        'bun thit',
+        'pho bo',
+        'pho ga',
+        'pho chay',
+        'pho ',
+        'hu tieu',
+        'banh canh',
+        'mi quang',
+        'mien ',
+        'bun ',
+      ],
+      DishCategory.noodleSoup,
+    ),
+    (
+      [
+        'kimbap',
+        'tokbokki',
+        'tteokbokki',
+        'bibimbap',
+        'kimchi',
+        'japchae',
+        'jajangmyeon',
+        'bulgogi',
+        'mandu',
+        'han quoc',
+        'mi cay',
+        'k-food',
+        'bibim',
+      ],
+      DishCategory.korean,
+    ),
+    (
+      [
+        'sushi',
+        'ramen',
+        'udon',
+        'bento',
+        'teriyaki',
+        'sashimi',
+        'nhat ban',
+        'takoyaki',
+        'gyoza',
+      ],
+      DishCategory.japanese,
+    ),
+    (
+      [
+        'ga ran',
+        'ga gion',
+        'fried chicken',
+        'canh ga',
+        'ga khong xuong',
+        'ga vien',
+        'ga sot',
+        'ga xoi mo',
+        'ga popeyes',
+      ],
+      DishCategory.friedChicken,
+    ),
+    (
+      [
+        'com tam',
+        'com suon',
+        'com bi',
+        'com ga',
+        'com chien',
+        'com bo',
+        'com nieu',
+        'com van phong',
+        'com hop',
+        'com cuon',
+        'com bento',
+        'com tron',
+        'com chay',
+        'com ',
+      ],
+      DishCategory.rice,
+    ),
+    (
+      [
+        'nuong',
+        'grill',
+        'xien',
+        'bo la lot',
+        'ba chi',
+        'suon nuong',
+        'hong lo',
+        'ho lo',
+      ],
+      DishCategory.grill,
+    ),
+    // Món Âu đứng TRƯỚC hải sản: "Pizza hải sản", "Mì Ý sốt hải sản" phải ra
+    // nhóm Âu chứ không phải nhóm hải sản.
+    (
+      [
+        'burger',
+        'pizza',
+        'hotdog',
+        'hot dog',
+        'mi y',
+        'spaghetti',
+        'pasta',
+        'steak',
+        'bo luc lac',
+        'my ',
+      ],
+      DishCategory.western,
+    ),
+    (
+      [
+        'oc ',
+        'ngheu',
+        'so huyet',
+        'tom ',
+        'muc ',
+        'cua ',
+        'ghe ',
+        'hau ',
+        'bach tuoc',
+        'ca hoi',
+        'hai san',
+        'ca vien',
+        'chao tom',
+        'chả cá',
+        'cha ca',
+      ],
+      DishCategory.seafood,
+    ),
+    (
+      [
+        'tra sua',
+        'milk tea',
+        'tran chau',
+        'oolong',
+        'hong tra',
+        'tra dao',
+        'tra vai',
+        'tra tac',
+        'tra chanh',
+        'tra xanh',
+        'matcha',
+        'tra lai',
+        'tra dau',
+        'tra sen',
+        'tra ',
+      ],
+      DishCategory.milkTea,
+    ),
+    (
+      [
+        'ca phe',
+        'cafe',
+        'coffee',
+        'bac xiu',
+        'latte',
+        'cappuccino',
+        'americano',
+        'espresso',
+        'cold brew',
+        'cacao',
+        'macchiato',
+      ],
+      DishCategory.coffee,
+    ),
+    (
+      [
+        'sinh to',
+        'nuoc ep',
+        'nuoc mia',
+        'juice',
+        'soda',
+        'yakult',
+        'nuoc cam',
+        'nuoc suoi',
+        'nuoc tang luc',
+        'da xay',
+        'nuoc dua',
+      ],
+      DishCategory.juice,
+    ),
+    (
+      [
+        'che ',
+        'kem ',
+        'flan',
+        'waffle',
+        'pudding',
+        'thach',
+        'sua chua',
+        'panna',
+        'tiramisu',
+        'donut',
+        'banh ngot',
+        'trai cay',
+        'oc que',
+        'banh quy',
+        'sua tuoi',
+      ],
+      DishCategory.dessert,
+    ),
+    (
+      [
+        'banh trang',
+        'khoai tay',
+        'fries',
+        'nem chua ran',
+        'bap xao',
+        'trung cut',
+        'xuc xich',
+        'goi cuon',
+        'cha gio',
+        'snack',
+        'phomai',
+        'chan ga',
+        'kho ga',
+        'an vat',
+        'bap rang',
+        'rong bien',
+      ],
+      DishCategory.snack,
+    ),
+    (
+      [
+        'banh mi',
+        'sandwich',
+        'banh bao',
+        'banh cuon',
+        'xoi',
+        'chao ',
+        'banh uot',
+        'banh xeo',
+        'banh khot',
+      ],
+      DishCategory.bread,
+    ),
+    (['lau', 'hotpot', 'hot pot', 'tomyum'], DishCategory.hotpot),
+    (
+      ['chay', 'dau hu', 'nam xao', 'salad', 'rau cu', 'healthy', 'an nhien'],
+      DishCategory.vegetarian,
+    ),
+    (
+      [
+        'mart',
+        'combo nuoc',
+        'mi ly',
+        'lon ',
+        'loc 4',
+        'hop lon',
+        'mini stop',
+        'circle k',
+      ],
+      DishCategory.mart,
+    ),
   ];
 
-  static const _photoTagRules = <(List<String>, String)>[
-    (['com tam', 'com suon'], 'vietnamese-broken-rice,grilled-pork'),
-    (['com ga hai nam'], 'hainanese-chicken-rice'),
-    (['com ga'], 'chicken-rice,vietnamese-food'),
-    (['com chien'], 'fried-rice'),
-    (['com bo', 'bo luc lac'], 'beef-rice,dish'),
-    (['ca kho'], 'braised-fish,rice'),
-    (['thit kho'], 'braised-pork,rice'),
-    (['bun bo'], 'vietnamese-beef-noodle-soup'),
-    (['pho bo', 'pho ga', 'pho chay', 'pho '], 'vietnamese-pho'),
-    (['hu tieu'], 'vietnamese-noodle-soup'),
-    (['bun thit nuong'], 'vietnamese-grilled-pork-noodles'),
-    (['bun rieu'], 'vietnamese-crab-noodle-soup'),
-    (['bun dau'], 'vietnamese-tofu,noodles'),
-    (['banh canh'], 'vietnamese-thick-noodle-soup'),
-    (['mi cay', 'ramen'], 'spicy-ramen'),
-    (['mi tron'], 'dry-noodles,pork'),
-    (['mi xao'], 'stir-fried-noodles'),
-    (['mi y', 'spaghetti'], 'spaghetti,pasta'),
-    (['udon'], 'udon-noodles'),
-    (['japchae', 'mien tron'], 'korean-japchae'),
-    (['tra sua', 'milk tea'], 'boba-milk-tea'),
-    (['tra dao'], 'peach-iced-tea'),
-    (['tra vai'], 'lychee-iced-tea'),
-    (['tra xanh', 'matcha'], 'matcha-latte'),
-    (['tra tac', 'tra chanh'], 'iced-tea,lime'),
-    (['oolong'], 'oolong-tea'),
-    (['sua chua'], 'yogurt-drink,blueberry'),
-    (['ca phe sua'], 'vietnamese-iced-coffee'),
-    (['ca phe den', 'americano'], 'black-coffee'),
-    (['ca phe cot dua'], 'coconut-coffee'),
-    (['bac xiu', 'latte', 'cappuccino'], 'latte-coffee'),
-    (['cacao'], 'hot-chocolate'),
-    (['sinh to'], 'smoothie,avocado'),
-    (['nuoc ep'], 'fresh-juice'),
-    (['nuoc mia'], 'sugarcane-juice'),
-    (['tran chau', 'pudding', 'thach'], 'dessert,topping'),
-    (['ga sot han'], 'korean-fried-chicken'),
-    (['ga ran', 'ga gion', 'fried chicken'], 'fried-chicken'),
-    (['ga nuong'], 'grilled-chicken'),
-    (['canh ga'], 'chicken-wings'),
-    (['burger'], 'cheeseburger'),
-    (['hotdog'], 'hot-dog'),
-    (['pizza'], 'pizza'),
-    (['khoai tay', 'fries'], 'french-fries'),
-    (['banh trang tron'], 'vietnamese-rice-paper-salad'),
-    (['banh trang cuon'], 'rice-paper-rolls'),
-    (['banh trang nuong'], 'vietnamese-grilled-rice-paper'),
-    (['xien que'], 'grilled-skewers,street-food'),
-    (['pho mai que'], 'mozzarella-sticks'),
-    (['nem chua ran'], 'fried-pork-rolls'),
-    (['bap xao'], 'stir-fried-corn'),
-    (['ca vien'], 'fried-fish-balls'),
-    (['trung cut'], 'quail-eggs'),
-    (['xuc xich'], 'grilled-sausage'),
-    (['takoyaki'], 'takoyaki'),
-    (['gyoza'], 'gyoza'),
-    (['goi cuon'], 'vietnamese-spring-rolls'),
-    (['cha gio'], 'vietnamese-fried-spring-rolls'),
-    (['kimbap'], 'kimbap'),
-    (['tokbokki'], 'tteokbokki'),
-    (['bibimbap'], 'bibimbap'),
-    (['kimchi'], 'kimchi-stew'),
-    (['lau'], 'hot-pot'),
-    (['oc ', 'ngheu', 'so huyet'], 'seafood,shellfish'),
-    (['tom '], 'shrimp-dish'),
-    (['muc '], 'grilled-squid'),
-    (['cua ', 'ghe '], 'crab-seafood'),
-    (['bach tuoc'], 'grilled-octopus'),
-    (['hau '], 'grilled-oysters'),
-    (['sushi'], 'sushi'),
-    (['banh cuon'], 'vietnamese-steamed-rice-rolls'),
-    (['xoi'], 'vietnamese-sticky-rice'),
-    (['chao'], 'congee'),
-    (['banh mi'], 'vietnamese-banh-mi'),
-    (['che '], 'vietnamese-dessert'),
-    (['kem '], 'ice-cream-dessert'),
-    (['flan'], 'caramel-flan'),
-    (['waffle'], 'waffle-ice-cream'),
-    (['trai cay'], 'fresh-fruit-plate'),
-    (['dau hu'], 'fried-tofu'),
-    (['nam xao'], 'stir-fried-mushrooms'),
-    (['salad'], 'fresh-salad'),
-    (['bo kho'], 'beef-stew'),
-  ];
-
-  /// Nhóm ký tự có dấu theo từng chữ cái không dấu.
-  ///
-  /// Cố tình KHÔNG dùng cách ánh xạ hai chuỗi song song theo chỉ số: kiểu đó
-  /// chỉ cần lệch một ký tự là sai toàn bộ (đã từng làm "bún" thành "bon").
-  static const _diacriticGroups = <String, String>{
-    'a': 'àáạảãâầấậẩẫăằắặẳẵ',
-    'e': 'èéẹẻẽêềếệểễ',
-    'i': 'ìíịỉĩ',
-    'o': 'òóọỏõôồốộổỗơờớợởỡ',
-    'u': 'ùúụủũưừứựửữ',
-    'y': 'ỳýỵỷỹ',
-    'd': 'đ',
-  };
-
-  static String _removeDiacritics(String value) {
-    final buffer = StringBuffer();
-    for (final char in value.split('')) {
-      var replaced = char;
-      for (final entry in _diacriticGroups.entries) {
-        if (entry.value.contains(char)) {
-          replaced = entry.key;
-          break;
-        }
-      }
-      buffer.write(replaced);
-    }
-    return buffer.toString();
-  }
+  static String _removeDiacritics(String value) =>
+      DishSlug.removeDiacritics(value);
 }

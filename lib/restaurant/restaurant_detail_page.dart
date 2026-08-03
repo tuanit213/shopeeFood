@@ -4,9 +4,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../address/geoapify_address_service.dart';
 import '../app/app_colors.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
+import '../common/food_image.dart';
 import '../orders/order_state.dart';
 import 'dish_images.dart';
 import 'menu_catalog.dart';
@@ -59,13 +61,27 @@ class RestaurantDetailPage extends StatefulWidget {
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
   static const _favoritePrefsKey = 'favorite_restaurant_ids_v1';
-  static const _favoriteSnapshotPrefsKey = 'favorite_restaurant_snapshots_v1';
+  static const _favoriteSnapshotPrefsKey = 'favorite_restaurant_snapshots_v2';
 
   List<MenuSection> _sections = const [];
   List<MenuItemData> _popularItems = const [];
   final List<CartItem> _cartItems = [];
   String _searchQuery = '';
   bool _isFavorite = false;
+
+  /// Địa chỉ ĐÚNG với toạ độ ghim trên bản đồ (`widget.restaurant.latitude`/
+  /// `longitude`), lấy qua reverse geocoding thật. `null` khi chưa tải xong,
+  /// không có API key, hoặc gọi mạng thất bại — khi đó dùng lại
+  /// `widget.restaurant.address` (chuỗi gõ tay, có thể lệch khỏi toạ độ) qua
+  /// getter [_displayAddress] nên màn hình không bao giờ trống địa chỉ.
+  String? _resolvedShopAddress;
+  static const _resolvedShopAddressPrefsKey = 'shop_address_resolved_v1';
+
+  String get _displayAddress {
+    final resolved = _resolvedShopAddress?.trim();
+    if (resolved != null && resolved.isNotEmpty) return resolved;
+    return widget.restaurant.address;
+  }
 
   int get _cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
   int get _cartTotal => _cartItems.fold(0, (sum, item) => sum + item.lineTotal);
@@ -101,11 +117,51 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     }
     _loadFavoriteState();
     _loadMenuFromServer();
+    _resolveAccurateShopAddress();
+  }
+
+  /// Đảm bảo địa chỉ hiển thị KHỚP với đúng điểm ghim trên bản đồ, thay vì
+  /// một chuỗi địa chỉ dữ liệu mẫu gõ tay độc lập với toạ độ. Chạy nền, không
+  /// chặn hiển thị trang; nếu không có key/mạng thì giữ nguyên hành vi cũ.
+  Future<void> _resolveAccurateShopAddress() async {
+    final restaurant = widget.restaurant;
+    if (restaurant.latitude.abs() <= 0.001 &&
+        restaurant.longitude.abs() <= 0.001) {
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    // Khoá cache gồm cả toạ độ (làm tròn 5 chữ số ~1.1m): nếu sau này toạ độ
+    // quán đổi, cache cũ tự động không khớp nữa thay vì hiện địa chỉ cũ sai.
+    final cacheKey =
+        '$_resolvedShopAddressPrefsKey'
+        '_${restaurant.id}'
+        '_${restaurant.latitude.toStringAsFixed(5)}'
+        '_${restaurant.longitude.toStringAsFixed(5)}';
+
+    final cached = prefs.getString(cacheKey);
+    if (cached != null && cached.trim().isNotEmpty) {
+      if (mounted) setState(() => _resolvedShopAddress = cached);
+      return;
+    }
+
+    final resolved = await GeoapifyAddressService.reverseExact(
+      restaurant.latitude,
+      restaurant.longitude,
+    );
+    if (resolved == null || resolved.trim().isEmpty) return;
+
+    await prefs.setString(cacheKey, resolved);
+    if (!mounted) return;
+    setState(() => _resolvedShopAddress = resolved);
   }
 
   void _applySections(List<MenuSection> sections) {
     _sections = sections;
-    _popularItems = sections.expand((section) => section.items).take(4).toList();
+    _popularItems = sections
+        .expand((section) => section.items)
+        .take(4)
+        .toList();
   }
 
   Future<void> _loadMenuFromServer() async {
@@ -159,7 +215,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       ..insert(0, {
         'id': widget.restaurant.id,
         'name': widget.restaurant.name,
-        'address': widget.restaurant.address,
+        'address': _displayAddress,
         'category': widget.restaurant.category,
         'imageUrl': widget.restaurant.imageUrl,
         'rating': widget.restaurant.rating,
@@ -265,16 +321,20 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
       restaurant: CheckoutRestaurantInfo(
         id: restaurant.id,
         name: restaurant.name,
-        address: restaurant.address,
+        address: _displayAddress,
         deliveryMinutes: restaurant.time,
         distanceKm: restaurant.distance,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
       ),
       items: List<CartItem>.unmodifiable(_cartItems),
-      address: restaurant.address.isEmpty
-          ? 'Vị trí hiện tại của bạn'
-          : restaurant.address,
+      // LƯU Ý: đây là địa chỉ GIAO HÀNG (của khách), không phải địa chỉ quán.
+      // Trước đây rơi về `restaurant.address` khi trống — sai về mặt dữ liệu
+      // vì `deliveryLatitude/Longitude` bên dưới là toạ độ GPS thật của khách
+      // (`restaurant.customerLatitude/Longitude`), không phải toạ độ quán;
+      // hiện chuỗi địa chỉ của quán ở đây khiến người dùng đọc thấy "giao đến
+      // <địa chỉ quán>" dù điểm giao thực tế là vị trí hiện tại của họ.
+      address: 'Vị trí hiện tại của bạn',
       receiverName: 'Khách hàng',
       receiverPhone: '0961687964',
       deliveryLatitude: restaurant.customerLatitude,
@@ -350,6 +410,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           SliverToBoxAdapter(
             child: _RestaurantInfo(
               restaurant: widget.restaurant,
+              displayAddress: _displayAddress,
               isFavorite: _isFavorite,
               onFavoriteTap: _toggleFavorite,
             ),
@@ -512,6 +573,7 @@ class _HeaderSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final heroImageUrl = _normalizedRestaurantHeroImage(restaurant);
     return SliverAppBar(
       expandedHeight: restaurant.imageUrl == null ? 86 : 184,
       pinned: true,
@@ -573,9 +635,10 @@ class _HeaderSliver extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _RemoteFoodImage(
-                    imageUrl:
-                        restaurant.imageUrl ?? _restaurantHeroImage(restaurant),
+                    imageUrl: heroImageUrl,
+                    label: restaurant.name,
                     radius: 0,
+                    showLabel: false,
                   ),
                   DecoratedBox(
                     decoration: BoxDecoration(
@@ -633,11 +696,13 @@ class _HeaderSliver extends StatelessWidget {
 
 class _RestaurantInfo extends StatelessWidget {
   final RestaurantDetailInput restaurant;
+  final String displayAddress;
   final bool isFavorite;
   final VoidCallback onFavoriteTap;
 
   const _RestaurantInfo({
     required this.restaurant,
+    required this.displayAddress,
     required this.isFavorite,
     required this.onFavoriteTap,
   });
@@ -719,7 +784,7 @@ class _RestaurantInfo extends StatelessWidget {
               ),
             ],
           ),
-          if (restaurant.address.isNotEmpty) ...[
+          if (displayAddress.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
               children: [
@@ -731,7 +796,7 @@ class _RestaurantInfo extends StatelessWidget {
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
-                    restaurant.address,
+                    displayAddress,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -961,7 +1026,12 @@ class _MenuItemRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _RemoteFoodImage(imageUrl: item.imageUrl, width: 68, height: 68),
+          _RemoteFoodImage(
+            imageUrl: item.imageUrl,
+            label: item.name,
+            width: 68,
+            height: 68,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1046,6 +1116,7 @@ class _PopularItemCard extends StatelessWidget {
             children: [
               _RemoteFoodImage(
                 imageUrl: item.imageUrl,
+                label: item.name,
                 width: 88,
                 height: 88,
                 radius: 0,
@@ -1462,6 +1533,7 @@ class _SearchResultList extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(vertical: 7),
           leading: _RemoteFoodImage(
             imageUrl: hit.item.imageUrl,
+            label: hit.item.name,
             width: 52,
             height: 52,
             radius: 6,
@@ -1669,6 +1741,7 @@ class _RestaurantCartSheetState extends State<_RestaurantCartSheet> {
                       children: [
                         _RemoteFoodImage(
                           imageUrl: item.imageUrl,
+                          label: item.name,
                           width: 50,
                           height: 50,
                           radius: 5,
@@ -1940,6 +2013,7 @@ class _ToppingBottomSheetState extends State<ToppingBottomSheet> {
                 children: [
                   _RemoteFoodImage(
                     imageUrl: widget.item.imageUrl,
+                    label: widget.item.name,
                     width: 82,
                     height: 82,
                   ),
@@ -2212,51 +2286,30 @@ class _CircleIconButton extends StatelessWidget {
 
 class _RemoteFoodImage extends StatelessWidget {
   final String imageUrl;
+  final String label;
   final double? width;
   final double? height;
   final double radius;
+  final bool showLabel;
 
   const _RemoteFoodImage({
     required this.imageUrl,
+    required this.label,
     this.width,
     this.height,
     this.radius = 8,
+    this.showLabel = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isAsset = imageUrl.startsWith('assets/');
-    return SizedBox(
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: imageUrl),
+      label: label,
       width: width,
       height: height,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              color: const Color(0xFFE0E0E0),
-              child: const Icon(
-                Icons.restaurant_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            if (isAsset)
-              Image.asset(imageUrl, fit: BoxFit.cover)
-            else
-              Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                  if (wasSynchronouslyLoaded || frame != null) return child;
-                  return const SizedBox.shrink();
-                },
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
-              ),
-          ],
-        ),
-      ),
+      radius: radius,
+      showLabel: showLabel,
     );
   }
 }
@@ -2277,6 +2330,10 @@ class MenuItemData {
   final int likes;
   final String imageUrl;
 
+  /// Phiên bản dữ liệu ảnh của document Firestore. Ảnh remote chỉ được tin
+  /// khi >= [DishImages.approvedImageVersion] (xem `DishImages.normalize`).
+  final int imageVersion;
+
   const MenuItemData({
     required this.id,
     required this.name,
@@ -2285,6 +2342,7 @@ class MenuItemData {
     required this.sold,
     required this.likes,
     required this.imageUrl,
+    this.imageVersion = 0,
   });
 }
 
@@ -2465,10 +2523,7 @@ class MenuFactory {
     }
 
     if (generated.isEmpty) return sections;
-    return [
-      ...sections,
-      MenuSection(title: 'Món gợi ý', items: generated),
-    ];
+    return [...sections, MenuSection(title: 'Món gợi ý', items: generated)];
   }
 
   /// Xếp thứ tự ảnh cho các món sinh thêm sao cho:
@@ -2558,7 +2613,6 @@ class MenuFactory {
     };
   }
 
-  /// Số ảnh món có trong assets/images/restaurants (food_01..food_12).
   static List<MenuSection> _drinkSections(RestaurantDetailInput restaurant) {
     return [
       MenuSection(
@@ -2569,21 +2623,21 @@ class MenuFactory {
             'Trân châu đen, flan và thạch nhà làm',
             34500,
             restaurant,
-            _img('milk-tea', 1),
+            '',
           ),
           _item(
             'Sâm dứa sữa size L',
             'Vị thơm nhẹ, ngọt vừa, nhiều topping',
             23500,
             restaurant,
-            _img('green-milk-tea', 2),
+            '',
           ),
           _item(
             'Choco Latte size L',
             'Latte cacao kèm Oreo giòn',
             29500,
             restaurant,
-            _img('choco-latte', 3),
+            '',
           ),
         ],
       ),
@@ -2595,21 +2649,21 @@ class MenuFactory {
             'Không dùng dầu cũ, ăn kèm tương cay',
             22500,
             restaurant,
-            _img('sausage', 4),
+            '',
           ),
           _item(
             'Khoai tây lắc phô mai',
             'Khoai giòn nóng, bột phô mai phủ đều',
             29000,
             restaurant,
-            _img('fries', 5),
+            '',
           ),
           _item(
             'Bánh tráng rong biển sate tỏi',
             'Túi lớn, vị cay nhẹ',
             85000,
             restaurant,
-            _img('snack', 6),
+            '',
           ),
         ],
       ),
@@ -2626,14 +2680,14 @@ class MenuFactory {
             'Ổ mới nướng, dùng kèm món chính',
             3000,
             restaurant,
-            _img('banh-mi', 7),
+            '',
           ),
           _item(
             'Mì gói',
             'Mì trụng ăn kèm nước sốt hoặc phá lấu',
             5000,
             restaurant,
-            _img('noodle', 8),
+            '',
           ),
         ],
       ),
@@ -2645,21 +2699,21 @@ class MenuFactory {
             'Lòng bò mềm, nước dừa béo nhẹ',
             39000,
             restaurant,
-            _img('pha-lau', 9),
+            '',
           ),
           _item(
             'Phá lấu bò thập cẩm',
             'Topping đầy đủ, ăn kèm bánh mì',
             59000,
             restaurant,
-            _img('beef-stew', 10),
+            '',
           ),
           _item(
             'Bánh mì phá lấu',
             'Bánh mì giòn, phá lấu chan sốt riêng',
             32000,
             restaurant,
-            _img('banh-mi-pha-lau', 11),
+            '',
           ),
         ],
       ),
@@ -2676,21 +2730,21 @@ class MenuFactory {
             '2 miếng gà, khoai tây và nước ngọt',
             79000,
             restaurant,
-            _img('fried-chicken', 12),
+            '',
           ),
           _item(
             'Burger gà phô mai',
             'Gà giòn, sốt đặc biệt, phô mai lát',
             69000,
             restaurant,
-            _img('burger', 13),
+            '',
           ),
           _item(
             'Cánh gà sốt cay',
             'Sốt cay ngọt, ăn kèm rau trộn',
             59000,
             restaurant,
-            _img('chicken-wing', 14),
+            '',
           ),
         ],
       ),
@@ -2702,14 +2756,14 @@ class MenuFactory {
             'Khoai nóng giòn, thêm tương miễn phí',
             35000,
             restaurant,
-            _img('fries', 15),
+            '',
           ),
           _item(
             'Salad bắp cải',
             'Mát nhẹ, cân vị món chiên',
             25000,
             restaurant,
-            _img('salad', 16),
+            '',
           ),
         ],
       ),
@@ -2724,25 +2778,25 @@ class MenuFactory {
         title: 'Món chính',
         items: [
           _item(
-            'Cơm sườn nướng',
+            'Cơm Sườn Nướng Mỡ Hành',
             'Sườn ướp đậm vị, cơm nóng và đồ chua',
             45000,
             restaurant,
-            _img('com-suon', 17),
+            '',
           ),
           _item(
             'Bún thịt nướng',
             'Thịt nướng than, rau sống và nước mắm chua ngọt',
             42000,
             restaurant,
-            _img('bun-thit-nuong', 18),
+            '',
           ),
           _item(
-            'Mì trộn đặc biệt',
+            'Mì trộn tóp mỡ',
             'Mì dai, topping đầy đủ, sốt riêng của quán',
             39000,
             restaurant,
-            _img('mixed-noodle', 19),
+            '',
           ),
         ],
       ),
@@ -2754,15 +2808,9 @@ class MenuFactory {
             'Chiên giòn, ăn kèm rau sống',
             25000,
             restaurant,
-            _img('spring-roll', 20),
+            '',
           ),
-          _item(
-            'Trà tắc',
-            'Ly lớn, ít ngọt',
-            15000,
-            restaurant,
-            _img('iced-tea', 21),
-          ),
+          _item('Trà tắc', 'Ly lớn, ít ngọt', 15000, restaurant, ''),
         ],
       ),
     ];
@@ -2779,9 +2827,7 @@ class MenuFactory {
       0,
       (a, b) => a + b,
     );
-    final resolvedImage = imageUrl.startsWith('assets/images/restaurants/')
-        ? DishImages.resolve(name, salt: '${restaurant.id}-$seed')
-        : imageUrl;
+    final resolvedImage = DishImages.normalize(label: name, imageUrl: imageUrl);
     return MenuItemData(
       id: _stableItemId(restaurant, name),
       name: name,
@@ -2804,21 +2850,13 @@ class MenuFactory {
         .replaceAll(RegExp(r'^-+|-+$'), '');
     return '$safeRestaurant-$safeName';
   }
-
-  static String _img(String query, int lock) {
-    return DishImages.remoteUrlFor(query, salt: 'legacy-$lock');
-  }
 }
 
-String _restaurantHeroImage(RestaurantDetailInput restaurant) {
-  final category = restaurant.category;
-  final query = switch (category) {
-    'cafe' => 'milk-tea',
-    'fast_food' => 'fried-chicken',
-    'bakery' => 'banh-mi',
-    _ => 'vietnamese-food',
-  };
-  return MenuFactory._img(query, restaurant.id.hashCode.abs() % 1000);
+String _normalizedRestaurantHeroImage(RestaurantDetailInput restaurant) {
+  return DishImages.normalize(
+    label: restaurant.name,
+    imageUrl: restaurant.imageUrl,
+  );
 }
 
 String _formatPrice(int value) {

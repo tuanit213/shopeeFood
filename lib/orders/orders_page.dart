@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_colors.dart';
+import '../common/food_image.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
+import '../restaurant/dish_images.dart';
 import 'order_state.dart';
 import 'order_tracking_detail_page.dart';
 
@@ -490,7 +492,10 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _OrderFoodImage(path: firstItem.imageUrl),
+                  _OrderFoodImage(
+                    path: firstItem.imageUrl,
+                    label: firstItem.name,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -768,30 +773,20 @@ String _statusTextForEntry(OrderEntry entry) {
 
 class _OrderFoodImage extends StatelessWidget {
   final String path;
+  final String label;
 
-  const _OrderFoodImage({required this.path});
+  const _OrderFoodImage({required this.path, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final image = path.startsWith('assets/')
-        ? Image.asset(path, width: 50, height: 50, fit: BoxFit.cover)
-        : Image.network(
-            path,
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Container(
-              width: 50,
-              height: 50,
-              color: const Color(0xFFEDEDED),
-              child: const Icon(
-                Icons.restaurant_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          );
-    return ClipRRect(borderRadius: BorderRadius.circular(7), child: image);
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: path),
+      label: label,
+      width: 50,
+      height: 50,
+      radius: 7,
+      showLabel: false,
+    );
   }
 }
 

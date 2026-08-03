@@ -76,7 +76,7 @@ class OrderEntry {
 }
 
 class OrderState {
-  static const _prefsKey = 'shopeefood_order_state_entries_v1';
+  static const _prefsKey = 'shopeefood_order_state_entries_v2';
 
   static final ValueNotifier<List<OrderEntry>> entries =
       ValueNotifier<List<OrderEntry>>(<OrderEntry>[]);

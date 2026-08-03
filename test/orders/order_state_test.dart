@@ -314,7 +314,7 @@ CartItem _cartItem({
     id: id,
     name: name,
     description: 'Mon dang giam',
-    imageUrl: 'assets/images/restaurants/food_01.jpg',
+    imageUrl: 'https://loremflickr.com/640/480/vietnamese-food?lock=992001',
     unitPrice: 25000,
     quantity: quantity,
     toppings: const [],

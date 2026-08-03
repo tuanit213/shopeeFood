@@ -1,3 +1,5 @@
+import '../restaurant/dish_images.dart';
+
 class CheckoutRestaurantInfo {
   final String id;
   final String name;
@@ -80,11 +82,14 @@ class CartItem {
   }
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String? ?? '';
+    final name = json['name'] as String? ?? '';
+    final rawImage = json['imageUrl'] as String? ?? '';
     return CartItem(
-      id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      id: id,
+      name: name,
       description: json['description'] as String? ?? '',
-      imageUrl: json['imageUrl'] as String? ?? '',
+      imageUrl: _normalizedCartImage(name: name, id: id, imageUrl: rawImage),
       unitPrice: (json['unitPrice'] as num?)?.toInt() ?? 0,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       toppings:
@@ -106,6 +111,17 @@ class CartItem {
       note: note,
     );
   }
+}
+
+String _normalizedCartImage({
+  required String name,
+  required String id,
+  required String imageUrl,
+}) {
+  return DishImages.normalize(
+    label: name.isEmpty ? id : name,
+    imageUrl: imageUrl,
+  );
 }
 
 class CheckoutOrder {

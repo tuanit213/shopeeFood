@@ -45,9 +45,14 @@ app.*.map.json
 /android/app/release
 
 # Local Codex/debug preview artifacts
+.playwright-cli/
+output/
 devtools_options.yaml
 home_*.png
 banner_*_check.png
+docs/*_REPORT_FOR_CLAUDE.md
+docs/IMAGE_FIX_REPORT.md
+docs/ORDER_TRACKING_MAP_FIX_REPORT.md
 
 # Local secrets
 .env

@@ -3,20 +3,28 @@ import 'package:flutter/material.dart';
 import '../app/app_colors.dart';
 import '../checkout/checkout_models.dart';
 import '../checkout/checkout_pages.dart';
+import '../common/food_image.dart';
+import '../location/location_service.dart';
 import '../orders/order_state.dart';
 import '../restaurant/dish_images.dart';
 import '../restaurant/restaurant_detail_page.dart';
+import 'nearby_restaurant_service.dart';
 
 class PromoResultsPage extends StatefulWidget {
   final String title;
   final String subtitle;
   final String seed;
 
+  /// Vị trí thật của người dùng. `null` khi màn hình mở từ nơi chưa có toạ độ
+  /// (VD: trang cá nhân) — khi đó lùi về [AppLocation.fallback] như cũ.
+  final AppLocation? userLocation;
+
   const PromoResultsPage({
     super.key,
     required this.title,
     required this.subtitle,
     required this.seed,
+    this.userLocation,
   });
 
   @override
@@ -25,6 +33,34 @@ class PromoResultsPage extends StatefulWidget {
 
 class _PromoResultsPageState extends State<PromoResultsPage> {
   int _activeTab = 0;
+
+  /// Vị trí thật của người dùng. Trang này mở được từ rất nhiều nơi (16 chỗ ở
+  /// home + trang cá nhân), phần lớn nằm trong các widget con không giữ toạ
+  /// độ, nên thay vì luồn tham số qua từng chỗ thì tự hỏi [LocationService] —
+  /// đúng cách trang chủ đang làm. Ưu tiên [PromoResultsPage.userLocation]
+  /// khi nơi gọi đã biết sẵn để khỏi phải chờ GPS lần nữa.
+  AppLocation? _resolvedLocation;
+
+  double get _userLatitude =>
+      (_resolvedLocation ?? widget.userLocation)?.latitude ?? _mockUserLatitude;
+  double get _userLongitude =>
+      (_resolvedLocation ?? widget.userLocation)?.longitude ??
+      _mockUserLongitude;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolvedLocation = widget.userLocation;
+    if (_resolvedLocation == null) {
+      _resolveLocation();
+    }
+  }
+
+  Future<void> _resolveLocation() async {
+    final location = await LocationService.getCurrentLocation();
+    if (!mounted) return;
+    setState(() => _resolvedLocation = location);
+  }
 
   List<_PromoItem> _sortItems(List<_PromoItem> items) {
     final sorted = List<_PromoItem>.of(items);
@@ -48,7 +84,13 @@ class _PromoResultsPageState extends State<PromoResultsPage> {
       widget.subtitle,
       widget.seed,
     );
-    final items = _sortItems(_PromoItem.itemsFor(config));
+    final items = _sortItems(
+      _PromoItem.itemsFor(
+        config,
+        userLatitude: _userLatitude,
+        userLongitude: _userLongitude,
+      ),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -644,7 +686,7 @@ class _MyDealItemRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 8, 9, 0),
       child: Row(
         children: [
-          _FoodImage(path: item.imageUrl, size: 40),
+          _FoodImage(path: item.imageUrl, label: item.name, size: 40),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -1078,7 +1120,7 @@ class _CampaignPromoCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _FoodImage(path: item.image, size: 68),
+                _FoodImage(path: item.image, label: item.name, size: 68),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Column(
@@ -1240,7 +1282,7 @@ class _PromoMenuPreviewRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _FoodImage(path: preview.image, size: 38),
+        _FoodImage(path: preview.image, label: preview.name, size: 38),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -1342,13 +1384,51 @@ List<_PromoMenuPreview> _previewItemsFor(_PromoItem item) {
 }
 
 String _alternateDishName(_PromoItem item) {
-  final dishes = [
-    'Combo thêm nước tiết kiệm',
-    'Món bán chạy trong ngày',
-    'Set no bụng giá tốt',
-    'Ưu đãi chỉ có hôm nay',
-    'Phần ăn kèm freeship',
-  ];
+  final name = DishImages.asciiOf(item.name);
+  final dishes = switch (DishImages.categoryFor(name)) {
+    DishCategory.milkTea || DishCategory.coffee || DishCategory.juice => const [
+      'Trà Tắc Ly Lớn',
+      'Trà Đào Cam Sả',
+      'Oolong Sen Vàng',
+      'Cà Phê Sữa Đá',
+      'Matcha Latte Kem Mặn',
+    ],
+    DishCategory.friedChicken || DishCategory.western => const [
+      'Khoai Tây Chiên Vừa',
+      'Gà Popcorn',
+      'Burger Bò Phô Mai',
+      'Pizza Hải Sản Mini',
+      'Hotdog Phô Mai',
+    ],
+    DishCategory.korean || DishCategory.japanese => const [
+      'Tokbokki Phô Mai Cay',
+      'Kimbap Bulgogi',
+      'Mandu Chiên Nhân Thịt',
+      'Sushi Tổng Hợp',
+      'Gyoza Chiên',
+    ],
+    DishCategory.snack || DishCategory.grill => const [
+      'Chả Giò',
+      'Phô Mai Que Chiên',
+      'Bánh Tráng Trộn',
+      'Xiên Que Thập Cẩm',
+      'Cá Viên Chiên',
+    ],
+    DishCategory.hotpot || DishCategory.seafood => const [
+      'Lẩu Thái Tomyum',
+      'Mì Xào Hải Sản',
+      'Tôm Hấp Bia',
+      'Mực Nướng Sa Tế',
+      'Gỏi Cuốn Tôm Thịt',
+    ],
+    _ => const [
+      'Cơm Sườn Trứng Ốp La',
+      'Bún Thịt Nướng',
+      'Bánh Mì Chảo Đặc Biệt',
+      'Cháo Sườn Non',
+      'Gỏi Cuốn Tôm Thịt',
+    ],
+  };
   return dishes[item.id.hashCode.abs() % dishes.length];
 }
 
@@ -1379,7 +1459,7 @@ class _PromoCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _FoodImage(path: item.image, size: 86),
+            _FoodImage(path: item.image, label: item.name, size: 86),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -1585,8 +1665,8 @@ void _openPromoRestaurant(BuildContext context, _PromoItem item) {
           openNow: true,
           latitude: item.latitude,
           longitude: item.longitude,
-          customerLatitude: _mockUserLatitude,
-          customerLongitude: _mockUserLongitude,
+          customerLatitude: item.userLatitude,
+          customerLongitude: item.userLongitude,
         ),
       ),
     ),
@@ -1635,8 +1715,8 @@ CheckoutOrder _checkoutOrderForPromoPreview(
     address: 'Vị trí hiện tại của bạn',
     receiverName: 'Khách hàng',
     receiverPhone: '0961687964',
-    deliveryLatitude: _mockUserLatitude,
-    deliveryLongitude: _mockUserLongitude,
+    deliveryLatitude: item.userLatitude,
+    deliveryLongitude: item.userLongitude,
   );
 }
 
@@ -1649,27 +1729,25 @@ String _stableId(String value) {
 
 class _FoodImage extends StatelessWidget {
   final String path;
+  final String label;
   final double size;
 
-  const _FoodImage({required this.path, required this.size});
+  const _FoodImage({
+    required this.path,
+    required this.label,
+    required this.size,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final image = path.startsWith('assets/')
-        ? Image.asset(path, width: size, height: size, fit: BoxFit.cover)
-        : Image.network(
-            path,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => Image.asset(
-              'assets/images/restaurants/food_01.jpg',
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-            ),
-          );
-    return ClipRRect(borderRadius: BorderRadius.circular(7), child: image);
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: path),
+      label: label,
+      width: size,
+      height: size,
+      radius: 7,
+      showLabel: size >= 68,
+    );
   }
 }
 
@@ -1735,7 +1813,6 @@ class _CategoryPromoConfig {
   final List<Color> gradient;
   final List<String> restaurants;
   final List<String> dishes;
-  final List<String> images;
   final List<String> tags;
 
   const _CategoryPromoConfig({
@@ -1748,7 +1825,6 @@ class _CategoryPromoConfig {
     required this.gradient,
     required this.restaurants,
     required this.dishes,
-    required this.images,
     required this.tags,
   });
 
@@ -1771,7 +1847,6 @@ class _CategoryPromoConfig {
       gradient: gradient,
       restaurants: restaurants ?? this.restaurants,
       dishes: dishes ?? this.dishes,
-      images: images,
       tags: tags ?? this.tags,
     );
   }
@@ -1825,6 +1900,13 @@ class _PromoItem {
   final String tagA;
   final String tagB;
 
+  /// Vị trí người dùng mà [distanceKm] và [latitude]/[longitude] được tính
+  /// dựa trên. Đi kèm luôn trong item để mọi nơi dùng lại (mở trang quán, đặt
+  /// hàng, theo dõi đơn) đều lấy đúng một điểm khách hàng — không thể lệch
+  /// khỏi con số khoảng cách đang hiển thị.
+  final double userLatitude;
+  final double userLongitude;
+
   const _PromoItem({
     required this.id,
     required this.restaurant,
@@ -1842,9 +1924,15 @@ class _PromoItem {
     required this.image,
     required this.tagA,
     required this.tagB,
+    required this.userLatitude,
+    required this.userLongitude,
   });
 
-  static List<_PromoItem> itemsFor(_CategoryPromoConfig config) {
+  static List<_PromoItem> itemsFor(
+    _CategoryPromoConfig config, {
+    double userLatitude = _mockUserLatitude,
+    double userLongitude = _mockUserLongitude,
+  }) {
     final restaurants = _cleanRestaurantsFor(config.id, config.restaurants);
     final dishes = _cleanDishesFor(config.id, config.dishes);
     final tags = _cleanTagsFor(config.id, config.tags);
@@ -1852,15 +1940,29 @@ class _PromoItem {
       final basePrice = 24000 + (index % 8) * 7000 + (index ~/ 8) * 3000;
       final discount = 30 + (index * 7 + config.id.length) % 36;
       final original = (basePrice / (1 - discount / 100)).round();
+      // Toạ độ quán lệch quanh vị trí THẬT của người dùng, nên điểm ghim trên
+      // bản đồ nằm đúng khu vực họ đang đứng thay vì quanh một toạ độ mặc
+      // định cố định ở Vĩnh Lộc A.
+      final place = _mockPlaces[index % _mockPlaces.length];
+      final latitude = userLatitude + place.latOffset;
+      final longitude = userLongitude + place.lngOffset;
       return _PromoItem(
         id: '${config.id}-$index',
         restaurant:
             '${restaurants[index % restaurants.length]} - CN ${index + 1}',
         name: dishes[index % dishes.length],
-        address: _cleanMockAddresses[index % _cleanMockAddresses.length],
-        latitude: _mockRestaurantLatitude(index),
-        longitude: _mockRestaurantLongitude(index),
-        distanceKm: _mockDistanceKm(index),
+        address: place.address,
+        latitude: latitude,
+        longitude: longitude,
+        // Khoảng cách SUY RA từ chính toạ độ ở trên, không còn là một con số
+        // bịa độc lập (`0.7 + index % 9 * 0.25`) — trước đây quán ghim cách
+        // 0.86km nhưng app hiện 2.7km.
+        distanceKm: NearbyRestaurantService.distanceInKm(
+          fromLat: userLatitude,
+          fromLng: userLongitude,
+          toLat: latitude,
+          toLng: longitude,
+        ),
         price: basePrice,
         originalPrice: original,
         discount: discount,
@@ -1873,10 +1975,114 @@ class _PromoItem {
         ),
         tagA: tags[index % tags.length],
         tagB: index.isEven ? 'Mã giảm ${(15 + index % 5 * 5)}K' : 'Freeship',
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
       );
     });
   }
 }
+
+/// Danh sách "hình nhìn thấy được" của 24 món trên một trang khuyến mãi.
+///
+/// Mở ra cho test kiểm tra: mỗi trang phải đủ 24 món KHÁC ảnh nhau. Trước đây
+/// mỗi nhóm chỉ có ~6 tên món nên tên và ảnh lặp lại 4 lần một trang.
+@visibleForTesting
+List<String> promoVisualKeysForTesting({
+  required String title,
+  required String subtitle,
+  required String seed,
+}) {
+  final config = _CategoryPromoConfig.resolve(title, subtitle, seed);
+  return _PromoItem.itemsFor(config)
+      .map(
+        (item) => DishImages.visualKey(label: item.name, imageUrl: item.image),
+      )
+      .toList();
+}
+
+@visibleForTesting
+List<String> promoPreviewImageSourcesForTesting({
+  required String title,
+  required String subtitle,
+  required String seed,
+}) {
+  final config = _CategoryPromoConfig.resolve(title, subtitle, seed);
+  return _PromoItem.itemsFor(
+    config,
+  ).expand(_previewItemsFor).map((preview) => preview.image).toList();
+}
+
+@visibleForTesting
+List<String> promoPreviewNamesForTesting({
+  required String title,
+  required String subtitle,
+  required String seed,
+}) {
+  final config = _CategoryPromoConfig.resolve(title, subtitle, seed);
+  return _PromoItem.itemsFor(
+    config,
+  ).expand(_previewItemsFor).map((preview) => preview.name).toList();
+}
+
+@visibleForTesting
+List<String> promoPreviewImageSourcesByIdForTesting(String id) {
+  final config = _cleanPromoConfig(_configs[id]!);
+  return _PromoItem.itemsFor(
+    config,
+  ).expand(_previewItemsFor).map((preview) => preview.image).toList();
+}
+
+@visibleForTesting
+List<String> promoPreviewNamesByIdForTesting(String id) {
+  final config = _cleanPromoConfig(_configs[id]!);
+  return _PromoItem.itemsFor(
+    config,
+  ).expand(_previewItemsFor).map((preview) => preview.name).toList();
+}
+
+@visibleForTesting
+List<String> promoItemImageSourcesByIdForTesting(String id) {
+  final config = _cleanPromoConfig(_configs[id]!);
+  return _PromoItem.itemsFor(config).map((item) => item.image).toList();
+}
+
+/// Id của mọi nhóm khuyến mãi đang có (dùng cho test).
+@visibleForTesting
+List<String> promoConfigIdsForTesting() => _configs.keys.toList();
+
+/// Khoảng cách hiển thị và toạ độ ghim của từng món trong một nhóm khuyến mãi.
+///
+/// Mở ra cho test khoá lại đúng lớp lỗi đã gặp: khoảng cách hiển thị từng là
+/// một con số bịa (`0.7 + index % 9 * 0.25`) chạy theo chu kỳ khác với chu kỳ
+/// chọn toạ độ, nên số km trên thẻ mô tả một nơi còn điểm ghim trên bản đồ ở
+/// một nơi khác — lệch tới hơn 2km.
+@visibleForTesting
+List<({double distanceKm, double latitude, double longitude})>
+promoDistanceCheckForTesting(
+  String id, {
+  required double userLatitude,
+  required double userLongitude,
+}) {
+  final config = _cleanPromoConfig(_configs[id]!);
+  return _PromoItem.itemsFor(
+        config,
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+      )
+      .map(
+        (item) => (
+          distanceKm: item.distanceKm,
+          latitude: item.latitude,
+          longitude: item.longitude,
+        ),
+      )
+      .toList();
+}
+
+/// Danh sách món của một nhóm khuyến mãi (dùng cho test).
+@visibleForTesting
+List<String> promoDishesForTesting(String id) =>
+    _cleanDishesFor(id, _configs[id]?.dishes ?? const <String>[]);
 
 _CategoryPromoConfig _cleanPromoConfig(_CategoryPromoConfig config) {
   final meta = _cleanPromoMeta[config.id];
@@ -2340,48 +2546,51 @@ const Map<String, List<String>> _cleanDishes = {
   ],
 };
 
-const List<String> _cleanMockAddresses = [
-  '23 Đường số 6, Vĩnh Lộc A, Bình Chánh, TP.HCM',
-  '41 Nguyễn Thị Tú, Bình Hưng Hòa B, Bình Tân, TP.HCM',
-  '12A Đường Công Nghệ Mới, Vĩnh Lộc B, Bình Chánh, TP.HCM',
-  '88 Liên Ấp 2-6, Vĩnh Lộc A, Bình Chánh, TP.HCM',
-  '19 Hẻm 5 Tây Lân, Bình Trị Đông A, Bình Tân, TP.HCM',
-  '56 Đường số 4, KCN Vĩnh Lộc, Bình Tân, TP.HCM',
-  '102 Quách Điêu, Vĩnh Lộc A, Bình Chánh, TP.HCM',
-  '7A Đường 1A, An Lạc, Bình Tân, TP.HCM',
+/// Một điểm quán mẫu: địa chỉ VÀ độ lệch toạ độ đi CHUNG một dòng.
+///
+/// Trước đây ba thứ này nằm ở ba nơi và được chọn bằng ba chu kỳ khác nhau
+/// trên cùng một `index`: địa chỉ `% 8`, toạ độ `% 6`, khoảng cách `% 9`. Vì
+/// 3 chu kỳ lệch nhau nên với hầu hết index thì địa chỉ, điểm ghim trên bản đồ
+/// và số km hiển thị mô tả BA nơi khác nhau. Gộp lại một bản ghi để chúng
+/// không thể lệch nhau được nữa.
+class _MockPlace {
+  final String address;
+  final double latOffset;
+  final double lngOffset;
+
+  const _MockPlace(this.address, this.latOffset, this.lngOffset);
+}
+
+const List<_MockPlace> _mockPlaces = [
+  _MockPlace('23 Đường số 6, Vĩnh Lộc A, Bình Chánh, TP.HCM', 0.0042, 0.0034),
+  _MockPlace(
+    '41 Nguyễn Thị Tú, Bình Hưng Hòa B, Bình Tân, TP.HCM',
+    -0.0035,
+    0.0062,
+  ),
+  _MockPlace(
+    '12A Đường Công Nghệ Mới, Vĩnh Lộc B, Bình Chánh, TP.HCM',
+    0.0061,
+    -0.0048,
+  ),
+  _MockPlace(
+    '88 Liên Ấp 2-6, Vĩnh Lộc A, Bình Chánh, TP.HCM',
+    -0.0054,
+    -0.0029,
+  ),
+  _MockPlace(
+    '19 Hẻm 5 Tây Lân, Bình Trị Đông A, Bình Tân, TP.HCM',
+    0.0026,
+    0.0071,
+  ),
+  _MockPlace('56 Đường số 4, KCN Vĩnh Lộc, Bình Tân, TP.HCM', -0.0068, -0.0064),
+  _MockPlace('102 Quách Điêu, Vĩnh Lộc A, Bình Chánh, TP.HCM', 0.0037, -0.0055),
+  _MockPlace('7A Đường 1A, An Lạc, Bình Tân, TP.HCM', -0.0021, 0.0046),
 ];
 
-const _localFoodImages = [
-  'assets/images/restaurants/food_01.jpg',
-  'assets/images/restaurants/food_02.jpg',
-  'assets/images/restaurants/food_03.jpg',
-  'assets/images/restaurants/food_04.jpg',
-  'assets/images/restaurants/food_05.jpg',
-  'assets/images/restaurants/food_06.jpg',
-  'assets/images/restaurants/food_07.jpg',
-  'assets/images/restaurants/food_08.jpg',
-  'assets/images/restaurants/food_09.jpg',
-  'assets/images/restaurants/food_10.jpg',
-  'assets/images/restaurants/food_11.jpg',
-  'assets/images/restaurants/food_12.jpg',
-];
-
+/// Chỉ dùng khi chưa biết vị trí thật của người dùng (chưa cấp quyền GPS).
 const _mockUserLatitude = 10.7843;
 const _mockUserLongitude = 106.5682;
-
-double _mockRestaurantLatitude(int index) {
-  const offsets = [0.0042, -0.0035, 0.0061, -0.0054, 0.0026, -0.0068];
-  return _mockUserLatitude + offsets[index % offsets.length];
-}
-
-double _mockRestaurantLongitude(int index) {
-  const offsets = [0.0034, 0.0062, -0.0048, -0.0029, 0.0071, -0.0064];
-  return _mockUserLongitude + offsets[index % offsets.length];
-}
-
-double _mockDistanceKm(int index) {
-  return 0.7 + (index % 9) * 0.25;
-}
 
 final Map<String, _CategoryPromoConfig> _configs = {
   'deal': _CategoryPromoConfig(
@@ -2406,7 +2615,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Burger Bò Phô Mai + Pepsi',
       'Bánh Mì Chảo Đặc Biệt',
     ],
-    images: _localFoodImages,
     tags: const ['Flash Sale', 'Deal sốc', 'Freeship Xtra'],
   ),
   'korean': _CategoryPromoConfig(
@@ -2431,7 +2639,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Cơm Trộn Bulgogi Bibimbap',
       'Mì Tương Đen Jajangmyeon',
     ],
-    images: _localFoodImages,
     tags: const ['Mã giảm 25K', 'Chuẩn vị Hàn', 'Freeship'],
   ),
   'mart': _CategoryPromoConfig(
@@ -2456,7 +2663,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Bánh Sandwich + Cà Phê Lon',
       'Combo Kem Mát Lạnh',
     ],
-    images: _localFoodImages,
     tags: const ['Giao 20 phút', 'Mart deal', 'Mã 177K'],
   ),
   'skewer': _CategoryPromoConfig(
@@ -2481,7 +2687,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Xiên Bò Lá Lốt Nướng',
       'Phô Mai Que Kéo Sợi',
     ],
-    images: _localFoodImages,
     tags: const ['Ăn vặt hot', 'Freeship 0Đ', 'Mua 2 giảm'],
   ),
   'katinat': _CategoryPromoConfig(
@@ -2501,7 +2706,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Trà Lài Vải Tươi',
       'Sữa Tươi Trân Châu Đường Đen',
     ],
-    images: _localFoodImages,
     tags: const ['Best seller', 'Giảm 100K', 'Mua 1 tặng 1'],
   ),
   'pickup': _CategoryPromoConfig(
@@ -2526,7 +2730,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Bún Thịt Nướng Nem',
       'Set Cơm Gia Đình Mini',
     ],
-    images: _localFoodImages,
     tags: const ['Không cần chờ', 'Pickup deal', 'Giữ món'],
   ),
   'wallet': _CategoryPromoConfig(
@@ -2551,7 +2754,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Bún Bò Voucher Ví',
       'Mì Ý Sốt Bò Bằm',
     ],
-    images: _localFoodImages,
     tags: const ['Hoàn xu', 'Ví giảm thêm', 'Deal ví'],
   ),
   'festival': _CategoryPromoConfig(
@@ -2576,7 +2778,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Mẹt Bún Đậu Đại Tiệc',
       'Combo Trà Sữa 4 Ly',
     ],
-    images: _localFoodImages,
     tags: const ['Combo nhóm', 'Giảm 40K', 'Tiệc ngon'],
   ),
   'freeship': _CategoryPromoConfig(
@@ -2601,7 +2802,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Cháo Sườn Quẩy Giòn',
       'Hủ Tiếu Nam Vang',
     ],
-    images: _localFoodImages,
     tags: const ['Freeship Xtra', 'Gần bạn', 'Ship 0Đ'],
   ),
   'discount50': _CategoryPromoConfig(
@@ -2626,7 +2826,6 @@ final Map<String, _CategoryPromoConfig> _configs = {
       'Gỏi Cuốn Tôm Thịt',
       'Bánh Xèo Miền Tây',
     ],
-    images: _localFoodImages,
     tags: const ['Voucher 50K', 'Giảm mạnh', 'Món hời'],
   ),
 };
@@ -2646,7 +2845,7 @@ void _showPromoItemSheet(BuildContext context, _PromoItem item, Color accent) {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _FoodImage(path: item.image, size: 82),
+              _FoodImage(path: item.image, label: item.name, size: 82),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

@@ -31,6 +31,12 @@ class AppLocation {
 class LocationService {
   static const _geoapifyApiKey = String.fromEnvironment('GEOAPIFY_API_KEY');
 
+  /// Coi là "đủ tốt để dừng chờ ngay" — sai số bán kính (mét).
+  static const _acceptableAccuracyMeters = 30.0;
+
+  /// Ngưỡng tối đa vẫn chấp nhận một fix từ stream mà không cần đọc thêm.
+  static const _coarseAccuracyMeters = 80.0;
+
   static Future<AppLocation> getCurrentLocation() async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -56,15 +62,7 @@ class LocationService {
             AppLocation.fallback;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: AndroidSettings(
-          accuracy: LocationAccuracy.bestForNavigation,
-          distanceFilter: 0,
-          forceLocationManager: true,
-          intervalDuration: Duration(seconds: 1),
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
+      final position = await _readAccuratePosition();
 
       final address = await _reverseAddress(
         position.latitude,
@@ -87,6 +85,62 @@ class LocationService {
       return await _lastKnownLocation(maxAge: const Duration(minutes: 10)) ??
           AppLocation.fallback;
     }
+  }
+
+  /// Lấy một điểm định vị CHÍNH XÁC khi mới mở app.
+  ///
+  /// Hai thay đổi quan trọng so với bản cũ:
+  ///
+  /// 1. `forceLocationManager: false` — dùng bộ định vị hợp nhất (fused) của
+  ///    Google Play Services thay vì `LocationManager` thô của Android. Fused
+  ///    kết hợp GPS + Wi-Fi + cảm biến nên ra toạ độ sát thực tế hơn nhiều;
+  ///    `forceLocationManager: true` (bản cũ) bỏ qua lớp này nên điểm định vị
+  ///    thường lệch vài trăm mét — đúng kiểu "định vị sai vị trí".
+  ///
+  /// 2. Không nhận ngay lần đọc đầu: lần fix GPS ĐẦU TIÊN sau khi mở app hay
+  ///    còn "nguội" (accuracy hàng trăm mét). Hàm chờ tới khi có một điểm đủ
+  ///    tốt (`accuracy <= _acceptableAccuracyMeters`) hoặc hết thời gian, rồi
+  ///    lấy điểm tốt nhất đọc được — tránh ghim nhầm vào fix nguội đầu tiên.
+  static Future<Position> _readAccuratePosition() async {
+    final settings = AndroidSettings(
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 0,
+      forceLocationManager: false,
+      intervalDuration: const Duration(seconds: 1),
+      timeLimit: const Duration(seconds: 20),
+    );
+
+    Position? best;
+    try {
+      final stream = Geolocator.getPositionStream(locationSettings: settings);
+      await for (final position in stream.timeout(
+        const Duration(seconds: 12),
+      )) {
+        if (best == null || position.accuracy < best.accuracy) {
+          best = position;
+        }
+        if (position.accuracy <= _acceptableAccuracyMeters) {
+          break;
+        }
+      }
+    } catch (error) {
+      debugPrint('[Location] stream dừng sớm: $error');
+    }
+
+    if (best != null && best.accuracy <= _coarseAccuracyMeters) {
+      debugPrint('[Location] fix tốt: ±${best.accuracy.toStringAsFixed(0)}m');
+      return best;
+    }
+
+    // Chưa có fix đủ tốt trong thời gian chờ: đọc thêm một điểm dứt khoát và
+    // giữ điểm nào chính xác hơn.
+    final single = await Geolocator.getCurrentPosition(
+      locationSettings: settings,
+    );
+    if (best == null || single.accuracy < best.accuracy) {
+      return single;
+    }
+    return best;
   }
 
   static Future<AppLocation?> _savedDeliveryLocation() async {
@@ -232,7 +286,9 @@ class LocationService {
         return detailedAddress;
       }
 
-      final formatted = (properties?['formatted'] as String?)?.trim();
+      final formatted = _sanitizeAddressLine(
+        (properties?['formatted'] as String?)?.trim(),
+      );
       if (formatted != null && formatted.isNotEmpty) {
         return formatted;
       }
@@ -262,14 +318,59 @@ class LocationService {
     return street?.isEmpty == true ? null : street;
   }
 
+  /// Làm sạch một chuỗi địa chỉ đã ghép sẵn (VD `formatted` của Geoapify hay
+  /// bất kỳ chuỗi nào tách được bằng dấu phẩy): tách theo dấu phẩy rồi chạy
+  /// [_uniqueParts] để bỏ đoạn trùng/tập con, token quốc gia và mã bưu chính.
+  static String? _sanitizeAddressLine(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parts = raw.split(',');
+    final cleaned = _uniqueParts(parts).join(', ');
+    return cleaned.isEmpty ? null : cleaned;
+  }
+
+  @visibleForTesting
+  static String? sanitizeAddressForTesting(String? raw) =>
+      _sanitizeAddressLine(raw);
+
   static List<String> _uniqueParts(Iterable<String> parts) {
-    final seen = <String>{};
-    final compactParts = <String>[];
+    // Bước 1: lọc rỗng + bỏ token quốc gia và mã bưu chính (địa chỉ trong
+    // nước không cần), vì `formatted` hay kèm cả hai.
+    final cleaned = <String>[];
     for (final part in parts) {
       final trimmed = part.trim();
-      final normalized = trimmed.toLowerCase();
-      if (trimmed.isNotEmpty && seen.add(normalized)) {
-        compactParts.add(trimmed);
+      if (trimmed.isEmpty) continue;
+      final lower = trimmed.toLowerCase();
+      if (lower == 'vietnam' || lower == 'việt nam' || lower == 'viet nam') {
+        continue;
+      }
+      if (RegExp(r'^\d{5,6}$').hasMatch(trimmed)) {
+        continue;
+      }
+      cleaned.add(trimmed);
+    }
+
+    // Bước 2: bỏ phần con trùng lặp. Reverse geocoding hay trả cả "Đường 1B"
+    // lẫn "18Y Đường 1B", cả "Hồ Chí Minh" lẫn "Thành phố Hồ Chí Minh" — giữ
+    // lại đoạn ĐẦY ĐỦ hơn, bỏ đoạn ngắn nằm gọn trong đoạn kia (so khớp theo
+    // ranh giới từ để "1B" không vô tình khớp "18Y").
+    final compactParts = <String>[];
+    for (final part in cleaned) {
+      final lower = part.toLowerCase();
+      final redundant = cleaned.any((other) {
+        if (identical(other, part)) return false;
+        final otherLower = other.toLowerCase();
+        if (otherLower == lower) {
+          // Trùng y hệt: chỉ giữ lần xuất hiện đầu tiên.
+          return cleaned.indexOf(other) < cleaned.indexOf(part);
+        }
+        // `part` là tập con của `other` -> bỏ `part`, giữ `other` dài hơn.
+        return otherLower.contains(lower) &&
+            RegExp(
+              r'(^|\s)' + RegExp.escape(lower) + r'($|\s)',
+            ).hasMatch(otherLower);
+      });
+      if (!redundant) {
+        compactParts.add(part);
       }
     }
     return compactParts;

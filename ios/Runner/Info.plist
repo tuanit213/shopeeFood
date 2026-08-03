@@ -4,6 +4,10 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cho phép ShopeeFood truy cập thư viện ảnh để bạn chọn ảnh đại diện.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cho phép ShopeeFood dùng camera để chụp ảnh đại diện.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

@@ -16,7 +16,7 @@ class MenuRepository {
   static const _menuCollection = 'menuItems';
   static const _timeout = Duration(seconds: 6);
   static const _fallbackSectionTitle = 'Món chính';
-  static const _fallbackImage = 'assets/images/restaurants/food_01.jpg';
+  static const _fallbackImage = '';
 
   static CollectionReference<Map<String, dynamic>> _menuRef(
     String restaurantId,
@@ -36,7 +36,9 @@ class MenuRepository {
     try {
       final snapshot = await _menuRef(restaurantId).get().timeout(_timeout);
       if (snapshot.docs.isEmpty) {
-        debugPrint('[MenuRepository] $restaurantId chưa có menu trên Firestore');
+        debugPrint(
+          '[MenuRepository] $restaurantId chưa có menu trên Firestore',
+        );
         return null;
       }
 
@@ -56,13 +58,12 @@ class MenuRepository {
     final entries = docs.map(_MenuEntry.fromDoc).toList()
       ..sort((a, b) {
         final bySection = a.sectionOrder.compareTo(b.sectionOrder);
-        return bySection != 0
-            ? bySection
-            : a.itemOrder.compareTo(b.itemOrder);
+        return bySection != 0 ? bySection : a.itemOrder.compareTo(b.itemOrder);
       });
 
     final grouped = <String, List<MenuItemData>>{};
     final titles = <String>[];
+    // Khoá "hình nhìn thấy được", không phải chuỗi URL.
     final usedImages = <String>{};
     for (final entry in entries) {
       if (!entry.available) {
@@ -84,17 +85,28 @@ class MenuRepository {
         .toList();
   }
 
+  /// Đảm bảo trong CÙNG một menu không có hai món hiện cùng một hình.
+  ///
+  /// Ảnh remote cũ (chưa seed lại) hoặc ảnh dùng chung bị loại ngay trong
+  /// [DishImages.normalize]. Nếu vẫn còn trùng — thường do hai món khác id
+  /// nhưng cùng URL ảnh cũ — thì bỏ ảnh remote để tránh ảnh sai món.
   static MenuItemData _withUniqueImage(
     MenuItemData item,
     Set<String> usedImages,
   ) {
-    final shouldReplace =
-        item.imageUrl.startsWith('assets/images/restaurants/') ||
-        usedImages.contains(item.imageUrl);
-    final imageUrl = shouldReplace
-        ? DishImages.resolve(item.name, salt: item.id)
-        : item.imageUrl;
-    usedImages.add(imageUrl);
+    var imageUrl = DishImages.normalize(
+      label: item.name,
+      imageUrl: item.imageUrl,
+      imageVersion: item.imageVersion,
+    );
+    var key = imageUrl.isEmpty
+        ? 'missing:${DishImages.slugFor(item.name)}'
+        : imageUrl;
+    if (!usedImages.add(key)) {
+      imageUrl = '';
+      key = 'missing:${DishImages.slugFor(item.name)}-${usedImages.length}';
+      usedImages.add(key);
+    }
     return MenuItemData(
       id: item.id,
       name: item.name,
@@ -103,6 +115,7 @@ class MenuRepository {
       sold: item.sold,
       likes: item.likes,
       imageUrl: imageUrl,
+      imageVersion: item.imageVersion,
     );
   }
 }
@@ -122,9 +135,7 @@ class _MenuEntry {
     required this.available,
   });
 
-  factory _MenuEntry.fromDoc(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
+  factory _MenuEntry.fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data();
     final rawSection = (data['section'] as String?)?.trim() ?? '';
     final rawImage = (data['imageUrl'] as String?)?.trim() ?? '';
@@ -145,6 +156,7 @@ class _MenuEntry {
         sold: (data['sold'] as num?)?.toInt() ?? 0,
         likes: (data['likes'] as num?)?.toInt() ?? 0,
         imageUrl: rawImage.isEmpty ? MenuRepository._fallbackImage : rawImage,
+        imageVersion: (data['imageVersion'] as num?)?.toInt() ?? 0,
       ),
     );
   }

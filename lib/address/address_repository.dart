@@ -67,7 +67,9 @@ class AddressRepository {
     await _syncUserAddresses(await loadAddresses());
   }
 
-  static Future<void> _syncUserAddresses(List<DeliveryAddress> addresses) async {
+  static Future<void> _syncUserAddresses(
+    List<DeliveryAddress> addresses,
+  ) async {
     final userId = await UserSession.getUserId();
     if (userId == null || userId.isEmpty) return;
     await UserRepository.syncSavedAddresses(

@@ -6,9 +6,11 @@ import '../address/address_pages.dart';
 import '../address/address_repository.dart';
 import '../address/delivery_address.dart';
 import '../app/app_colors.dart';
+import '../common/food_image.dart';
 import '../location/location_service.dart';
 import '../orders/order_state.dart';
 import '../orders/order_tracking_detail_page.dart';
+import '../restaurant/dish_images.dart';
 import 'checkout_models.dart';
 
 const _bg = Color(0xFFF5F5F5);
@@ -641,30 +643,33 @@ class _CheckoutSuggestion {
   });
 }
 
-const _checkoutSuggestions = [
+final _checkoutSuggestions = [
   _CheckoutSuggestion(
     name: 'Mì thêm',
     description: 'Ăn kèm món chính',
     price: 19000,
-    imageUrl: 'assets/images/restaurants/food_02.jpg',
+    imageUrl: DishImages.resolve('mi them', salt: 'checkout-suggestion-1'),
   ),
   _CheckoutSuggestion(
     name: 'Trà tắc',
     description: 'Ly lạnh ít ngọt',
     price: 15000,
-    imageUrl: 'assets/images/restaurants/food_05.jpg',
+    imageUrl: DishImages.resolve('tra tac', salt: 'checkout-suggestion-2'),
   ),
   _CheckoutSuggestion(
     name: 'Khoai tây chiên',
     description: 'Giòn nóng',
     price: 29000,
-    imageUrl: 'assets/images/restaurants/food_11.jpg',
+    imageUrl: DishImages.resolve(
+      'khoai tay chien',
+      salt: 'checkout-suggestion-3',
+    ),
   ),
   _CheckoutSuggestion(
     name: 'Chả giò',
     description: 'Phần nhỏ 3 cuốn',
     price: 25000,
-    imageUrl: 'assets/images/restaurants/food_03.jpg',
+    imageUrl: DishImages.resolve('cha gio', salt: 'checkout-suggestion-4'),
   ),
 ];
 
@@ -1153,6 +1158,7 @@ class _SuggestionCard extends StatelessWidget {
               ),
               child: _CheckoutFoodImage(
                 path: suggestion.imageUrl,
+                label: suggestion.name,
                 width: double.infinity,
                 height: 54,
               ),
@@ -1222,30 +1228,26 @@ class _SuggestionCard extends StatelessWidget {
 
 class _CheckoutFoodImage extends StatelessWidget {
   final String path;
+  final String label;
   final double? width;
   final double? height;
 
-  const _CheckoutFoodImage({required this.path, this.width, this.height});
+  const _CheckoutFoodImage({
+    required this.path,
+    required this.label,
+    this.width,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return FoodImage(
+      source: DishImages.normalize(label: label, imageUrl: path),
+      label: label,
       width: width,
       height: height,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(color: const Color(0xFFEDEDED)),
-          if (path.startsWith('assets/'))
-            Image.asset(path, fit: BoxFit.cover)
-          else
-            Image.network(
-              path,
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => const SizedBox.shrink(),
-            ),
-        ],
-      ),
+      radius: 0,
+      showLabel: false,
     );
   }
 }
