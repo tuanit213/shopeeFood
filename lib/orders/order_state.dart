@@ -17,6 +17,8 @@ class OrderEntry {
   final DateTime updatedAt;
   final int? shopRating;
   final int? driverRating;
+  final String? shopComment;
+  final String? driverComment;
 
   const OrderEntry({
     this.id = '',
@@ -25,6 +27,8 @@ class OrderEntry {
     required this.updatedAt,
     this.shopRating,
     this.driverRating,
+    this.shopComment,
+    this.driverComment,
   });
 
   OrderEntry copyWith({
@@ -32,6 +36,8 @@ class OrderEntry {
     OrderStatus? status,
     int? shopRating,
     int? driverRating,
+    String? shopComment,
+    String? driverComment,
   }) {
     return OrderEntry(
       id: id,
@@ -40,6 +46,8 @@ class OrderEntry {
       updatedAt: DateTime.now(),
       shopRating: shopRating ?? this.shopRating,
       driverRating: driverRating ?? this.driverRating,
+      shopComment: shopComment ?? this.shopComment,
+      driverComment: driverComment ?? this.driverComment,
     );
   }
 
@@ -51,6 +59,8 @@ class OrderEntry {
       'updatedAt': updatedAt.millisecondsSinceEpoch,
       'shopRating': shopRating,
       'driverRating': driverRating,
+      'shopComment': shopComment,
+      'driverComment': driverComment,
     };
   }
 
@@ -71,6 +81,13 @@ class OrderEntry {
       updatedAt: updatedAt,
       shopRating: (json['shopRating'] as num?)?.toInt(),
       driverRating: (json['driverRating'] as num?)?.toInt(),
+      shopComment: (json['shopComment'] as String?)?.trim().isNotEmpty == true
+          ? (json['shopComment'] as String).trim()
+          : null,
+      driverComment:
+          (json['driverComment'] as String?)?.trim().isNotEmpty == true
+          ? (json['driverComment'] as String).trim()
+          : null,
     );
   }
 }
@@ -271,6 +288,8 @@ class OrderState {
     required String restaurantId,
     required int shopRating,
     required int driverRating,
+    String? shopComment,
+    String? driverComment,
   }) {
     final current = List<OrderEntry>.of(entries.value);
     final index = current.indexWhere(
@@ -285,6 +304,8 @@ class OrderState {
       status: OrderStatus.rated,
       shopRating: shopRating,
       driverRating: driverRating,
+      shopComment: shopComment,
+      driverComment: driverComment,
     );
     _setEntries(current);
   }
@@ -293,6 +314,8 @@ class OrderState {
     required String entryId,
     required int shopRating,
     required int driverRating,
+    String? shopComment,
+    String? driverComment,
   }) {
     if (entryId.isEmpty) return;
     final current = List<OrderEntry>.of(entries.value);
@@ -308,6 +331,8 @@ class OrderState {
       status: OrderStatus.rated,
       shopRating: shopRating,
       driverRating: driverRating,
+      shopComment: shopComment,
+      driverComment: driverComment,
     );
     _setEntries(current);
   }

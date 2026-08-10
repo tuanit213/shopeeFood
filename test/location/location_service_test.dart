@@ -41,5 +41,15 @@ void main() {
       expect(LocationService.sanitizeAddressForTesting(null), isNull);
       expect(LocationService.sanitizeAddressForTesting('   '), isNull);
     });
+    test('toa do ngoai Viet Nam bi loai', () {
+      expect(
+        LocationService.isWithinVietnamBoundsForTesting(37.421998, -122.084000),
+        isFalse,
+      );
+      expect(
+        LocationService.isWithinVietnamBoundsForTesting(10.7769, 106.7009),
+        isTrue,
+      );
+    });
   });
 }

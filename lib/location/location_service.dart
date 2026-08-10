@@ -63,6 +63,14 @@ class LocationService {
       }
 
       final position = await _readAccuratePosition();
+      if (!_isWithinVietnamBounds(position.latitude, position.longitude)) {
+        debugPrint(
+          '[Location] ignored foreign coordinates: '
+          '${position.latitude}, ${position.longitude}',
+        );
+        final saved = await _savedDeliveryLocation();
+        return saved ?? AppLocation.fallback;
+      }
 
       final address = await _reverseAddress(
         position.latitude,
@@ -171,6 +179,13 @@ class LocationService {
       final timestamp = position.timestamp;
       if (maxAge != null && DateTime.now().difference(timestamp) > maxAge) {
         debugPrint('[Location] stale last known ignored: $timestamp');
+        return null;
+      }
+      if (!_isWithinVietnamBounds(position.latitude, position.longitude)) {
+        debugPrint(
+          '[Location] foreign last known ignored: '
+          '${position.latitude}, ${position.longitude}',
+        );
         return null;
       }
       final address = await _reverseAddress(
@@ -331,6 +346,21 @@ class LocationService {
   @visibleForTesting
   static String? sanitizeAddressForTesting(String? raw) =>
       _sanitizeAddressLine(raw);
+
+  @visibleForTesting
+  static bool isWithinVietnamBoundsForTesting(
+    double latitude,
+    double longitude,
+  ) {
+    return _isWithinVietnamBounds(latitude, longitude);
+  }
+
+  static bool _isWithinVietnamBounds(double latitude, double longitude) {
+    return latitude >= 8.0 &&
+        latitude <= 23.5 &&
+        longitude >= 102.0 &&
+        longitude <= 110.5;
+  }
 
   static List<String> _uniqueParts(Iterable<String> parts) {
     // Bước 1: lọc rỗng + bỏ token quốc gia và mã bưu chính (địa chỉ trong

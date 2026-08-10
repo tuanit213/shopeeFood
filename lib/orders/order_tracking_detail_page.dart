@@ -14,14 +14,56 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/app_colors.dart';
 import '../common/food_image.dart';
 import '../checkout/checkout_models.dart';
 import '../restaurant/dish_images.dart';
+import 'order_rating_page.dart';
 import 'order_state.dart';
 
 enum _DeliveryPhase { toShop, waitingAtShop, toCustomer, arrived, delivered }
+
+/// Nhớ MỐC THỜI GIAN bắt đầu theo dõi của từng đơn.
+///
+/// Toàn bộ lộ trình (tài xế -> quán -> chờ lấy món -> giao tới khách) là một
+/// hàm tất định của thời gian thật đã trôi qua kể từ mốc này, vì route dự
+/// phòng và thời lượng mỗi chặng chỉ phụ thuộc vào toạ độ của đơn (tất định).
+///
+/// Nhờ vậy, khi người dùng thoát ra trang chủ rồi quay lại — `State` của trang
+/// bị dựng lại từ đầu — ta vẫn tính đúng "đáng lẽ tài xế đang ở đâu" theo đồng
+/// hồ thực, thay vì reset về 0. Lộ trình như vẫn chạy tiếp cả trong lúc không
+/// nhìn màn hình.
+///
+/// Lưu cả trong RAM (giải quyết đúng ca chuyển tab, app còn sống) lẫn
+/// [SharedPreferences] (sống sót khi tắt/mở lại app).
+class _TrackingSessionStore {
+  static const _prefsPrefix = 'order_tracking_started_at_v1';
+  static final Map<String, DateTime> _memory = {};
+
+  static Future<DateTime> getOrCreateStart(String key) async {
+    final cached = _memory[key];
+    if (cached != null) return cached;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getInt('$_prefsPrefix:$key');
+      if (saved != null) {
+        final restored = DateTime.fromMillisecondsSinceEpoch(saved);
+        _memory[key] = restored;
+        return restored;
+      }
+      final now = DateTime.now();
+      _memory[key] = now;
+      await prefs.setInt('$_prefsPrefix:$key', now.millisecondsSinceEpoch);
+      return now;
+    } catch (_) {
+      final now = _memory[key] ?? DateTime.now();
+      _memory[key] = now;
+      return now;
+    }
+  }
+}
 
 /// Ảnh chụp trạng thái chuyển động của tài xế tại một khung hình.
 ///
@@ -124,8 +166,6 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
   bool _nearbyNotified = false;
   bool _loadingRoadRoute = true;
   bool _trackingStarted = false;
-  int _shopRating = 0;
-  int _driverRating = 0;
 
   static const _averageSpeedKmh = 40.0;
   static const _minimumVisualRouteDuration = Duration(seconds: 80);
@@ -173,28 +213,208 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
     _shopToCustomerRoute = _fallbackRoadRoute(_shopPosition, _customerPosition);
     _activeRoute = _driverToShopRoute;
     _driverBearingDegrees = _headingBearing(_activeRoute, 0);
-    _shopRating = widget.entry.shopRating ?? 0;
-    _driverRating = widget.entry.driverRating ?? 0;
     _motion = ValueNotifier<_TrackingSnapshot>(_snapshot());
 
-    // Tài xế bắt đầu chạy NGAY trên route dự phòng, không đợi hai lời gọi
-    // HTTP routing xong. Trước đây `_startMovingToShop` chỉ chạy sau khi cả
-    // Geoapify lẫn OSRM trả về (hoặc hết timeout ~6-11s) — trên máy mạng chậm
-    // hoặc không có mạng, người dùng nhìn thấy một tài xế đứng yên suốt quãng
-    // đó và tưởng animation hỏng. Route thật tải xong sẽ được ghép vào sau
+    // KHÔNG bắt đầu lại từ đầu một cách vô điều kiện: tính đúng vị trí theo
+    // đồng hồ thực kể từ mốc bắt đầu theo dõi của đơn (xem
+    // [_TrackingSessionStore]). Nhờ vậy thoát ra trang chủ rồi quay lại vẫn
+    // thấy lộ trình chạy tiếp, không reset. Route thật tải xong ghép vào sau
     // qua `_restartRouteMotion` mà không làm giật vị trí đang chạy.
-    _trackingStarted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _startMovingToShop();
+      _resumeOrStartTracking();
     });
 
     _textRefreshTimer = Timer.periodic(_textRefreshInterval, (_) {
       if (!mounted) return;
       setState(() {});
     });
+  }
 
+  String _trackingSessionKey() {
+    final id = widget.entry.id;
+    if (id.isNotEmpty) return id;
+    final order = widget.entry.order;
+    return '${order.restaurant.id}-${order.receiverPhone}-${order.address}';
+  }
+
+  /// Thời lượng cố định của các mốc không phụ thuộc quãng đường: chờ quán lấy
+  /// món (10s đếm ngược + 2s bàn giao) và giữ ở điểm giao trước khi chốt
+  /// "đã giao" (5s).
+  static const _waitAtShopDuration = Duration(seconds: 12);
+  static const _arrivedHoldDuration = Duration(seconds: 5);
+
+  Future<void> _resumeOrStartTracking() async {
+    // Đơn đã giao xong thì hiện thẳng trạng thái giao thành công, bỏ qua mọi
+    // hoạt ảnh — không "chạy lại" một lộ trình đã kết thúc.
+    if (widget.entry.status == OrderStatus.delivered ||
+        widget.entry.status == OrderStatus.rated) {
+      _trackingStarted = true;
+      // Đơn đã giao nhưng CHƯA đánh giá -> đưa thẳng sang trang đánh giá.
+      // Đã đánh giá rồi -> chỉ hiện trạng thái đã giao (guard trong hàm).
+      _enterDeliveredState(markOrder: false, navigateToRating: true);
+      _loadRoadRoutes();
+      return;
+    }
+
+    final startedAt = await _TrackingSessionStore.getOrCreateStart(
+      _trackingSessionKey(),
+    );
+    if (!mounted) return;
+
+    _trackingStarted = true;
+    final elapsed = DateTime.now().difference(startedAt);
+    _applyTimeline(elapsed);
     _loadRoadRoutes();
+  }
+
+  /// Đặt trạng thái đúng với lượng thời gian thật [elapsed] đã trôi qua kể từ
+  /// khi đơn bắt đầu được theo dõi. Các mốc dùng thời lượng chặng tính từ
+  /// route dự phòng (tất định) để resume ổn định giữa các lần mở.
+  void _applyTimeline(Duration elapsed) {
+    final state = _timelineStateForElapsed(
+      elapsed: elapsed,
+      toShop: _durationForRoute(_driverToShopRoute),
+      toCustomer: _durationForRoute(_shopToCustomerRoute),
+      waitAtShop: _waitAtShopDuration,
+      arrivedHold: _arrivedHoldDuration,
+    );
+    switch (state.phase) {
+      case _DeliveryPhase.toShop:
+        _startPhaseAt(_DeliveryPhase.toShop, state.progress);
+      case _DeliveryPhase.waitingAtShop:
+        _enterWaitingState(remaining: state.remaining);
+      case _DeliveryPhase.toCustomer:
+        _startPhaseAt(_DeliveryPhase.toCustomer, state.progress);
+      case _DeliveryPhase.arrived:
+        _enterArrivedState(remaining: state.remaining);
+      case _DeliveryPhase.delivered:
+        _enterDeliveredState(markOrder: true, navigateToRating: true);
+    }
+  }
+
+  /// Bắt đầu một chặng (tài xế->quán hoặc quán->khách) ở đúng mốc [progress]
+  /// (0..1) thay vì luôn từ 0 — dùng khi resume vào giữa chặng.
+  void _startPhaseAt(_DeliveryPhase phase, double progress) {
+    final route = phase == _DeliveryPhase.toShop
+        ? _driverToShopRoute
+        : _shopToCustomerRoute;
+    setState(() {
+      _phase = phase;
+      _activeRoute = route;
+      _nearbyNotified = false;
+    });
+    _routeDone = phase == _DeliveryPhase.toShop ? _arriveShop : _arriveCustomer;
+    _phaseTotalDuration = _durationForRoute(_activeRoute);
+    _phaseStartedAt = DateTime.now().subtract(_phaseTotalDuration * progress);
+    _targetProgress = progress;
+    _phaseProgress = progress;
+    _driverPosition = _pointAt(_activeRoute, progress);
+    _driverBearingDegrees = _headingBearing(_activeRoute, progress);
+    _restartTimers();
+    _publishMotion();
+  }
+
+  void _enterWaitingState({required Duration remaining}) {
+    _stopPhaseMotion();
+    _routeDone = null;
+    final remainingSeconds = remaining.inSeconds.clamp(0, 12);
+    setState(() {
+      _phase = _DeliveryPhase.waitingAtShop;
+      _activeRoute = _driverToShopRoute;
+      _driverPosition = _shopPosition;
+      _phaseProgress = 1;
+      _targetProgress = 1;
+      _waitSeconds = remainingSeconds;
+    });
+    _publishMotion();
+    // Sau khoảng thời gian còn lại của mốc chờ, chuyển sang giao cho khách.
+    _handoffTimer?.cancel();
+    _handoffTimer = Timer(remaining, () {
+      if (mounted) _startDelivering();
+    });
+    // Đếm ngược phần hiển thị cho khớp thời gian còn lại.
+    _waitTimer?.cancel();
+    if (remainingSeconds > 0) {
+      _waitTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        if (_waitSeconds <= 1) {
+          timer.cancel();
+          setState(() => _waitSeconds = 0);
+          return;
+        }
+        setState(() => _waitSeconds--);
+      });
+    }
+  }
+
+  void _enterArrivedState({required Duration remaining}) {
+    _stopPhaseMotion();
+    _routeDone = null;
+    setState(() {
+      _phase = _DeliveryPhase.arrived;
+      _activeRoute = _shopToCustomerRoute;
+      _driverPosition = _customerPosition;
+      _phaseProgress = 1;
+      _targetProgress = 1;
+    });
+    _publishMotion();
+    _handoffTimer?.cancel();
+    _handoffTimer = Timer(remaining, () {
+      if (!mounted) return;
+      _enterDeliveredState(markOrder: true, navigateToRating: true);
+    });
+  }
+
+  void _enterDeliveredState({
+    required bool markOrder,
+    bool navigateToRating = false,
+  }) {
+    _stopPhaseMotion();
+    _routeDone = null;
+    setState(() {
+      _phase = _DeliveryPhase.delivered;
+      _activeRoute = _shopToCustomerRoute;
+      _driverPosition = _customerPosition;
+      _phaseProgress = 1;
+      _targetProgress = 1;
+    });
+    _publishMotion();
+    if (markOrder) {
+      if (widget.entry.id.isNotEmpty) {
+        OrderState.markEntryDelivered(widget.entry.id);
+      } else {
+        OrderState.markDelivered(widget.entry.order);
+      }
+    }
+    // Đơn chưa được đánh giá thì chuyển hẳn sang trang đánh giá (thay thế màn
+    // theo dõi, để nút back không quay lại lộ trình đã kết thúc). Đơn đã đánh
+    // giá rồi thì giữ nguyên trên màn này.
+    if (navigateToRating && widget.entry.status != OrderStatus.rated) {
+      _openRatingPage();
+    }
+  }
+
+  bool _ratingPageOpened = false;
+
+  void _openRatingPage() {
+    if (_ratingPageOpened) return;
+    _ratingPageOpened = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => OrderRatingPage(
+            entry: widget.entry,
+            driverName: _driverProfile.name,
+            driverPlate: _driverProfile.plate,
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -248,24 +468,17 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
         _activeRoute = _shopToCustomerRoute;
       }
     });
+    // Lộ trình đã được khởi động (hoặc resume) trước khi route thật về. Chỉ
+    // ghép route thật vào chặng đang chạy mà không đổi tiến độ.
     if (!_trackingStarted) {
       _trackingStarted = true;
-      _startMovingToShop();
+      _startPhaseAt(_DeliveryPhase.toShop, 0);
     } else if (_phase == _DeliveryPhase.toShop ||
         _phase == _DeliveryPhase.toCustomer) {
       _restartRouteMotion();
     } else {
       _publishMotion();
     }
-  }
-
-  void _startMovingToShop() {
-    setState(() {
-      _phase = _DeliveryPhase.toShop;
-      _activeRoute = _driverToShopRoute;
-    });
-    _beginPhaseMotion(_arriveShop);
-    _publishMotion();
   }
 
   void _arriveShop() {
@@ -306,25 +519,7 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
   }
 
   void _arriveCustomer() {
-    _stopPhaseMotion();
-    _routeDone = null;
-    setState(() {
-      _phase = _DeliveryPhase.arrived;
-      _driverPosition = _customerPosition;
-      _phaseProgress = 1;
-      _targetProgress = 1;
-    });
-    _publishMotion();
-    Timer(const Duration(seconds: 5), () {
-      if (!mounted) return;
-      setState(() => _phase = _DeliveryPhase.delivered);
-      if (widget.entry.id.isNotEmpty) {
-        OrderState.markEntryDelivered(widget.entry.id);
-      } else {
-        OrderState.markDelivered(widget.entry.order);
-      }
-      _showStatusPopup('Đơn hàng của bạn đã được giao');
-    });
+    _enterArrivedState(remaining: _arrivedHoldDuration);
   }
 
   /// Bắt đầu di chuyển từ đầu route hiện tại ([_activeRoute]) tới cuối route.
@@ -584,43 +779,11 @@ class _OrderTrackingDetailPageState extends State<OrderTrackingDetailPage>
               ),
               const SizedBox(height: 8),
               _OrderSummaryCard(order: order, firstItem: firstItem),
-              if (_phase == _DeliveryPhase.delivered) ...[
-                const SizedBox(height: 8),
-                _RatingCard(
-                  shopRating: _shopRating,
-                  driverRating: _driverRating,
-                  onShopRatingChanged: (value) {
-                    setState(() => _shopRating = value);
-                    _persistRatingIfComplete();
-                  },
-                  onDriverRatingChanged: (value) {
-                    setState(() => _driverRating = value);
-                    _persistRatingIfComplete();
-                  },
-                ),
-              ],
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _persistRatingIfComplete() {
-    if (_shopRating == 0 || _driverRating == 0) return;
-    if (widget.entry.id.isNotEmpty) {
-      OrderState.rateEntry(
-        entryId: widget.entry.id,
-        shopRating: _shopRating,
-        driverRating: _driverRating,
-      );
-    } else {
-      OrderState.rateOrder(
-        restaurantId: widget.entry.order.restaurant.id,
-        shopRating: _shopRating,
-        driverRating: _driverRating,
-      );
-    }
   }
 }
 
@@ -1545,94 +1708,6 @@ class _OrderSummaryCard extends StatelessWidget {
   }
 }
 
-class _RatingCard extends StatelessWidget {
-  final int shopRating;
-  final int driverRating;
-  final ValueChanged<int> onShopRatingChanged;
-  final ValueChanged<int> onDriverRatingChanged;
-
-  const _RatingCard({
-    required this.shopRating,
-    required this.driverRating,
-    required this.onShopRatingChanged,
-    required this.onDriverRatingChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _WhiteCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Đánh giá đơn hàng',
-            style: TextStyle(
-              color: Color(0xFF212121),
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _RatingRow(
-            label: 'Đánh giá quán',
-            value: shopRating,
-            onChanged: onShopRatingChanged,
-          ),
-          const SizedBox(height: 8),
-          _RatingRow(
-            label: 'Đánh giá tài xế',
-            value: driverRating,
-            onChanged: onDriverRatingChanged,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RatingRow extends StatelessWidget {
-  final String label;
-  final int value;
-  final ValueChanged<int> onChanged;
-
-  const _RatingRow({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF424242),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        for (var i = 1; i <= 5; i++)
-          InkWell(
-            onTap: () => onChanged(i),
-            customBorder: const CircleBorder(),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                i <= value ? Icons.star_rounded : Icons.star_border_rounded,
-                color: const Color(0xFFFFB300),
-                size: 21,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 class _WhiteCard extends StatelessWidget {
   final Widget child;
 
@@ -2171,12 +2246,87 @@ LatLng _offsetPoint(LatLng origin, double distanceKm, int bearingDegrees) {
   return LatLng(lat2 * 180 / math.pi, lng2 * 180 / math.pi);
 }
 
+/// Ánh xạ "đã trôi qua bao lâu kể từ khi bắt đầu theo dõi" -> trạng thái lộ
+/// trình hiện tại. Là hàm THUẦN (không phụ thuộc widget/thời gian hệ thống)
+/// để resume tất định và test được: cùng elapsed + cùng thời lượng chặng luôn
+/// cho ra cùng một trạng thái.
+({_DeliveryPhase phase, double progress, Duration remaining})
+_timelineStateForElapsed({
+  required Duration elapsed,
+  required Duration toShop,
+  required Duration toCustomer,
+  required Duration waitAtShop,
+  required Duration arrivedHold,
+}) {
+  final endToShop = toShop;
+  final endWaiting = endToShop + waitAtShop;
+  final endToCustomer = endWaiting + toCustomer;
+  final endArrived = endToCustomer + arrivedHold;
+
+  if (elapsed < endToShop) {
+    final progress = toShop.inMilliseconds <= 0
+        ? 0.0
+        : elapsed.inMilliseconds / toShop.inMilliseconds;
+    return (
+      phase: _DeliveryPhase.toShop,
+      progress: progress.clamp(0.0, 0.999),
+      remaining: endToShop - elapsed,
+    );
+  }
+  if (elapsed < endWaiting) {
+    return (
+      phase: _DeliveryPhase.waitingAtShop,
+      progress: 1,
+      remaining: endWaiting - elapsed,
+    );
+  }
+  if (elapsed < endToCustomer) {
+    final into = elapsed - endWaiting;
+    final progress = toCustomer.inMilliseconds <= 0
+        ? 0.0
+        : into.inMilliseconds / toCustomer.inMilliseconds;
+    return (
+      phase: _DeliveryPhase.toCustomer,
+      progress: progress.clamp(0.0, 0.999),
+      remaining: endToCustomer - elapsed,
+    );
+  }
+  if (elapsed < endArrived) {
+    return (
+      phase: _DeliveryPhase.arrived,
+      progress: 1,
+      remaining: endArrived - elapsed,
+    );
+  }
+  return (phase: _DeliveryPhase.delivered, progress: 1, remaining: Duration.zero);
+}
+
 // ---------------------------------------------------------------------------
 // Wrappers `@visibleForTesting`: các hàm/lớp phía trên đều là private (tiền
 // tố `_`) vì chỉ dùng nội bộ file này. Test ở `test/orders/` nằm trong một
 // library khác nên không gọi thẳng được — các hàm dưới đây expose lại đúng
 // logic đó, không đổi hành vi, chỉ để test truy cập được.
 // ---------------------------------------------------------------------------
+
+/// Trả về tên phase ('toShop' | 'waitingAtShop' | 'toCustomer' | 'arrived' |
+/// 'delivered') + tiến độ chặng cho một lượng thời gian đã trôi qua.
+@visibleForTesting
+({String phase, double progress}) timelineStateForTesting({
+  required Duration elapsed,
+  required Duration toShop,
+  required Duration toCustomer,
+  required Duration waitAtShop,
+  required Duration arrivedHold,
+}) {
+  final state = _timelineStateForElapsed(
+    elapsed: elapsed,
+    toShop: toShop,
+    toCustomer: toCustomer,
+    waitAtShop: waitAtShop,
+    arrivedHold: arrivedHold,
+  );
+  return (phase: state.phase.name, progress: state.progress);
+}
 
 @visibleForTesting
 _TrackingPoints resolveTrackingPointsForTesting(CheckoutOrder order) =>

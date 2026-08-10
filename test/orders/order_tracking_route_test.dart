@@ -222,6 +222,68 @@ void main() {
     },
   );
 
+  group('resume lộ trình theo thời gian thật (thoát ra vào lại không reset)', () {
+    const toShop = Duration(seconds: 90);
+    const toCustomer = Duration(seconds: 120);
+    const wait = Duration(seconds: 12);
+    const hold = Duration(seconds: 5);
+
+    ({String phase, double progress}) at(int seconds) {
+      return timelineStateForTesting(
+        elapsed: Duration(seconds: seconds),
+        toShop: toShop,
+        toCustomer: toCustomer,
+        waitAtShop: wait,
+        arrivedHold: hold,
+      );
+    }
+
+    test('mốc 0s là đầu chặng tài xế -> quán', () {
+      final s = at(0);
+      expect(s.phase, 'toShop');
+      expect(s.progress, closeTo(0, 0.001));
+    });
+
+    test('giữa chặng tới quán cho tiến độ tương ứng, KHÔNG về 0', () {
+      final s = at(45); // nửa chặng 90s
+      expect(s.phase, 'toShop');
+      expect(s.progress, closeTo(0.5, 0.02));
+    });
+
+    test('trong khoảng chờ quán lấy món', () {
+      expect(at(95).phase, 'waitingAtShop'); // 90..102
+    });
+
+    test('đang giao tới khách với tiến độ tăng dần', () {
+      // toCustomer bắt đầu ở 102s, dài 120s.
+      expect(at(102).phase, 'toCustomer');
+      final mid = at(162); // 102 + 60
+      expect(mid.phase, 'toCustomer');
+      expect(mid.progress, closeTo(0.5, 0.02));
+    });
+
+    test('đã tới nơi rồi đã giao xong khi vượt tổng thời gian', () {
+      expect(at(223).phase, 'arrived'); // 222..227
+      expect(at(230).phase, 'delivered');
+      expect(at(100000).phase, 'delivered');
+    });
+
+    test('tiến độ đơn điệu không giảm suốt hai chặng di chuyển', () {
+      double? prev;
+      for (final sec in [0, 20, 40, 60, 80, 89]) {
+        final p = at(sec).progress;
+        if (prev != null) expect(p, greaterThanOrEqualTo(prev - 1e-9));
+        prev = p;
+      }
+      prev = null;
+      for (final sec in [103, 130, 160, 190, 220]) {
+        final p = at(sec).progress;
+        if (prev != null) expect(p, greaterThanOrEqualTo(prev - 1e-9));
+        prev = p;
+      }
+    });
+  });
+
   group('đo khoảng cách dưới 1km (bẫy roundResult của latlong2)', () {
     test('hai điểm cách nhau vài chục mét KHÔNG bị làm tròn về 0 km', () {
       // `Distance()` mặc định của latlong2 có `roundResult: true` và làm tròn

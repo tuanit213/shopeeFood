@@ -179,6 +179,54 @@ void main() {
     );
   });
 
+  test('rateEntry lưu cả số sao lẫn nhận xét bằng chữ, đổi trạng thái rated', () {
+    final entry = OrderState.markDelivering(
+      _orderWith(_cartItem(id: 'tea', name: 'Tra sua')),
+    );
+    OrderState.markEntryDelivered(entry.id);
+
+    OrderState.rateEntry(
+      entryId: entry.id,
+      shopRating: 5,
+      driverRating: 4,
+      shopComment: 'Món ngon, đóng gói kỹ',
+      driverComment: 'Tài xế giao nhanh',
+    );
+
+    final rated = OrderState.entries.value.singleWhere((e) => e.id == entry.id);
+    expect(rated.status, OrderStatus.rated);
+    expect(rated.shopRating, 5);
+    expect(rated.driverRating, 4);
+    expect(rated.shopComment, 'Món ngon, đóng gói kỹ');
+    expect(rated.driverComment, 'Tài xế giao nhanh');
+  });
+
+  test('nhận xét đánh giá sống sót qua persist/hydrate', () async {
+    final entry = OrderState.markDelivering(
+      _orderWith(_cartItem(id: 'tea', name: 'Tra sua')),
+    );
+    OrderState.markEntryDelivered(entry.id);
+    OrderState.rateEntry(
+      entryId: entry.id,
+      shopRating: 4,
+      driverRating: 5,
+      shopComment: 'Ổn áp',
+      driverComment: 'Thân thiện',
+    );
+    await OrderState.persist();
+
+    OrderState.entries.value = const [];
+    await OrderState.hydrate();
+
+    final restored = OrderState.entries.value.singleWhere(
+      (e) => e.id == entry.id,
+    );
+    expect(restored.shopComment, 'Ổn áp');
+    expect(restored.driverComment, 'Thân thiện');
+    expect(restored.shopRating, 4);
+    expect(restored.driverRating, 5);
+  });
+
   test('cart and delivery summaries count independent restaurant states', () {
     OrderState.mergeCartItem(
       _orderWith(_cartItem(id: 'tea', quantity: 2), restaurantId: 'store-1'),
