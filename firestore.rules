@@ -2,65 +2,65 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read: if true;
-
-      allow create: if request.resource.data.keys().hasAll([
-          'uid',
-          'fullName',
-          'displayName',
-          'phone',
-          'email',
-          'passwordHash',
-          'acceptedTerms',
-          'provider',
-          'stats',
-          'createdAt',
-          'updatedAt'
-        ])
-        && request.resource.data.uid == userId
-        && request.resource.data.fullName is string
-        && request.resource.data.displayName is string
-        && request.resource.data.phone is string
-        && request.resource.data.email is string
-        && request.resource.data.passwordHash is string
-        && request.resource.data.acceptedTerms == true
-        && request.resource.data.provider == 'email_password_form';
-
-      allow update: if request.resource.data.diff(resource.data).changedKeys()
-        .hasOnly([
-          'displayName',
-          'avatarUrl',
-          'rememberMe',
-          'sessionExpiry',
-          'lastLoginAt',
-          'stats',
-          'savedAddresses',
-          'orderCount',
-          'shopeeXu',
-          'ratingCount',
-          'ratingAverage',
-          'updatedAt'
-        ]);
-
-      allow delete: if false;
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function hasSafeProfileShape(data) {
+      return data.uid is string
+        && data.role == 'customer'
+        && data.status in ['active', 'pending', 'disabled']
+        && !(data.keys().hasAny(['password', 'passwordHash', 'admin', 'adminFields']));
     }
 
-    // Danh mục quán ăn và menu.
-    //
-    // Ứng dụng chỉ ĐỌC dữ liệu này. Quyền ghi đang mở để nạp dữ liệu mẫu
-    // lần đầu (nút "DEV: Nạp dữ liệu quán lên Firestore").
-    //
-    // >>> SAU KHI NẠP XONG: đổi cả hai dòng `allow write` thành
-    // >>> `allow write: if false;` rồi Publish lại để khoá dữ liệu.
-    match /restaurants/{restaurantId} {
-      allow read: if true;
-      allow write: if true;
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+      allow list: if false;
+      allow create: if isOwner(uid) && hasSafeProfileShape(request.resource.data)
+        && request.resource.data.uid == uid;
+      allow update: if isOwner(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'displayName', 'avatarUrl', 'phone', 'rememberMe', 'sessionExpiry',
+          'lastLoginAt', 'updatedAt'
+        ]);
+      allow delete: if false;
 
-      match /menuItems/{menuItemId} {
-        allow read: if true;
-        allow write: if true;
+      match /addresses/{addressId} {
+        allow read: if isOwner(uid);
+        allow create, update, delete: if isOwner(uid);
+      }
+
+      // Read-only compatibility for the old menu location.
+      match /menuItems/{itemId} {
+        allow read: if signedIn();
+        allow write: if false;
       }
     }
+
+    match /restaurants/{restaurantId} {
+      allow read: if signedIn();
+      allow write: if false;
+      match /menuItems/{itemId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+    }
+    match /restaurantBranches/{branchId} {
+      allow read: if signedIn();
+      allow write: if false;
+      match /menuSections/{sectionId} { allow read: if signedIn(); allow write: if false; }
+      match /menuItems/{itemId} { allow read: if signedIn(); allow write: if false; }
+      match /optionGroups/{groupId} { allow read: if signedIn(); allow write: if false; }
+    }
+
+    match /orders/{orderId} {
+      allow get, list: if signedIn() && resource.data.customerId == request.auth.uid;
+      // Phase 1 exposes the contract but leaves server-authoritative writes closed.
+      allow create, update, delete: if false;
+      match /events/{eventId} { allow read, write: if false; }
+    }
+    match /drivers/{driverId} { allow read, write: if false; }
+    match /ratings/{ratingId} { allow read, write: if false; }
   }
 }

@@ -1,0 +1,5 @@
+--- MODIFIED_FILE.txt (baseline)
++++ MODIFIED_FILE.txt (modified)
+@@
+-state=baseline
++state=modified

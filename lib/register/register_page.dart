@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
-import '../app/user_repository.dart';
 import '../app/user_session.dart';
+import '../auth/auth_session.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -115,13 +115,14 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      final userRef = await UserRepository.createUser(
-        fullName: _nameController.text,
+      await AuthSession.signUp(
+        displayName: _nameController.text,
         phone: _phoneController.text,
         email: _emailController.text,
         password: _passwordController.text,
       );
-      await UserSession.saveUserId(userRef.id);
+      await AuthSession.signOut();
+      await UserSession.clearAll();
 
       if (!mounted) {
         return;
@@ -134,19 +135,6 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       );
       Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
-    } on UserRepositoryException catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Không thể lưu tài khoản: ${error.message ?? error.code}',
-          ),
-          backgroundColor: _errorColor,
-        ),
-      );
     } on FirebaseException catch (error) {
       if (!mounted) {
         return;

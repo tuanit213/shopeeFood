@@ -1,0 +1,11 @@
+{
+  "name": "shopeefood-firestore-rules-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test firestore.rules.test.cjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.3.0"
+  }
+}

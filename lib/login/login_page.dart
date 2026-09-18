@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../app/app_colors.dart';
 import '../app/app_routes.dart';
 import '../app/user_repository.dart';
 import '../app/user_session.dart';
+import '../auth/auth_session.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -133,10 +133,11 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _validatePhone() {
     final phone = _phoneController.text.trim();
-    final hasError = !RegExp(r'^\d{9,10}$').hasMatch(phone);
+    final isEmail = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(phone);
+    final hasError = !isEmail && !RegExp(r'^\d{9,10}$').hasMatch(phone);
     setState(() {
       _phoneTouched = true;
-      _phoneError = hasError ? 'Số điện thoại không hợp lệ' : null;
+      _phoneError = hasError ? 'Email hoặc số điện thoại không hợp lệ' : null;
     });
     return !hasError;
   }
@@ -167,50 +168,39 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final phone = UserRepository.normalizePhone(_phoneController.text);
-      final userDoc = await UserRepository.findByPhone(phone);
-
-      if (!mounted) {
-        return;
-      }
-
-      if (userDoc == null) {
+      final input = _phoneController.text.trim();
+      final isEmail = input.contains('@');
+      if (!isEmail) {
         setState(() {
           _showApiError = true;
           _isLoading = false;
         });
-        _showErrorSnackBar('Tài khoản không tồn tại');
+        _showErrorSnackBar(
+          'Đăng nhập số điện thoại cũ đã ngừng hỗ trợ. '
+          'Vui lòng đặt lại mật khẩu hoặc liên kết tài khoản bằng email.',
+        );
         return;
       }
 
-      final userData = userDoc.data() ?? const <String, dynamic>{};
-      final password = _passwordController.text;
-      final storedPasswordHash = (userData['passwordHash'] as String?)?.trim();
-      final legacyPassword = (userData['password'] as String?)?.trim();
-      final passwordMatches =
-          storedPasswordHash == null && legacyPassword == null ||
-          storedPasswordHash == UserRepository.hashPassword(password) ||
-          legacyPassword == password;
-      if (!passwordMatches) {
-        setState(() {
-          _showApiError = true;
-          _isLoading = false;
-        });
-        _showErrorSnackBar('Sai mật khẩu');
-        return;
-      }
-
+      final profile = await AuthSession.signIn(
+        email: input,
+        password: _passwordController.text,
+      );
       final sessionExpiry = _rememberLogin ? UserSession.expiryFromNow() : null;
       await UserSession.saveSession(
-        userId: userDoc.id,
-        phone: phone,
+        userId: profile.uid,
+        phone: profile.phone,
         rememberMe: _rememberLogin,
       );
-      await UserRepository.recordLogin(
-        userId: userDoc.id,
-        rememberMe: _rememberLogin,
-        sessionExpiry: sessionExpiry,
-      );
+      try {
+        await UserRepository.recordLogin(
+          userId: profile.uid,
+          rememberMe: _rememberLogin,
+          sessionExpiry: sessionExpiry,
+        );
+      } on FirebaseException {
+        // Auth session remains valid even when profile metadata is read-only.
+      }
 
       if (!mounted) {
         return;
@@ -383,7 +373,7 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Số điện thoại hoặc mật khẩu không đúng',
+                'Email, số điện thoại hoặc mật khẩu không đúng',
                 style: TextStyle(
                   fontSize: 13,
                   color: _textPrimary,
@@ -410,7 +400,7 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Số điện thoại',
+          'Email hoặc số điện thoại',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -426,67 +416,29 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 82,
-                height: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: const BoxDecoration(
-                  color: _inputFill,
-                  borderRadius: BorderRadius.horizontal(
-                    left: Radius.circular(7),
-                  ),
-                  border: Border(right: BorderSide(color: _borderDefault)),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('🇻🇳', style: TextStyle(fontSize: 13)),
-                    Text(
-                      '+84',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _textPrimary,
-                      ),
-                    ),
-                    Icon(Icons.keyboard_arrow_down_rounded, size: 16),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: _phoneController,
-                  focusNode: _phoneFocusNode,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  onSubmitted: (_) {
-                    _passwordFocusNode.requestFocus();
-                  },
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    isDense: true,
-                    hintText: 'Số điện thoại',
-                    hintStyle: TextStyle(color: _hint, fontSize: 13),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: hasError ? _error : _textPrimary,
-                  ),
-                ),
-              ),
-            ],
+          child: TextField(
+            controller: _phoneController,
+            focusNode: _phoneFocusNode,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => _passwordFocusNode.requestFocus(),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              isDense: true,
+              prefixIcon: Icon(Icons.person_outline_rounded, size: 19),
+              hintText: 'email@example.com hoặc 0901234567',
+              hintStyle: TextStyle(color: _hint, fontSize: 13),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+            ),
+            style: TextStyle(
+              fontSize: 13,
+              color: hasError ? _error : _textPrimary,
+            ),
           ),
         ),
         _buildErrorText(_phoneError),

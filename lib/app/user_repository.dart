@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 
 class AppUserProfile {
   final String id;
@@ -77,85 +74,9 @@ class UserRepository {
     return digits;
   }
 
-  static String normalizeEmail(String value) => value.trim().toLowerCase();
-
-  static String hashPassword(String password) {
-    return sha256.convert(utf8.encode(password)).toString();
-  }
-
-  static Future<DocumentSnapshot<Map<String, dynamic>>?> findByPhone(
-    String phone,
-  ) async {
-    final normalized = normalizePhone(phone);
-    if (normalized.isEmpty) return null;
-    final users = await _users
-        .where('phone', isEqualTo: normalized)
-        .limit(1)
-        .get();
-    return users.docs.isEmpty ? null : users.docs.first;
-  }
-
-  static Future<DocumentSnapshot<Map<String, dynamic>>?> findByEmail(
-    String email,
-  ) async {
-    final normalized = normalizeEmail(email);
-    if (normalized.isEmpty) return null;
-    final users = await _users
-        .where('email', isEqualTo: normalized)
-        .limit(1)
-        .get();
-    return users.docs.isEmpty ? null : users.docs.first;
-  }
-
-  static Future<DocumentReference<Map<String, dynamic>>> createUser({
-    required String fullName,
-    required String phone,
-    required String email,
-    required String password,
-  }) async {
-    final normalizedPhone = normalizePhone(phone);
-    final normalizedEmail = normalizeEmail(email);
-
-    final existingPhone = await findByPhone(normalizedPhone);
-    if (existingPhone != null) {
-      throw const UserRepositoryException('Số điện thoại đã được đăng ký');
-    }
-
-    final existingEmail = await findByEmail(normalizedEmail);
-    if (existingEmail != null) {
-      throw const UserRepositoryException('Email đã được đăng ký');
-    }
-
-    final userRef = _users.doc();
-    await userRef.set({
-      'uid': userRef.id,
-      'fullName': fullName.trim(),
-      'displayName': fullName.trim(),
-      'phone': normalizedPhone,
-      'email': normalizedEmail,
-      'passwordHash': hashPassword(password),
-      'avatarUrl': null,
-      'acceptedTerms': true,
-      'provider': 'email_password_form',
-      'stats': {
-        'totalOrders': 0,
-        'totalSpent': 0,
-        'shopeeXu': 0,
-        'ratingCount': 0,
-        'avgRating': null,
-      },
-      'savedAddresses': const [],
-      'rememberMe': false,
-      'sessionExpiry': null,
-      'orderCount': 0,
-      'shopeeXu': 0,
-      'ratingCount': 0,
-      'ratingAverage': null,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-    return userRef;
-  }
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> watchProfile(
+    String userId,
+  ) => _users.doc(userId).snapshots();
 
   static Future<void> recordLogin({
     required String userId,
@@ -180,20 +101,8 @@ class UserRepository {
     required int ratingCount,
     required double? avgRating,
   }) async {
-    await _users.doc(userId).set({
-      'stats': {
-        'totalOrders': totalOrders,
-        'totalSpent': totalSpent,
-        'shopeeXu': shopeeXu,
-        'ratingCount': ratingCount,
-        'avgRating': avgRating,
-      },
-      'orderCount': totalOrders,
-      'shopeeXu': shopeeXu,
-      'ratingCount': ratingCount,
-      'ratingAverage': avgRating,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    // Aggregate stats become server-owned in Phase 2. The legacy UI still
+    // computes them locally, but Phase 1 intentionally does not persist them.
   }
 
   /// Cập nhật ảnh đại diện. [avatarUrl] có thể là một data URI base64
@@ -213,20 +122,7 @@ class UserRepository {
     required String userId,
     required List<Map<String, dynamic>> addresses,
   }) async {
-    await _users.doc(userId).set({
-      'savedAddresses': addresses,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    // Legacy addresses remain in SharedPreferences. New writes will use the
+    // owner-only users/{uid}/addresses subcollection through AddressRepositoryV2.
   }
-}
-
-class UserRepositoryException implements Exception {
-  final String? message;
-
-  const UserRepositoryException(this.message);
-
-  String get code => message ?? 'user_repository_error';
-
-  @override
-  String toString() => code;
 }

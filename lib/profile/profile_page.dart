@@ -13,6 +13,7 @@ import '../app/app_colors.dart';
 import '../app/app_routes.dart';
 import '../app/user_repository.dart';
 import '../app/user_session.dart';
+import '../auth/auth_session.dart';
 import '../checkout/checkout_pages.dart';
 import '../common/food_image.dart';
 import '../home/promo_results_page.dart';
@@ -87,34 +88,30 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    _userSub = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .snapshots()
-        .listen(
-          (snapshot) {
-            if (!mounted) {
-              return;
-            }
+    _userSub = UserRepository.watchProfile(userId).listen(
+      (snapshot) {
+        if (!mounted) {
+          return;
+        }
 
-            final data = snapshot.data();
-            setState(() {
-              _profile = data == null ? null : _UserProfile.fromMap(data);
-              _isLoading = false;
-              _errorMessage = null;
-            });
-          },
-          onError: (Object error) {
-            if (!mounted) {
-              return;
-            }
+        final data = snapshot.data();
+        setState(() {
+          _profile = data == null ? null : _UserProfile.fromMap(data);
+          _isLoading = false;
+          _errorMessage = null;
+        });
+      },
+      onError: (Object error) {
+        if (!mounted) {
+          return;
+        }
 
-            setState(() {
-              _isLoading = false;
-              _errorMessage = 'Không thể tải thông tin. Thử lại';
-            });
-          },
-        );
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Không thể tải thông tin. Thử lại';
+        });
+      },
+    );
   }
 
   @override
@@ -557,6 +554,7 @@ class _ShopeeLikeProfileContent extends StatelessWidget {
     );
 
     if (shouldLogout != true || !context.mounted) return;
+    await AuthSession.signOut();
     await UserSession.clear(rememberPhone: profile.phone);
     if (!context.mounted) return;
     Navigator.pushNamedAndRemoveUntil(
@@ -1175,6 +1173,7 @@ class _ProfileContent extends StatelessWidget {
       return;
     }
 
+    await AuthSession.signOut();
     await UserSession.clear(rememberPhone: profile.phone);
     if (!context.mounted) {
       return;

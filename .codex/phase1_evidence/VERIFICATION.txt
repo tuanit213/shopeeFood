@@ -1,0 +1,14 @@
+PHASE_1_EVIDENCE_LEDGER
+MODIFIED_FILE=.codex/phase1_evidence/MODIFIED_FILE.txt
+DIFF_FILE=.codex/phase1_evidence/DIFF_FILE.patch
+VERIFICATION=.codex/phase1_evidence/VERIFICATION.txt
+ROLLBACK=.codex/phase1_evidence/ROLLBACK.sh
+BASELINE command=flutter analyze input=commit_4abd47e result=PASS exit=0
+BASELINE command=flutter test input=commit_4abd47e result=94 tests passed exit=0
+MODIFIED command=flutter analyze input=feature/real-delivery-foundation result=PASS exit=0
+MODIFIED command=flutter test input=feature/real-delivery-foundation result=98 tests passed exit=0
+RULES command=firebase emulators:exec input=firestore emulator result=4 tests passed exit=0
+JAVA command=java -version input=Temurin_JDK result=21.0.12.1 exit=0
+LEGACY_AUTH command=phone_login input=unauthenticated request result=migration_only_no_users_query exit=0
+ROLLBACK command=ROLLBACK.sh input=rollback-copy.txt result=PHASE_1_EVIDENCE;state=baseline exit=0
+ROLLBACK_HASH=AD3F7D59E0862F0489CF8E0C064876F1A206D6C0FCDF3F76AA4EA2D8BFD634AF
