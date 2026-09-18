@@ -1,4 +1,4 @@
-# Real delivery architecture (Phase 1)
+# Real delivery architecture (Phase 1-2)
 
 ## Collections and ownership
 
@@ -29,8 +29,14 @@ with `statusVersion` for optimistic/server transitions. Rating is intentionally
 not a status. Nullable driver/ETA/timeline fields represent information that is
 not available before trusted assignment or the corresponding event.
 
-## Phase boundary
+## Phase 1 boundary
 
 No GPS publisher, route API, payment, driver assignment, merchant UI, seed
-script, or legacy fallback deletion is included here. Phase 2 can implement
-server order creation/transitions and claims without changing these contracts.
+script, or legacy fallback deletion is included here.
+
+## Phase 2 server order boundary
+
+The `createOrder` callable is the only authenticated order creation path. It
+resolves catalog and branch data on the server, writes immutable snapshots,
+starts at `placed` with `driverId: null`, and records `ORDER_PLACED` plus an
+idempotency record in one transaction. Direct client writes remain closed.

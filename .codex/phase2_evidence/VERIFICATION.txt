@@ -1,0 +1,35 @@
+BASELINE
+command: node functions/test/orders.test.js (before implementation fixture)
+input: phase1 pricing fixture
+result: baseline behavior recorded as phase1 fixture
+exit: 0
+
+MODIFIED
+command: npm test --prefix functions
+input: pricing and validation fixtures
+literal output: order tests: 3 passed
+exit: 0
+
+MODIFIED
+command: flutter test
+input: full Flutter test suite
+literal output: All tests passed!
+exit: 0
+
+MODIFIED
+command: flutter analyze
+input: Dart source tree
+literal output: No issues found! (ran in 12.4s)
+exit: 0
+
+INTEGRATION
+command: firebase emulators:exec --only firestore,auth,functions --project shopeefood-6a82f2 "npm --prefix functions run test:emulator"
+input: authenticated callable order with repeated idempotency key
+literal output: emulator createOrder: idempotency, snapshots, pricing, event passed
+exit: 0
+
+ROLLBACK
+command: C:/Program Files/Git/bin/bash.exe .codex/phase2_evidence/ROLLBACK.sh .codex/phase2_evidence/ROLLBACK_TARGET.txt
+input: modified fixture copy
+literal output: restored bytes match PRISTINE_FILE.txt
+exit: 0

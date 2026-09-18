@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../address/address_pages.dart';
@@ -10,6 +11,8 @@ import '../common/food_image.dart';
 import '../location/location_service.dart';
 import '../orders/order_state.dart';
 import '../orders/order_tracking_detail_page.dart';
+import '../orders/server_order_tracking_page.dart';
+import '../repositories/firebase_order_repository.dart';
 import '../restaurant/dish_images.dart';
 import 'checkout_models.dart';
 
@@ -1572,11 +1575,14 @@ class _ConfirmOrderDialogState extends State<ConfirmOrderDialog>
   late final AnimationController _controller;
   Timer? _timer;
   bool _placed = false;
+  late final String _idempotencyKey;
   int _seconds = 7;
 
   @override
   void initState() {
     super.initState();
+    _idempotencyKey =
+        'checkout-${DateTime.now().toUtc().microsecondsSinceEpoch}';
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 7),
@@ -1599,10 +1605,35 @@ class _ConfirmOrderDialogState extends State<ConfirmOrderDialog>
     super.dispose();
   }
 
-  void _placeOrder() {
+  Future<void> _placeOrder() async {
     if (!mounted || _placed) return;
     _placed = true;
     _timer?.cancel();
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      try {
+        final serverOrder = await FirebaseOrderRepository()
+            .createOrderFromCheckout(
+              widget.order,
+              idempotencyKey: '${firebaseUser.uid}-$_idempotencyKey',
+            );
+        if (!mounted) return;
+        final navigator = Navigator.of(context);
+        navigator.pop();
+        navigator.pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => ServerOrderTrackingPage(order: serverOrder),
+          ),
+        );
+      } on Object catch (error) {
+        _placed = false;
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Không thể tạo đơn trên máy chủ: $error')),
+        );
+      }
+      return;
+    }
     final entry = OrderState.markDelivering(widget.order);
     final navigator = Navigator.of(context);
     navigator.pop();
