@@ -47,7 +47,7 @@ Do not deploy Firebase service-account JSON files to the static frontend contain
 
 ## Passwordless redeploy from Windows
 
-Install the deployment public key in `/root/.ssh/authorized_keys`, then run:
+Install the deployment RSA public key in `/root/.ssh/authorized_keys`, then run:
 
 ```powershell
 Set-Location D:\ProjectCaNhan\shoppeFood
@@ -60,8 +60,11 @@ The script uses environment variables when a different server is required:
 $env:VPS_HOST='157.66.100.124'
 $env:VPS_USER='root'
 $env:DEPLOY_PATH='/var/www/shoppefood'
-$env:VPS_IDENTITY_FILE="$env:USERPROFILE\.ssh\shoppefood_vps_ed25519"
+$env:VPS_IDENTITY_FILE="$env:USERPROFILE\.ssh\shoppefood_vps_rsa"
 .\deploy\web\redeploy-vps.ps1
 ```
+
+The current VPS uses `C:\Users\LOQ\.ssh\shoppefood_vps_rsa` by default. Set
+`VPS_IDENTITY_FILE` explicitly when using another key.
 
 No password, private key, Firebase secret, or service-account file is stored in the repository.

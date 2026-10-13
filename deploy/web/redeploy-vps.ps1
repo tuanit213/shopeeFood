@@ -2,7 +2,7 @@ param(
     [string]$VpsHost = $(if ($env:VPS_HOST) { $env:VPS_HOST } else { '157.66.100.124' }),
     [string]$VpsUser = $(if ($env:VPS_USER) { $env:VPS_USER } else { 'root' }),
     [string]$DeployPath = $(if ($env:DEPLOY_PATH) { $env:DEPLOY_PATH } else { '/var/www/shoppefood' }),
-    [string]$IdentityFile = $(if ($env:VPS_IDENTITY_FILE) { $env:VPS_IDENTITY_FILE } else { "$env:USERPROFILE\.ssh\shoppefood_vps_ed25519" }),
+    [string]$IdentityFile = $(if ($env:VPS_IDENTITY_FILE) { $env:VPS_IDENTITY_FILE } else { "$env:USERPROFILE\.ssh\shoppefood_vps_rsa" }),
     [switch]$SkipBuild
 )
 
