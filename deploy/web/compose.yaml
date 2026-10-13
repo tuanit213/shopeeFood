@@ -1,0 +1,9 @@
+services:
+  shopeefood-web:
+    build:
+      context: ../..
+      dockerfile: deploy/web/Dockerfile
+    image: shopeefood-web:review
+    restart: unless-stopped
+    ports:
+      - "8080:80"

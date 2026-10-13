@@ -27,12 +27,14 @@
 
 | STT | Thành viên | Công việc thực hiện | Tỉ lệ đóng góp |
 | --- | --- | --- | ---: |
-| 1 | **tuanit213** | Khởi tạo project, cấu trúc thư mục, tích hợp Firebase, xử lý định vị/map, trang chủ, dữ liệu quán/món, giỏ hàng, đặt hàng, theo dõi đơn, kiểm thử, merge code, clean code và chuẩn bị demo. | 45% |
-| 2 | **Huy** | Xây dựng các màn hình tài khoản: đăng nhập, đăng ký, quên mật khẩu, đổi mật khẩu; xử lý form, validation và luồng điều hướng auth. | 25% |
-| 3 | **L.Tuấn** | Xây dựng và hoàn thiện UI trang chủ, profile, change password, bottom navigation, bố cục giao diện và một số phần polish theo ShopeeFood. | 30% |
+| 1 | **Trần Hoàng Anh Tuấn** | Trưởng nhóm; kiến trúc, tích hợp Firebase, quản lý GitHub/Jira, hợp nhất code, kiểm thử tích hợp và chuẩn bị báo cáo. | 30% |
+| 2 | **Lê Công Tuấn** | Firebase Functions, Firestore rules/indexes, catalog seed, kiểm thử backend và triển khai staging. | 20% |
+| 3 | **Thiều Trung Kiên** | Flutter UI phía khách hàng, catalog, giỏ hàng, checkout và luồng tạo đơn. | 20% |
+| 4 | **Nguyễn Trường Khải** | Address V2, bản đồ, GPS/route, theo dõi đơn và tích hợp luồng tài xế. | 15% |
+| 5 | **Văn Công Tín** | Kiểm thử, tài liệu SRS/README, bằng chứng demo và triển khai Flutter Web lên VPS. | 15% |
 |  | **Tổng** |  | **100%** |
 
-Ghi chú: tỉ lệ trên được đề xuất theo nhánh Git và phạm vi phần việc trong project. Nhóm có thể chỉnh lại theo đánh giá thực tế trước khi nộp.
+Ghi chú: phạm vi và tỉ lệ phải được đối chiếu lần cuối với commit GitHub và work item Jira trước khi nộp.
 
 ## Lời Nói Đầu
 
