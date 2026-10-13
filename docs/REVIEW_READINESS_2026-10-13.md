@@ -10,7 +10,7 @@
 | Jira | AMBER | Space and sprints are available; statuses/assignees require reconciliation with code evidence. |
 | Backend | GREEN (local) | Functions unit tests and Auth + Firestore + Functions emulator `createOrder` integration pass. |
 | Frontend | GREEN (local) | `flutter analyze` passes and all 98 Flutter tests pass. |
-| VPS deploy | RED | No VPS host/domain/SSH credentials or verified public URL are available. Deployment files are prepared. |
+| VPS deploy | GREEN | Ubuntu 24.04 VPS `157.66.100.124` serves Flutter Web through Nginx; public `/` and `/healthz` return HTTP 200. |
 | Firebase staging | RED | No isolated staging Firebase project and no approved non-empty catalog dataset are configured. |
 
 ## Verified commands
@@ -55,6 +55,7 @@ Observed: dry-run succeeds, but all dataset counts are `0`.
 - Frontend: Flutter customer application; a separate Flutter driver MVP also exists.
 - Backend: Firebase Authentication, Firestore, security rules/indexes, and callable Cloud Functions.
 - VPS: hosts the compiled Flutter Web static application through Nginx. Firebase backend services remain deployed on Firebase infrastructure.
+- VPS evidence: branch `codex/vps-deployment`, commit `03e17b3`, Nginx active, UFW allows SSH and HTTP/HTTPS, public URL `http://157.66.100.124/`.
 - Trusted order flow: Flutter sends IDs and quantities to `createOrder`; the function loads server catalog data, validates availability, calculates pricing, writes immutable snapshots, and applies idempotency.
 
 ## Demonstration order
@@ -66,7 +67,7 @@ Observed: dry-run succeeds, but all dataset counts are `0`.
 5. Run Functions unit tests and emulator integration.
 6. Demonstrate customer app: auth, catalog, cart, address, checkout, order tracking.
 7. Demonstrate driver MVP separately and state that production integration is pending.
-8. Open the VPS frontend URL and explain Firebase backend deployment separately.
+8. Open `http://157.66.100.124/` and explain Firebase backend deployment separately.
 9. Finish with known gaps and the next sprint plan; do not claim staging/VPS completion without the URL and deployment output.
 
 ## Immediate completion checklist
@@ -77,5 +78,5 @@ Observed: dry-run succeeds, but all dataset counts are `0`.
 - [ ] Supply approved catalog data with provenance.
 - [ ] Create/select an isolated Firebase staging project.
 - [ ] Deploy Firestore rules, indexes, and Functions to staging.
-- [ ] Provide VPS host/domain and deploy the Flutter Web image.
-- [ ] Run public smoke tests and capture evidence.
+- [x] Provide VPS host/domain and deploy the Flutter Web static build.
+- [x] Run public smoke tests and capture evidence (`/` = 200, `/healthz` = 200).
