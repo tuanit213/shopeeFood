@@ -55,7 +55,7 @@ Observed: dry-run succeeds, but all dataset counts are `0`.
 - Frontend: Flutter customer application; a separate Flutter driver MVP also exists.
 - Backend: Firebase Authentication, Firestore, security rules/indexes, and callable Cloud Functions.
 - VPS: hosts the compiled Flutter Web static application through Nginx. Firebase backend services remain deployed on Firebase infrastructure.
-- VPS evidence: branch `codex/vps-deployment`, commit `03e17b3`, Nginx active, UFW allows SSH and HTTP/HTTPS, public URL `http://157.66.100.124/`.
+- VPS evidence: branch `codex/vps-deployment`, commit `c53106e`, Nginx active, UFW allows SSH and HTTP/HTTPS, public URL `http://157.66.100.124/`.
 - Trusted order flow: Flutter sends IDs and quantities to `createOrder`; the function loads server catalog data, validates availability, calculates pricing, writes immutable snapshots, and applies idempotency.
 
 ## Demonstration order
